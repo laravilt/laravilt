@@ -1,0 +1,31 @@
+import { InertiaLinkProps } from '@inertiajs/vue3';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs));
+}
+
+export function urlIsActive(
+    urlToCheck: NonNullable<InertiaLinkProps['href']>,
+    currentUrl: string,
+) {
+    const url = toUrl(urlToCheck);
+
+    // Exact match
+    if (url === currentUrl) {
+        return true;
+    }
+
+    // Check if current URL starts with the nav item URL (for nested routes)
+    // But exclude the dashboard root to avoid matching everything
+    if (url !== '/dashboard' && currentUrl.startsWith(url)) {
+        return true;
+    }
+
+    return false;
+}
+
+export function toUrl(href: NonNullable<InertiaLinkProps['href']>) {
+    return typeof href === 'string' ? href : href?.url;
+}

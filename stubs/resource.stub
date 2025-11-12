@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Laravilt\Resources;
+
+use App\Models\{{ model }};
+use Laravilt\Forms\Form;
+use Laravilt\Grids\Grid;
+use Laravilt\Infolists\InfoList;
+use Laravilt\Panel\Resources\Resource;
+use Laravilt\Tables\Table;
+
+class {{ class }} extends Resource
+{
+    protected static string $model = {{ model }}::class;
+
+    protected static ?string $label = '{{ label }}';
+
+    protected static ?string $icon = 'heroicon-o-squares-2x2';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                // Add your form fields here
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                // Add your table columns here
+            ])
+            ->filters([
+                // Add your filters here
+            ])
+            ->actions([
+                // Add your actions here
+            ]);
+    }
+
+    public static function grid(Grid $grid): Grid
+    {
+        return $grid
+            ->columns([
+                // Add your grid columns here
+            ]);
+    }
+
+    public static function infolist(InfoList $infolist): InfoList
+    {
+        return $infolist
+            ->schema([
+                // Add your info entries here
+            ]);
+    }
+}

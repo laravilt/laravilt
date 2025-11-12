@@ -1,0 +1,58 @@
+{
+  "name": "Vue Starter Kit Blueprint",
+  "version": "1.0.0",
+  "description": "Foundation for Laravilt applications using Vue 3 + Inertia.js",
+  "files": {
+    "js/app.ts.stub": "resources/js/app.ts",
+    "js/ssr.ts.stub": "resources/js/ssr.ts",
+    "js/lib/utils.ts.stub": "resources/js/lib/utils.ts",
+    "js/composables/useAppearance.ts.stub": "resources/js/composables/useAppearance.ts",
+    "js/composables/useInitials.ts.stub": "resources/js/composables/useInitials.ts",
+    "js/types/index.d.ts.stub": "resources/js/types/index.d.ts",
+    "js/types/globals.d.ts.stub": "resources/js/types/globals.d.ts",
+    "css/app.css.stub": "resources/css/app.css",
+    "config/vite.config.ts.stub": "vite.config.ts",
+    "config/tsconfig.json.stub": "tsconfig.json"
+  },
+  "dependencies": {
+    "@inertiajs/vue3": "^2.0.0",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vue/server-renderer": "^3.5.0",
+    "vue": "^3.5.0",
+    "axios": "^1.7.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "laravel-vite-plugin": "^1.1.0",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.6.0",
+    "vite": "^7.0.0",
+    "vue-tsc": "^2.2.0"
+  },
+  "importReplacements": {
+    "@laravilt/support/components/": "@/Components/",
+    "@laravilt/support/composables/": "@/composables/",
+    "@laravilt/support/lib/": "@/lib/",
+    "@laravilt/support/types": "@/types",
+    "@laravilt/panel/components/": "@/Components/laravilt/",
+    "@laravilt/panel/layouts/": "@/Layouts/laravilt/",
+    "@laravilt/panel/pages/": "@/Pages/laravilt/",
+    "@laravilt/forms/components/": "@/Components/laravilt/"
+  },
+  "directories": {
+    "required": [
+      "resources/js",
+      "resources/js/components",
+      "resources/js/composables",
+      "resources/js/layouts",
+      "resources/js/lib",
+      "resources/js/pages",
+      "resources/js/types",
+      "resources/css"
+    ]
+  }
+}

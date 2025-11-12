@@ -1,0 +1,95 @@
+import path from 'path';
+import { Plugin } from 'vite';
+import fs from 'fs';
+
+interface LaraviltPackagesOptions {
+    /**
+     * The root directory where Laravilt packages are located
+     * @default './packages/laravilt'
+     */
+    packagesDir?: string;
+
+    /**
+     * Additional custom aliases to merge with auto-discovered packages
+     * @default {}
+     */
+    customAliases?: Record<string, string>;
+}
+
+/**
+ * Vite plugin to automatically register Laravilt package aliases
+ *
+ * This plugin scans the packages directory and creates path aliases for each package
+ * that has a resources/js directory, allowing imports like:
+ *
+ * import Component from '@laravilt/package-name/components/Component.vue'
+ *
+ * @example
+ * ```ts
+ * // vite.config.ts
+ * import { laraviltPackages } from './vite-plugins/laravilt-packages'
+ *
+ * export default defineConfig({
+ *   plugins: [laraviltPackages()]
+ * })
+ * ```
+ */
+export function laraviltPackages(options: LaraviltPackagesOptions = {}): Plugin {
+    const {
+        packagesDir = './packages/laravilt',
+        customAliases = {},
+    } = options;
+
+    return {
+        name: 'vite-plugin-laravilt-packages',
+
+        config(config) {
+            const aliases: Record<string, string> = { ...customAliases };
+            const packagesPath = path.resolve(process.cwd(), packagesDir);
+
+            // Check if packages directory exists
+            if (!fs.existsSync(packagesPath)) {
+                console.warn(`[laravilt-packages] Packages directory not found: ${packagesPath}`);
+                return config;
+            }
+
+            // Read all package directories
+            const packageDirs = fs.readdirSync(packagesPath, { withFileTypes: true })
+                .filter(dirent => dirent.isDirectory())
+                .map(dirent => dirent.name);
+
+            // Create aliases for each package that has resources/js
+            for (const packageName of packageDirs) {
+                const resourcesJsPath = path.join(packagesPath, packageName, 'resources', 'js');
+
+                if (fs.existsSync(resourcesJsPath)) {
+                    const aliasKey = `@laravilt/${packageName}`;
+                    aliases[aliasKey] = path.resolve(resourcesJsPath);
+                }
+            }
+
+            // Log discovered packages in development
+            if (process.env.NODE_ENV !== 'production') {
+                const packageNames = Object.keys(aliases)
+                    .filter(key => key.startsWith('@laravilt/'))
+                    .map(key => key.replace('@laravilt/', ''))
+                    .sort();
+
+                if (packageNames.length > 0) {
+                    console.log(`[laravilt-packages] Discovered ${packageNames.length} package(s): ${packageNames.join(', ')}`);
+                }
+            }
+
+            return {
+                ...config,
+                resolve: {
+                    ...config.resolve,
+                    alias: {
+                        ...config.resolve?.alias,
+                        ...aliases,
+                    },
+                },
+            };
+        },
+    };
+}
