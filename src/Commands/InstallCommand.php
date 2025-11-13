@@ -457,8 +457,17 @@ PHP;
             }
         }
 
-        // Publish middleware
-        $this->call('inertia:middleware', ['--no-interaction' => true]);
+        @exec(PHP_BINARY.' artisan package:discover --ansi', $outputDiscover, $discoverCode);
+        @exec(PHP_BINARY.' artisan inertia:middleware --no-interaction', $outputInertia, $inertiaCode);
+
+        if (($discoverCode ?? 0) !== 0) {
+            $this->components->warn('Package discovery returned a non-zero exit code after installing Inertia.');
+        }
+
+        if (($inertiaCode ?? 0) !== 0) {
+            $this->components->warn('Could not run inertia:middleware in a fresh process; attempting in-process fallback...');
+            $this->call('inertia:middleware', ['--no-interaction' => true]);
+        }
 
         // Create basic Vue setup structure
         $this->createVueSetup();
