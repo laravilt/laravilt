@@ -13,7 +13,7 @@ use function Laravel\Prompts\text;
 
 class MakePanelCommand extends Command
 {
-    protected $signature = 'laravilt:make-panel {name? : The panel name}
+    protected $signature = 'laravilt:panel {name? : The panel name}
                             {--path= : The URL path for the panel}
                             {--id= : The panel ID}
                             {--force : Overwrite existing files}';

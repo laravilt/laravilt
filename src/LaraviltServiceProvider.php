@@ -8,6 +8,8 @@ use Illuminate\Support\ServiceProvider;
 use Laravilt\Commands\InstallCommand;
 use Laravilt\Commands\MakePanelCommand;
 use Laravilt\Commands\MakeResourceCommand;
+use Laravilt\Commands\RestoreCommand;
+use Laravilt\Commands\UpdateCommand;
 
 class LaraviltServiceProvider extends ServiceProvider
 {
@@ -27,6 +29,8 @@ class LaraviltServiceProvider extends ServiceProvider
                 InstallCommand::class,
                 MakeResourceCommand::class,
                 MakePanelCommand::class,
+                UpdateCommand::class,
+                RestoreCommand::class,
             ]);
         }
     }

@@ -9,13 +9,33 @@ import { Toaster } from '@laravilt/support/components/ui/toast';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+// Pre-load all possible page locations
+const localPages = import.meta.glob<DefineComponent>('./pages/**/*.vue');
+const panelPages = import.meta.glob<DefineComponent>('../../vendor/laravilt/panel/resources/js/pages/**/*.vue');
+
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
-    resolve: (name) =>
-        resolvePageComponent(
+    resolve: async (name) => {
+        // First, check if this page exists in local pages directory (for overrides)
+        const localPath = `./pages/${name}.vue`;
+        if (localPages[localPath]) {
+            return await localPages[localPath]();
+        }
+
+        // If page starts with 'laravilt/', try to resolve from panel package
+        if (name.startsWith('laravilt/')) {
+            const panelPath = `../../vendor/laravilt/panel/resources/js/pages/${name}.vue`;
+            if (panelPages[panelPath]) {
+                return await panelPages[panelPath]();
+            }
+        }
+
+        // Fallback: use default resolver
+        return resolvePageComponent(
             `./pages/${name}.vue`,
-            import.meta.glob<DefineComponent>('./pages/**/*.vue'),
-        ),
+            localPages,
+        );
+    },
     setup({ el, App, props, plugin }) {
         const app = createApp({
             render: () => h('div', [

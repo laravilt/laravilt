@@ -73,25 +73,41 @@ class InstallCommand extends Command
             if ($this->option('fresh') || (! $this->option('no-interaction') && $this->confirm('Would you like to create an example User resource?', true))) {
                 $this->call('laravilt:resource', ['name' => 'UserResource']);
             }
+
+            // Generate Wayfinder types
+            $this->newLine();
+            $this->components->info('Generating Wayfinder types...');
+            $this->call('wayfinder:generate');
         }
 
         $this->newLine();
         $this->components->info('Laravilt installed successfully! 🎉');
         $this->newLine();
 
+        // Ask if user wants to run npm install and build
+        if (! $this->option('no-interaction') && $this->confirm('Would you like to run npm install and npm run build now?', true)) {
+            $this->components->info('Running npm install...');
+            $this->runNpmInstall();
+
+            $this->newLine();
+            $this->components->info('Running npm run build...');
+            $this->runNpmBuild();
+        }
+
+        $this->newLine();
         if ($withPanels) {
             $this->components->info('Next steps:');
             $this->components->bulletList([
                 'Configure your panel in app/Providers/Laravilt/DashboardPanelProvider.php',
                 'Create resources using: php artisan laravilt:resource YourResource',
-                'Run: npm install && npm run dev',
+                'Run: npm run dev (for development)',
                 'Visit: '.config('app.url').'/dashboard',
             ]);
         } else {
             $this->components->info('Next steps:');
             $this->components->bulletList([
                 'Create resources using: php artisan laravilt:resource YourResource',
-                'Run: npm install && npm run dev',
+                'Run: npm run dev (for development)',
             ]);
         }
 
@@ -129,7 +145,7 @@ class InstallCommand extends Command
         }
 
         // Copy DashboardPanelProvider stub
-        $stubPath = base_path('packages/laravilt/panel/stubs/DashboardPanelProvider.stub');
+        $stubPath = base_path('vendor/laravilt/panel/stubs/DashboardPanelProvider.stub');
         $targetPath = app_path('Providers/Laravilt/DashboardPanelProvider.php');
 
         if (! File::exists($targetPath) || $this->option('fresh')) {
@@ -233,23 +249,9 @@ PHP;
 
     protected function publishPanelFrontend(): void
     {
-        // Publish panel pages
-        $this->call('vendor:publish', [
-            '--tag' => 'laravilt-panel-pages',
-            '--force' => $this->option('fresh'),
-        ]);
-
-        // Publish panel layouts
-        $this->call('vendor:publish', [
-            '--tag' => 'laravilt-panel-layouts',
-            '--force' => $this->option('fresh'),
-        ]);
-
-        // Publish panel components
-        $this->call('vendor:publish', [
-            '--tag' => 'laravilt-panel-components',
-            '--force' => $this->option('fresh'),
-        ]);
+        // Note: Panel pages/layouts/components are NOT published by default
+        // They are accessed via @laravilt/panel namespace
+        // Users can publish them with --tag=laravilt-panel-*-override if they need to customize
 
         // Publish support components (UI library, composables, types)
         $this->call('vendor:publish', [
@@ -265,7 +267,7 @@ PHP;
 
         $this->components->task('Published frontend assets');
 
-        // Rewrite imports in published files
+        // Rewrite imports in published files (only support and forms components)
         $this->rewriteImports();
     }
 
@@ -366,11 +368,24 @@ PHP;
             'reka-ui' => '^0.4.0',
             'tailwind-merge' => '^2.5.5',
             'vaul-vue' => '^0.4.0',
+
+            // FilePond dependencies
+            'filepond' => '^4.31.4',
+            'vue-filepond' => '^7.0.4',
+            'filepond-plugin-file-validate-type' => '^1.2.9',
+            'filepond-plugin-file-validate-size' => '^2.2.8',
+            'filepond-plugin-image-preview' => '^4.6.12',
+            'filepond-plugin-image-crop' => '^2.0.6',
+            'filepond-plugin-image-resize' => '^2.0.10',
+            'filepond-plugin-image-transform' => '^3.8.7',
+            'filepond-plugin-image-validate-size' => '^1.2.7',
+            'filepond-plugin-image-edit' => '^1.6.3',
+            'cropperjs' => '^1.6.2',
         ];
 
         $requiredDevDependencies = [
             '@types/node' => '^22.0.0',
-            'laravel-vite-plugin' => '^1.1.0',
+            'laravel-vite-plugin' => '^2.0.0',
             'tailwindcss' => '^4.0.0',
             'typescript' => '^5.6.0',
             'vite' => '^7.0.0',
@@ -460,10 +475,24 @@ PHP;
         // Publish middleware
         $this->call('inertia:middleware', ['--no-interaction' => true]);
 
+        // Replace with Laravilt-enhanced HandleInertiaRequests
+        $this->publishLaraviltMiddleware();
+
         // Create basic Vue setup structure
         $this->createVueSetup();
 
         $this->components->task('Vue + Inertia setup completed');
+    }
+
+    protected function publishLaraviltMiddleware(): void
+    {
+        $stubPath = __DIR__.'/../../stubs/HandleInertiaRequests.stub';
+        $targetPath = app_path('Http/Middleware/HandleInertiaRequests.php');
+
+        if (File::exists($stubPath)) {
+            File::copy($stubPath, $targetPath);
+            $this->components->task('Published Laravilt HandleInertiaRequests middleware');
+        }
     }
 
     protected function createVueSetup(): void
@@ -564,5 +593,71 @@ PHP;
         }
 
         $this->components->task('Rewrote import paths');
+    }
+
+    protected function runNpmInstall(): void
+    {
+        $process = proc_open(
+            'npm install',
+            [
+                0 => ['pipe', 'r'],
+                1 => ['pipe', 'w'],
+                2 => ['pipe', 'w'],
+            ],
+            $pipes,
+            base_path()
+        );
+
+        if (is_resource($process)) {
+            fclose($pipes[0]);
+
+            while ($line = fgets($pipes[1])) {
+                $this->line($line);
+            }
+
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+
+            $return = proc_close($process);
+
+            if ($return === 0) {
+                $this->components->task('npm install completed');
+            } else {
+                $this->components->error('npm install failed');
+            }
+        }
+    }
+
+    protected function runNpmBuild(): void
+    {
+        $process = proc_open(
+            'npm run build',
+            [
+                0 => ['pipe', 'r'],
+                1 => ['pipe', 'w'],
+                2 => ['pipe', 'w'],
+            ],
+            $pipes,
+            base_path()
+        );
+
+        if (is_resource($process)) {
+            fclose($pipes[0]);
+
+            while ($line = fgets($pipes[1])) {
+                $this->line($line);
+            }
+
+            fclose($pipes[1]);
+            fclose($pipes[2]);
+
+            $return = proc_close($process);
+
+            if ($return === 0) {
+                $this->components->task('npm run build completed');
+            } else {
+                $this->components->error('npm run build failed');
+            }
+        }
     }
 }

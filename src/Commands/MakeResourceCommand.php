@@ -30,12 +30,56 @@ class MakeResourceCommand extends Command
 
     public function handle(): int
     {
-        // Ask for table name FIRST (optional)
-        $tableName = $this->option('table') ?? text(
-            label: 'Database table name (optional - leave empty to specify resource name)',
-            placeholder: 'e.g., users, products, customers',
-            required: false
-        );
+        // Get all database tables using database-agnostic method
+        $tableNames = Schema::getTables();
+        $tableNames = array_map(fn ($table) => $table['name'], $tableNames);
+
+        // Filter out system tables
+        $tableNames = array_filter($tableNames, function ($table) {
+            return ! in_array($table, ['migrations', 'password_reset_tokens', 'sessions', 'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs']);
+        });
+
+        // Find tables that already have resources
+        $tablesWithResources = [];
+        $resourcesPath = app_path('Laravilt/Resources');
+        if (File::exists($resourcesPath)) {
+            $resourceDirs = File::directories($resourcesPath);
+            foreach ($resourceDirs as $dir) {
+                $dirName = basename($dir);
+                // Convert resource folder name to table name
+                $tableName = Str::plural(Str::snake($dirName));
+                $tablesWithResources[] = $tableName;
+            }
+        }
+
+        // Get tables without resources
+        $tablesWithoutResources = array_diff($tableNames, $tablesWithResources);
+
+        // Ask for table name - use dropdown if tables exist, otherwise text input
+        if (! empty($tablesWithoutResources) && ! $this->option('table')) {
+            $tableOptions = array_combine($tablesWithoutResources, $tablesWithoutResources);
+            $tableOptions['__custom__'] = '-- Enter custom table name --';
+
+            $tableName = select(
+                label: 'Select a table to generate resource for',
+                options: $tableOptions,
+                scroll: 10
+            );
+
+            if ($tableName === '__custom__') {
+                $tableName = text(
+                    label: 'Database table name',
+                    placeholder: 'e.g., users, products, customers',
+                    required: true
+                );
+            }
+        } else {
+            $tableName = $this->option('table') ?? text(
+                label: 'Database table name (optional - leave empty to specify resource name)',
+                placeholder: 'e.g., users, products, customers',
+                required: false
+            );
+        }
 
         // If table name provided, derive everything from it
         if ($tableName) {
@@ -268,9 +312,8 @@ use App\Laravilt\Resources\\{$folderName}\\InfoList\\{$modelName}InfoList;
 use App\Laravilt\Resources\\{$folderName}\\Pages;
 {$listImport}{$apiImport}{$flutterImport}
 use App\Models\\{$modelName};
-use Laravilt\Forms\Form;
-use Laravilt\Infolists\InfoList;
-use Laravilt\Panel\Resources\Resource;{$listUseStatement}
+use Laravilt\Panel\Resources\Resource;
+use Laravilt\Schemas\Schema;{$listUseStatement}
 
 class {$resourceName} extends Resource
 {
@@ -278,14 +321,14 @@ class {$resourceName} extends Resource
 
     protected static ?string \$navigationIcon = '{$iconName}';
 
-    public static function form(Form \$form): Form
+    public static function form(Schema \$schema): Schema
     {
-        return {$modelName}Form::configure(\$form);
+        return {$modelName}Form::configure(\$schema);
     }{$listMethod}
 
-    public static function infolist(InfoList \$infolist): InfoList
+    public static function infolist(Schema \$schema): Schema
     {
-        return {$modelName}InfoList::configure(\$infolist);
+        return {$modelName}InfoList::configure(\$schema);
     }
 
     public static function getPages(): array
@@ -417,12 +460,12 @@ use Laravilt\Forms\Components\Select;
 use Laravilt\Forms\Components\Textarea;
 use Laravilt\Forms\Components\TextInput;
 use Laravilt\Forms\Components\Toggle;
-use Laravilt\Forms\Form;
 use Laravilt\Schemas\Components\Section;
+use Laravilt\Schemas\Schema;
 
 class {$modelName}Form
 {
-    public static function configure(Form \$form): Form
+    public static function configure(Schema \$form): Schema
     {
         return \$form
             ->schema([
@@ -480,7 +523,9 @@ PHP;
                 $field = "Select::make('{$columnName}')\n                            ->relationship('{$relationName}', 'name')\n                            ->searchable()\n                            ->preload(){$required},";
             }
             // Check for common field names that need special input types
-            elseif (str_contains($columnName, 'email')) {
+            elseif ($columnName === 'password' || str_contains($columnName, 'password')) {
+                $field = "TextInput::make('{$columnName}')\n                            ->password(){$required}\n                            ->dehydrateStateUsing(fn (string \$state): string => bcrypt(\$state))\n                            ->dehydrated(fn (?string \$state): bool => filled(\$state))\n                            ->maxLength(255),";
+            } elseif (str_contains($columnName, 'email')) {
                 $field = "TextInput::make('{$columnName}')\n                            ->email(){$required}\n                            ->maxLength(255),";
             } elseif (str_contains($columnName, 'phone') || str_contains($columnName, 'tel')) {
                 $field = "TextInput::make('{$columnName}')\n                            ->tel(){$required}\n                            ->maxLength(255),";
@@ -499,10 +544,12 @@ PHP;
                 $field = "DatePicker::make('{$columnName}')\n                            ->time(){$required},";
             } elseif ($columnInfo['type'] === 'enum') {
                 $field = "Select::make('{$columnName}')\n                            ->options([/* add enum options */]){$required},";
-            } elseif (in_array($columnInfo['type'], ['integer', 'bigint', 'smallint', 'decimal', 'float', 'double', 'numeric'])) {
-                // Use number input for numeric fields
-                $step = in_array($columnInfo['type'], ['decimal', 'float', 'double', 'numeric']) ? '->step(0.01)' : '';
-                $field = "TextInput::make('{$columnName}')\n                            ->number(){$step}{$required},";
+            } elseif (in_array($columnInfo['type'], ['integer', 'bigint', 'smallint'])) {
+                // Use integer input for whole number fields
+                $field = "TextInput::make('{$columnName}')\n                            ->integer(){$required},";
+            } elseif (in_array($columnInfo['type'], ['decimal', 'float', 'double', 'numeric'])) {
+                // Use number input with step for decimal fields
+                $field = "TextInput::make('{$columnName}')\n                            ->number()->step(0.01){$required},";
             } else {
                 // Default to text input
                 $field = "TextInput::make('{$columnName}'){$required}\n                            ->maxLength(255),";
@@ -629,6 +676,11 @@ PHP;
 
 namespace App\Laravilt\Resources\\{$folderName}\\Grid;
 
+use Laravilt\Actions\BulkActionGroup;
+use Laravilt\Actions\DeleteAction;
+use Laravilt\Actions\DeleteBulkAction;
+use Laravilt\Actions\EditAction;
+use Laravilt\Actions\ViewAction;
 use Laravilt\Grids\Card;
 use Laravilt\Grids\Columns\ImageGridColumn;
 use Laravilt\Grids\Columns\TextGridColumn;
@@ -646,13 +698,21 @@ class {$modelName}Grid
                 Card::make()
                     ->header(fn (\$record) => \$record->name ?? \$record->title ?? '#{$modelName} '.\$record->id)
                     ->footer(fn (\$record) => \$record->email ?? \$record->description ?? null)
-                    ->schema([
-                        // Add card schema components here
-                    ])
             )
             ->filters([
                 // Add filters here
             ])
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ])
+            ->infiniteScroll()
             ->perPage(12)
             ->searchable();
     }
@@ -717,12 +777,12 @@ namespace App\Laravilt\Resources\\{$folderName}\\InfoList;
 
 use Laravilt\Infolists\Entries\BadgeEntry;
 use Laravilt\Infolists\Entries\TextEntry;
-use Laravilt\Infolists\InfoList;
 use Laravilt\Schemas\Components\Section;
+use Laravilt\Schemas\Schema;
 
 class {$modelName}InfoList
 {
-    public static function configure(InfoList \$infolist): InfoList
+    public static function configure(Schema \$infolist): Schema
     {
         return \$infolist
             ->schema([
@@ -760,7 +820,8 @@ PHP;
 
         $entries = [];
         foreach ($this->tableColumns as $columnName => $columnInfo) {
-            if ($columnName === 'id') {
+            // Skip id and password fields
+            if ($columnName === 'id' || $columnName === 'password' || str_contains($columnName, 'password')) {
                 continue;
             }
 
@@ -774,6 +835,84 @@ PHP;
         }
 
         return implode("\n\n", $entries)."\n";
+    }
+
+    protected function generateApi(string $resourceName, string $folderName, string $modelName): void
+    {
+        $apiPath = app_path("Laravilt/Resources/{$folderName}/Api/{$modelName}Api.php");
+
+        if (File::exists($apiPath) && ! $this->option('force')) {
+            return;
+        }
+
+        $fields = $this->generateApiFields();
+
+        $stub = <<<PHP
+<?php
+
+namespace App\Laravilt\Resources\\{$folderName}\\Api;
+
+use Laravilt\Api\Api;
+use Laravilt\Api\Components\ApiField;
+
+class {$modelName}Api
+{
+    /**
+     * Configure API schema for this resource.
+     *
+     * Works exactly like Form::configure() - returns an Api instance with components.
+     */
+    public static function configure(Api \$api): Api
+    {
+        return \$api
+            ->schema([
+{$fields}
+            ]);
+    }
+}
+
+PHP;
+
+        File::ensureDirectoryExists(dirname($apiPath));
+        File::put($apiPath, $stub);
+
+        $this->components->task("Created Api: {$modelName}Api");
+    }
+
+    protected function generateApiFields(): string
+    {
+        if (empty($this->tableColumns)) {
+            return <<<'PHP'
+                ApiField::make('id')->type('integer'),
+                ApiField::make('name')->type('string'),
+                ApiField::make('created_at')->type('datetime')->format('c'),
+                ApiField::make('updated_at')->type('datetime')->format('c'),
+PHP;
+        }
+
+        $fields = [];
+        foreach ($this->tableColumns as $columnName => $columnInfo) {
+            $nullable = $columnInfo['nullable'] ? '->nullable()' : '';
+
+            $type = match ($columnInfo['type']) {
+                'bigint', 'integer', 'smallint', 'tinyint' => 'integer',
+                'boolean' => 'boolean',
+                'date' => 'date',
+                'datetime', 'timestamp' => 'datetime',
+                'decimal', 'float', 'double', 'numeric' => 'number',
+                default => 'string',
+            };
+
+            $format = '';
+            if (in_array($columnInfo['type'], ['datetime', 'timestamp'])) {
+                $format = "->format('c')";
+            }
+
+            $field = "ApiField::make('{$columnName}')->type('{$type}'){$format}{$nullable},";
+            $fields[] = "                {$field}";
+        }
+
+        return implode("\n", $fields)."\n";
     }
 
     /**
@@ -1133,50 +1272,6 @@ PHP;
 
         // Default icon
         return 'LayoutGrid';
-    }
-
-    /**
-     * Generate API class with schema components (like Form/Table).
-     */
-    protected function generateApi(string $resourceName, string $folderName, string $modelName): void
-    {
-        $apiPath = app_path("Laravilt/Resources/{$folderName}/Api/{$modelName}Api.php");
-
-        $fields = $this->generateApiComponents();
-
-        $stub = <<<PHP
-<?php
-
-namespace App\Laravilt\Resources\\{$folderName}\\Api;
-
-use Laravilt\Api\Api;
-use Laravilt\Api\Components\ApiField;
-
-class {$modelName}Api
-{
-    /**
-     * Configure API schema for this resource.
-     *
-     * Works exactly like Form::configure() - returns an Api instance with components.
-     *
-     * @param  \Laravilt\Api\Api  \$api
-     * @return \Laravilt\Api\Api
-     */
-    public static function configure(Api \$api): Api
-    {
-        return \$api
-            ->schema([
-{$fields}
-            ]);
-    }
-}
-
-PHP;
-
-        File::ensureDirectoryExists(dirname($apiPath));
-        File::put($apiPath, $stub);
-
-        $this->components->task("Created Api: {$modelName}Api");
     }
 
     /**
