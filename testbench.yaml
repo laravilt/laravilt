@@ -1,0 +1,10 @@
+providers:
+  - Laravilt\Laravilt\LaraviltServiceProvider
+
+workbench:
+  welcome: false
+  discovers:
+    web: true
+    api: true
+    commands: true
+    components: true

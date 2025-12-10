@@ -1,0 +1,87 @@
+{
+    "name": "laravilt/laravilt",
+    "description": "Laravilt - Modern Laravel Admin Panel with Vue 3, Inertia.js, and AI capabilities",
+    "version": "1.0.0",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "laravilt",
+        "admin-panel",
+        "inertia",
+        "vue",
+        "filament-alternative"
+    ],
+    "authors": [
+        {
+            "name": "Fady Mondy",
+            "email": "info@3x1.io"
+        }
+    ],
+    "require": {
+        "php": "^8.3|^8.4",
+        "laravilt/support": "^1.0",
+        "laravilt/panel": "^1.0",
+        "laravilt/auth": "^1.0",
+        "laravilt/forms": "^1.0",
+        "laravilt/tables": "^1.0",
+        "laravilt/actions": "^1.0",
+        "laravilt/schemas": "^1.0",
+        "laravilt/infolists": "^1.0",
+        "laravilt/notifications": "^1.0",
+        "laravilt/widgets": "^1.0",
+        "laravilt/query-builder": "^1.0",
+        "laravilt/ai": "^1.0",
+        "laravilt/plugins": "^1.0"
+    },
+    "require-dev": {
+        "larastan/larastan": "^2.9||^3.0",
+        "laravel/pint": "^1.14",
+        "nunomaduro/collision": "^8.1.1||^7.10.0",
+        "orchestra/testbench": "^10.0",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-arch": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0",
+        "pestphp/pest-plugin-livewire": "^3.0",
+        "pestphp/pest-plugin-type-coverage": "^3.5",
+        "phpstan/extension-installer": "^1.3||^2.0",
+        "phpstan/phpstan-deprecation-rules": "^1.1||^2.0",
+        "phpstan/phpstan-phpunit": "^1.3||^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Laravilt\\Laravilt\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Laravilt\\Laravilt\\Tests\\": "tests/",
+            "Laravilt\\Laravilt\\Tests\\Database\\Factories\\": "tests/database/factories",
+            "Laravilt\\Laravilt\\Tests\\Database\\Seeders\\": "tests/database/seeders"
+        }
+    },
+    "scripts": {
+        "testbench": "vendor/bin/testbench package:discover --ansi",
+        "db": "vendor/bin/testbench package:create-sqlite-db && vendor/bin/testbench migrate",
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=512M",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Laravilt\\Laravilt\\LaraviltServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

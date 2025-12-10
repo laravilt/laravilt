@@ -1,0 +1,130 @@
+{
+  "name": "laravilt",
+  "version": "1.0.0",
+  "description": "MCP Server for Laravilt - Modern Laravel Admin Panel",
+  "mcpServers": {
+    "laravilt-docs": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "./docs"
+      ],
+      "metadata": {
+        "description": "Main Laravilt documentation and guides",
+        "categories": ["admin-panel", "laravel", "vue", "inertia"]
+      }
+    }
+  },
+  "resources": [
+    {
+      "uri": "laravilt://docs/index",
+      "name": "Laravilt Documentation",
+      "description": "Complete documentation for Laravilt admin panel",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "laravilt://docs/installation",
+      "name": "Installation Guide",
+      "description": "Step-by-step installation guide",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "laravilt://docs/quick-start",
+      "name": "Quick Start Guide",
+      "description": "Get started quickly with Laravilt",
+      "mimeType": "text/markdown"
+    },
+    {
+      "uri": "laravilt://docs/configuration",
+      "name": "Configuration Reference",
+      "description": "All configuration options",
+      "mimeType": "text/markdown"
+    }
+  ],
+  "tools": [
+    {
+      "name": "install_laravilt",
+      "description": "Install Laravilt admin panel. Uses: php artisan laravilt:install",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "type": "boolean",
+            "description": "Overwrite existing files"
+          },
+          "skipMigrations": {
+            "type": "boolean",
+            "description": "Skip running migrations"
+          },
+          "skipNpm": {
+            "type": "boolean",
+            "description": "Skip npm install and build"
+          }
+        }
+      }
+    },
+    {
+      "name": "create_admin_user",
+      "description": "Create a new admin user. Uses: php artisan laravilt:make-user",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "User's name"
+          },
+          "email": {
+            "type": "string",
+            "description": "User's email"
+          },
+          "password": {
+            "type": "string",
+            "description": "User's password"
+          }
+        }
+      }
+    },
+    {
+      "name": "list_packages",
+      "description": "List all Laravilt packages and their status",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    {
+      "name": "search_laravilt_docs",
+      "description": "Search across all Laravilt documentation",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query"
+          },
+          "package": {
+            "type": "string",
+            "enum": ["all", "panel", "forms", "tables", "auth", "ai", "notifications", "widgets"],
+            "description": "Package to search in (default: all)"
+          }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "get_config_reference",
+      "description": "Get configuration reference for a specific setting",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "setting": {
+            "type": "string",
+            "description": "Configuration setting name"
+          }
+        },
+        "required": ["setting"]
+      }
+    }
+  ]
+}
