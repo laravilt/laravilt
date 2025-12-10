@@ -3,6 +3,8 @@
 namespace Laravilt\Laravilt;
 
 use Illuminate\Support\ServiceProvider;
+use Laravel\Mcp\Facades\Mcp;
+use Laravilt\Laravilt\Mcp\LaraviltServer;
 
 class LaraviltServiceProvider extends ServiceProvider
 {
@@ -25,6 +27,11 @@ class LaraviltServiceProvider extends ServiceProvider
     {
         // Load translations
         $this->loadTranslationsFrom(__DIR__ . '/../resources/lang', 'laravilt');
+
+        // Register MCP server
+        if (class_exists(Mcp::class)) {
+            Mcp::server('laravilt', LaraviltServer::class);
+        }
 
         if ($this->app->runningInConsole()) {
             // Publish config

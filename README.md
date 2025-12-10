@@ -1,3 +1,5 @@
+![laravilt](https://raw.githubusercontent.com/laravilt/laravilt/master/arts/screenshot.jpg)
+
 # Laravilt
 
 A modern Laravel Admin Panel built with Vue 3, Inertia.js, and AI capabilities. Inspired by Filament but powered by the frontend.
@@ -5,6 +7,9 @@ A modern Laravel Admin Panel built with Vue 3, Inertia.js, and AI capabilities. 
 [![Latest Stable Version](https://poser.pugx.org/laravilt/laravilt/version.svg)](https://packagist.org/packages/laravilt/laravilt)
 [![License](https://poser.pugx.org/laravilt/laravilt/license.svg)](https://packagist.org/packages/laravilt/laravilt)
 [![Downloads](https://poser.pugx.org/laravilt/laravilt/d/total.svg)](https://packagist.org/packages/laravilt/laravilt)
+[![Dependabot Updates](https://github.com/laravilt/laravilt/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/laravilt/laravilt/actions/workflows/dependabot/dependabot-updates)
+[![PHP Code Styling](https://github.com/laravilt/laravilt/actions/workflows/fix-php-code-styling.yml/badge.svg)](https://github.com/laravilt/laravilt/actions/workflows/fix-php-code-styling.yml)
+[![Tests](https://github.com/laravilt/laravilt/actions/workflows/tests.yml/badge.svg)](https://github.com/laravilt/laravilt/actions/workflows/tests.yml)
 
 ## Features
 
