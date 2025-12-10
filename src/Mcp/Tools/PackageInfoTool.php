@@ -35,9 +35,9 @@ class PackageInfoTool extends Tool
         $composerData = json_decode(File::get($composerJsonPath), true);
 
         $output = "# {$packageName}\n\n";
-        $output .= "**Package:** ".($composerData['name'] ?? 'N/A')."\n";
-        $output .= "**Version:** ".($composerData['version'] ?? 'N/A')."\n";
-        $output .= "**Description:** ".($composerData['description'] ?? 'N/A')."\n\n";
+        $output .= '**Package:** '.($composerData['name'] ?? 'N/A')."\n";
+        $output .= '**Version:** '.($composerData['version'] ?? 'N/A')."\n";
+        $output .= '**Description:** '.($composerData['description'] ?? 'N/A')."\n\n";
 
         // Dependencies
         if (isset($composerData['require']) && ! empty($composerData['require'])) {
