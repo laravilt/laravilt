@@ -1,7 +1,7 @@
 {
     "name": "laravilt/laravilt",
     "description": "Laravilt - Modern Laravel Admin Panel with Vue 3, Inertia.js, and AI capabilities",
-    "version": "1.0.5",
+    "version": "1.0.0",
     "type": "library",
     "license": "MIT",
     "keywords": [
