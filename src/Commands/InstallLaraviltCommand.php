@@ -40,6 +40,8 @@ class InstallLaraviltCommand extends Command
 
     protected string $aiModel = 'GPT_4O_MINI';
 
+    protected bool $shouldCreateUser = false;
+
     /**
      * Laravilt packages in installation order.
      */
@@ -91,83 +93,97 @@ class InstallLaraviltCommand extends Command
         $this->components->info('Installing Laravilt Admin Panel...');
         $this->newLine();
 
-        // Step 1: Publish package.json
+        // ============================================
+        // STEP 1: Gather all user input FIRST
+        // ============================================
+        $this->gatherUserInput();
+
+        // ============================================
+        // STEP 2: Run all non-interactive tasks
+        // ============================================
+        $this->newLine();
+        $this->components->info('Publishing files...');
+        $this->newLine();
+
+        // Publish package.json
         $this->publishPackageJson();
 
-        // Step 2: Publish Vite config
+        // Publish Vite config
         $this->publishViteConfig();
 
-        // Step 3: Publish CSS
+        // Publish CSS
         $this->publishCss();
 
-        // Step 4: Publish app.ts
+        // Publish app.ts
         $this->publishAppTs();
 
-        // Step 5: Publish app.blade.php
+        // Publish app.blade.php
         $this->publishAppBlade();
 
-        // Step 6: Publish middleware
+        // Publish middleware
         $this->publishMiddleware();
 
-        // Step 7: Publish layouts
+        // Publish layouts
         $this->publishLayouts();
 
-        // Step 8: Publish components
+        // Publish components
         $this->publishComponents();
 
-        // Step 9: Publish UI components
+        // Publish UI components
         $this->publishUiComponents();
 
-        // Step 10: Publish composables
+        // Publish composables
         $this->publishComposables();
 
-        // Step 11: Publish types
+        // Publish types
         $this->publishTypes();
 
-        // Step 12: Publish User model
+        // Publish User model
         $this->publishUserModel();
 
-        // Step 13: Publish bootstrap files
+        // Publish bootstrap files
         $this->publishBootstrap();
 
-        // Step 14: Publish route files
+        // Publish route files
         $this->publishRoutes();
 
-        // Step 15: Delete settings folder (handled by auth package)
+        // Delete settings folder (handled by auth package)
         $this->deleteSettingsFolder();
 
-        // Step 16: Delete Dashboard.vue (panels have their own dashboard)
+        // Delete Dashboard.vue (panels have their own dashboard)
         $this->deleteDashboardPage();
 
-        // Step 17: Publish Welcome.vue page
+        // Publish Welcome.vue page
         $this->publishWelcomePage();
 
-        // Step 18: Publish all package configs
+        // Publish all package configs
         $this->publishConfigs();
 
-        // Step 19: Publish assets
+        // Publish assets
         $this->publishAssets();
 
-        // Step 20: Run migrations
+        // Run migrations
         if (! $this->option('skip-migrations')) {
             $this->runMigrations();
         }
 
-        // Step 21: Clear caches
+        // Clear caches
         $this->clearCaches();
 
-        // Step 22: Create panel interactively
+        // Create panel (using previously gathered input)
         if (! $this->option('skip-panel')) {
-            $this->createPanelInteractively();
+            $this->createPanel();
         }
 
-        // Step 23: Install npm dependencies and build
+        // Install npm dependencies and build
         if (! $this->option('skip-npm')) {
             $this->runNpmCommands();
         }
 
-        // Step 24: Create admin user
-        $this->createAdminUser();
+        // Create admin user (using previously gathered input)
+        if ($this->shouldCreateUser) {
+            $this->call('laravilt:user');
+        }
 
         $this->newLine();
         $this->components->info('Laravilt has been installed successfully!');
@@ -186,40 +202,58 @@ class InstallLaraviltCommand extends Command
     }
 
     /**
-     * Create panel with interactive feature selection.
+     * Gather all user input at the beginning.
      */
-    protected function createPanelInteractively(): void
+    protected function gatherUserInput(): void
+    {
+        // Panel configuration
+        if (! $this->option('skip-panel')) {
+            $this->components->info('Panel Configuration');
+            $this->newLine();
+
+            // Ask for panel name
+            $this->panelName = text(
+                label: 'What is the panel identifier?',
+                placeholder: 'admin',
+                default: 'admin',
+                required: true,
+                hint: 'This will be used for the URL path (e.g., /admin)'
+            );
+
+            // Ask for features
+            $this->newLine();
+            $this->panelFeatures = multiselect(
+                label: 'Which features would you like to enable?',
+                options: $this->availableFeatures,
+                default: ['login', 'password-reset', 'profile', 'database-notifications'],
+                required: false,
+                hint: 'Use space to select, enter to confirm',
+                scroll: 12
+            );
+
+            // Ask for provider options based on selected features
+            $this->askForProviderOptions();
+        }
+
+        // Ask about creating admin user
+        $this->newLine();
+        $this->shouldCreateUser = confirm(
+            label: 'Would you like to create an admin user after installation?',
+            default: true
+        );
+    }
+
+    /**
+     * Create panel using previously gathered configuration.
+     */
+    protected function createPanel(): void
     {
         $this->newLine();
-        $this->components->info('Panel Configuration');
+        $this->components->info("Creating '{$this->panelName}' panel...");
         $this->newLine();
 
-        // Ask for panel name
-        $this->panelName = text(
-            label: 'What is the panel identifier?',
-            placeholder: 'admin',
-            default: 'admin',
-            required: true,
-            hint: 'This will be used for the URL path (e.g., /admin)'
-        );
-
-        // Ask for features
-        $this->newLine();
-        $this->panelFeatures = multiselect(
-            label: 'Which features would you like to enable?',
-            options: $this->availableFeatures,
-            default: ['login', 'password-reset', 'profile', 'database-notifications'],
-            required: false,
-            hint: 'Use space to select, enter to confirm',
-            scroll: 12
-        );
-
-        // Ask for provider options based on selected features
-        $this->askForProviderOptions();
-
-        // Create the panel
-        $this->newLine();
-        $this->components->task("Creating '{$this->panelName}' panel", function () {
+        // Create the panel provider
+        $this->components->task("Creating '{$this->panelName}' panel provider", function () {
             $this->generatePanelProvider();
 
             return true;
@@ -585,17 +619,6 @@ PHP;
     }
 
     /**
-     * Create admin user.
-     */
-    protected function createAdminUser(): void
-    {
-        $this->newLine();
-        if (confirm('Would you like to create an admin user now?', true)) {
-            $this->call('laravilt:user');
-        }
-    }
-
-    /**
      * Publish package.json.
      */
     protected function publishPackageJson(): void
@@ -831,31 +854,36 @@ VITE;
     }
 
     /**
-     * Delete Dashboard.vue pages (panels have their own dashboard).
+     * Clean up pages folder - keep only Welcome.vue.
      */
     protected function deleteDashboardPage(): void
     {
-        $deleted = false;
+        $pagesPath = resource_path('js/pages');
 
-        // Delete root Dashboard.vue
-        $rootDashboard = resource_path('js/pages/Dashboard.vue');
-        if (File::exists($rootDashboard)) {
-            File::delete($rootDashboard);
-            $deleted = true;
+        if (! File::isDirectory($pagesPath)) {
+            return;
         }
 
-        // Delete any Dashboard.vue in panel subdirectories
-        $pagesPath = resource_path('js/pages');
-        if (File::isDirectory($pagesPath)) {
-            $dashboards = File::glob("{$pagesPath}/*/Dashboard.vue");
-            foreach ($dashboards as $dashboard) {
-                File::delete($dashboard);
+        $deleted = false;
+
+        // Delete all files except Welcome.vue
+        $files = File::files($pagesPath);
+        foreach ($files as $file) {
+            if ($file->getFilename() !== 'Welcome.vue') {
+                File::delete($file->getPathname());
                 $deleted = true;
             }
         }
 
+        // Delete all subdirectories (panels will create their own pages)
+        $directories = File::directories($pagesPath);
+        foreach ($directories as $directory) {
+            File::deleteDirectory($directory);
+            $deleted = true;
+        }
+
         if ($deleted) {
-            $this->components->info('Deleted Dashboard.vue page(s)');
+            $this->components->info('Cleaned up pages folder');
         }
     }
 
