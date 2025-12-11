@@ -95,26 +95,32 @@ class InstallLaraviltCommand extends Command
         // Step 15: Delete settings folder (handled by auth package)
         $this->deleteSettingsFolder();
 
-        // Step 16: Publish all package configs
+        // Step 16: Delete Dashboard.vue (panels have their own dashboard)
+        $this->deleteDashboardPage();
+
+        // Step 17: Publish Welcome.vue page
+        $this->publishWelcomePage();
+
+        // Step 18: Publish all package configs
         $this->publishConfigs();
 
-        // Step 17: Publish assets
+        // Step 19: Publish assets
         $this->publishAssets();
 
-        // Step 18: Run migrations
+        // Step 20: Run migrations
         if (! $this->option('skip-migrations')) {
             $this->runMigrations();
         }
 
-        // Step 19: Install npm dependencies and build
+        // Step 21: Install npm dependencies and build
         if (! $this->option('skip-npm')) {
             $this->runNpmCommands();
         }
 
-        // Step 20: Clear caches
+        // Step 22: Clear caches
         $this->clearCaches();
 
-        // Step 21: Create panel if --panel option provided
+        // Step 23: Create panel if --panel option provided
         $panelName = $this->option('panel');
         if ($panelName) {
             $this->createPanel($panelName);
@@ -137,6 +143,9 @@ class InstallLaraviltCommand extends Command
 
         $this->components->bulletList($nextSteps);
         $this->newLine();
+
+        // Ask user to rate the repo
+        $this->askToRateRepo();
 
         return self::SUCCESS;
     }
@@ -161,17 +170,13 @@ class InstallLaraviltCommand extends Command
         $stubPath = $this->getStubPath('package.json.stub');
         $targetPath = base_path('package.json');
 
-        if (! File::exists($targetPath) || $this->option('force')) {
-            if (File::exists($stubPath)) {
-                $this->copyStub($stubPath, $targetPath);
-            } else {
-                // Create package.json inline if stub doesn't exist
-                $this->createPackageJsonInline($targetPath);
-            }
-            $this->components->info('package.json published');
+        if (File::exists($stubPath)) {
+            $this->copyStub($stubPath, $targetPath);
         } else {
-            $this->components->warn('Skipped package.json (already exists, use --force to overwrite)');
+            // Create package.json inline if stub doesn't exist
+            $this->createPackageJsonInline($targetPath);
         }
+        $this->components->info('package.json published');
     }
 
     /**
@@ -280,17 +285,13 @@ JSON;
         $stubPath = $this->getStubPath('vite.config.ts.stub');
         $targetPath = base_path('vite.config.ts');
 
-        if (! File::exists($targetPath) || $this->option('force')) {
-            if (File::exists($stubPath)) {
-                $this->copyStub($stubPath, $targetPath);
-            } else {
-                // Create vite config inline if stub doesn't exist
-                $this->createViteConfigInline($targetPath);
-            }
-            $this->components->info('Vite config published');
+        if (File::exists($stubPath)) {
+            $this->copyStub($stubPath, $targetPath);
         } else {
-            $this->components->warn('Skipped vite.config.ts (already exists, use --force to overwrite)');
+            // Create vite config inline if stub doesn't exist
+            $this->createViteConfigInline($targetPath);
         }
+        $this->components->info('Vite config published');
     }
 
     /**
@@ -370,12 +371,8 @@ VITE;
         $targetPath = resource_path('css/app.css');
 
         if (File::exists($stubPath)) {
-            if (! File::exists($targetPath) || $this->option('force')) {
-                $this->copyStub($stubPath, $targetPath);
-                $this->components->info('CSS published');
-            } else {
-                $this->components->warn('Skipped css/app.css (already exists, use --force to overwrite)');
-            }
+            $this->copyStub($stubPath, $targetPath);
+            $this->components->info('CSS published');
         }
     }
 
@@ -387,16 +384,12 @@ VITE;
         $stubPath = $this->getStubPath('app.ts.stub');
         $targetPath = resource_path('js/app.ts');
 
-        if (! File::exists($targetPath) || $this->option('force')) {
-            if (File::exists($stubPath)) {
-                $this->copyStub($stubPath, $targetPath);
-            } else {
-                $this->createAppTsInline($targetPath);
-            }
-            $this->components->info('app.ts published');
+        if (File::exists($stubPath)) {
+            $this->copyStub($stubPath, $targetPath);
         } else {
-            $this->components->warn('Skipped app.ts (already exists, use --force to overwrite)');
+            $this->createAppTsInline($targetPath);
         }
+        $this->components->info('app.ts published');
     }
 
     /**
@@ -492,15 +485,11 @@ TYPESCRIPT;
         $stubPath = $this->getStubPath('views/app.blade.php.stub');
         $targetPath = resource_path('views/app.blade.php');
 
-        if (! File::exists($targetPath) || $this->option('force')) {
-            if (File::exists($stubPath)) {
-                $this->copyStub($stubPath, $targetPath);
-                $this->components->info('app.blade.php published');
-            } else {
-                $this->components->warn('app.blade.php stub not found');
-            }
+        if (File::exists($stubPath)) {
+            $this->copyStub($stubPath, $targetPath);
+            $this->components->info('app.blade.php published');
         } else {
-            $this->components->warn('Skipped app.blade.php (already exists, use --force to overwrite)');
+            $this->components->warn('app.blade.php stub not found');
         }
     }
 
@@ -513,7 +502,7 @@ TYPESCRIPT;
             // UI components are published via service provider tags
             Artisan::call('vendor:publish', [
                 '--tag' => 'laravilt-panel-ui',
-                '--force' => $this->option('force'),
+                '--force' => true,
             ]);
 
             return true;
@@ -538,9 +527,7 @@ TYPESCRIPT;
             $targetPath = resource_path("js/composables/{$composable}");
 
             if (File::exists($stubPath)) {
-                if (! File::exists($targetPath) || $this->option('force')) {
-                    $this->copyStub($stubPath, $targetPath);
-                }
+                $this->copyStub($stubPath, $targetPath);
             }
         }
 
@@ -557,6 +544,33 @@ TYPESCRIPT;
         if (File::isDirectory($settingsPath)) {
             File::deleteDirectory($settingsPath);
             $this->components->info('Deleted settings folder (handled by auth package)');
+        }
+    }
+
+    /**
+     * Delete the Dashboard.vue page (panels create their own dashboard).
+     */
+    protected function deleteDashboardPage(): void
+    {
+        $dashboardPath = resource_path('js/pages/Dashboard.vue');
+
+        if (File::exists($dashboardPath)) {
+            File::delete($dashboardPath);
+            $this->components->info('Deleted Dashboard.vue (panels have their own dashboard)');
+        }
+    }
+
+    /**
+     * Publish the Welcome.vue page.
+     */
+    protected function publishWelcomePage(): void
+    {
+        $stubPath = $this->getStubPath('pages/Welcome.vue.stub');
+        $targetPath = resource_path('js/pages/Welcome.vue');
+
+        if (File::exists($stubPath)) {
+            $this->copyStub($stubPath, $targetPath);
+            $this->components->info('Welcome.vue published');
         }
     }
 
@@ -611,27 +625,17 @@ TYPESCRIPT;
      */
     protected function publishBootstrap(): void
     {
-        // Only overwrite if force flag is set or user confirms
-        if ($this->option('force') || $this->confirm('Overwrite bootstrap/app.php?', false)) {
-            $this->copyStub(
-                $this->getStubPath('bootstrap/app.stub'),
-                base_path('bootstrap/app.php')
-            );
-            $this->components->info('Bootstrap app.php published');
-        } else {
-            $this->components->warn('Skipped bootstrap/app.php (already exists)');
-        }
+        $this->copyStub(
+            $this->getStubPath('bootstrap/app.stub'),
+            base_path('bootstrap/app.php')
+        );
+        $this->components->info('Bootstrap app.php published');
 
-        // Publish providers if doesn't exist
-        if (! File::exists(base_path('bootstrap/providers.php')) || $this->option('force')) {
-            $this->copyStub(
-                $this->getStubPath('bootstrap/providers.stub'),
-                base_path('bootstrap/providers.php')
-            );
-            $this->components->info('Bootstrap providers.php published');
-        } else {
-            $this->components->warn('Skipped bootstrap/providers.php (already exists)');
-        }
+        $this->copyStub(
+            $this->getStubPath('bootstrap/providers.stub'),
+            base_path('bootstrap/providers.php')
+        );
+        $this->components->info('Bootstrap providers.php published');
     }
 
     /**
@@ -639,18 +643,12 @@ TYPESCRIPT;
      */
     protected function publishRoutes(): void
     {
-        // Publish web routes if doesn't exist
-        if (! File::exists(base_path('routes/web.php')) || $this->option('force')) {
-            $this->copyStub(
-                $this->getStubPath('routes/web.stub'),
-                base_path('routes/web.php')
-            );
-            $this->components->info('Route web.php published');
-        } else {
-            $this->components->warn('Skipped routes/web.php (already exists)');
-        }
+        $this->copyStub(
+            $this->getStubPath('routes/web.stub'),
+            base_path('routes/web.php')
+        );
+        $this->components->info('Route web.php published');
 
-        // Publish settings routes
         $this->copyStub(
             $this->getStubPath('routes/settings.stub'),
             base_path('routes/settings.php')
@@ -702,9 +700,7 @@ TYPESCRIPT;
             $targetPath = resource_path("js/components/{$component}");
 
             if (File::exists($stubPath)) {
-                if (! File::exists($targetPath) || $this->option('force')) {
-                    $this->copyStub($stubPath, $targetPath);
-                }
+                $this->copyStub($stubPath, $targetPath);
             }
         }
 
@@ -720,12 +716,8 @@ TYPESCRIPT;
         $targetPath = resource_path('js/types/index.d.ts');
 
         if (File::exists($stubPath)) {
-            if (! File::exists($targetPath) || $this->option('force')) {
-                $this->copyStub($stubPath, $targetPath);
-                $this->components->info('Types published');
-            } else {
-                $this->components->warn('Skipped types/index.d.ts (already exists)');
-            }
+            $this->copyStub($stubPath, $targetPath);
+            $this->components->info('Types published');
         }
     }
 
@@ -738,13 +730,8 @@ TYPESCRIPT;
         $targetPath = app_path('Models/User.php');
 
         if (File::exists($stubPath)) {
-            if ($this->option('force') || $this->confirm('Overwrite app/Models/User.php with LaraviltUser trait?', false)) {
-                $this->copyStub($stubPath, $targetPath);
-                $this->components->info('User model published with LaraviltUser trait');
-            } else {
-                $this->components->warn('Skipped User model (add LaraviltUser trait manually)');
-                $this->components->info('Add this to your User model: use Laravilt\Auth\Concerns\LaraviltUser;');
-            }
+            $this->copyStub($stubPath, $targetPath);
+            $this->components->info('User model published with LaraviltUser trait');
         }
     }
 
@@ -755,13 +742,10 @@ TYPESCRIPT;
     {
         $this->components->task('Publishing configurations', function () {
             foreach ($this->packages as $tag => $description) {
-                $params = ['--tag' => "{$tag}-config"];
-
-                if ($this->option('force')) {
-                    $params['--force'] = true;
-                }
-
-                Artisan::call('vendor:publish', $params);
+                Artisan::call('vendor:publish', [
+                    '--tag' => "{$tag}-config",
+                    '--force' => true,
+                ]);
             }
 
             return true;
@@ -782,13 +766,10 @@ TYPESCRIPT;
             ];
 
             foreach ($tags as $tag) {
-                $params = ['--tag' => $tag];
-
-                if ($this->option('force')) {
-                    $params['--force'] = true;
-                }
-
-                Artisan::call('vendor:publish', $params);
+                Artisan::call('vendor:publish', [
+                    '--tag' => $tag,
+                    '--force' => true,
+                ]);
             }
 
             return true;
@@ -885,5 +866,39 @@ TYPESCRIPT;
             $content = file_get_contents($from);
             file_put_contents($to, $content);
         }
+    }
+
+    /**
+     * Ask the user to rate the Laravilt repository.
+     */
+    protected function askToRateRepo(): void
+    {
+        $this->newLine();
+        $this->components->info('⭐ If you like Laravilt, please consider giving us a star on GitHub!');
+        $this->line('   <fg=cyan>https://github.com/laravilt/laravilt</>');
+        $this->newLine();
+
+        if ($this->confirm('Would you like to open the GitHub repository now?', false)) {
+            $this->openUrl('https://github.com/laravilt/laravilt');
+        }
+
+        $this->newLine();
+        $this->components->info('📚 Documentation: <fg=cyan>https://laravilt.com</>');
+        $this->components->info('🐛 Report issues: <fg=cyan>https://github.com/laravilt/laravilt/issues</>');
+        $this->newLine();
+    }
+
+    /**
+     * Open a URL in the default browser.
+     */
+    protected function openUrl(string $url): void
+    {
+        $command = match (PHP_OS_FAMILY) {
+            'Darwin' => 'open',
+            'Windows' => 'start',
+            default => 'xdg-open',
+        };
+
+        exec("{$command} {$url} 2>/dev/null &");
     }
 }
