@@ -20,27 +20,33 @@ Laravilt requires a fresh Laravel 12 installation with the Vue.js starter kit.
 laravel new my-admin-panel
 ```
 
+```bash
 ┌ Which starter kit would you like to install? ────────────────┐
 │   ○ None                                                     │
 │   ○ React                                                    │
 │ › ● Vue                                                      │
 │   ○ Livewire                                                 │
 └──────────────────────────────────────────────────────────────┘
+```
 
 then
 
+```bash
 ┌ Which authentication provider do you prefer? ────────────────┐
 │ › ● Laravel's built-in authentication                        │
 │   ○ WorkOS (Requires WorkOS account)                         │
 │   ○ No authentication scaffolding                            │
 └──────────────────────────────────────────────────────────────┘
+```
 
 then
 
+```bash
 ┌ Which testing framework do you prefer? ──────────────────────┐
 │ › ● Pest                                                     │
 │   ○ PHPUnit                                                  │
 └──────────────────────────────────────────────────────────────┘
+```
 
 Navigate to your project:
 
