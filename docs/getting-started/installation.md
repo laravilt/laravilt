@@ -54,15 +54,7 @@ Navigate to your project:
 cd my-admin-panel
 ```
 
-## Step 2: Install Laravilt
-
-Add Laravilt to your project:
-
-```bash
-composer require laravilt/laravilt
-```
-
-## Step 4: Run the Installer
+## Step 2: Run the Installer
 
 The Laravilt installer will set up everything you need:
 
@@ -92,7 +84,7 @@ During installation, you'll be prompted for:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Step 5: Configure Environment
+## Step 3: Configure Environment
 
 Update your `.env` file:
 
@@ -114,13 +106,13 @@ SESSION_DRIVER=database
 QUEUE_CONNECTION=database
 ```
 
-## Step 6: Run Migrations
+## Step 4: Run Migrations
 
 ```bash
 php artisan migrate
 ```
 
-## Step 7: Create Admin User
+## Step 5: Create Admin User
 
 ```bash
 php artisan laravilt:user
@@ -142,7 +134,7 @@ Follow the prompts to create your first admin user:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Step 8: Build Frontend Assets
+## Step 6: Build Frontend Assets
 
 ```bash
 npm install
@@ -155,7 +147,7 @@ For development with hot reloading:
 npm run dev
 ```
 
-## Step 9: Start the Application
+## Step 7: Start the Application
 
 Using Laravel's built-in server:
 
@@ -181,7 +173,7 @@ This starts:
 - Queue worker
 - Log viewer
 
-## Step 10: Access Your Panel
+## Step 8: Access Your Panel
 
 Open your browser and navigate to:
 

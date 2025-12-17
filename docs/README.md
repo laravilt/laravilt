@@ -2,11 +2,20 @@
 
 Laravilt is a modern, modular admin panel framework for Laravel 12+ with Vue 3 (Inertia.js v2) frontend. It provides a complete solution for building admin panels, dashboards, and CRUD applications with minimal code.
 
+## Highlights
+
+- **14 Modular Packages** - Use only what you need
+- **Multi-Tenancy Support** - Single-database or multi-database SaaS architecture
+- **30+ Form Fields** - Rich form components with validation
+- **Powerful Tables** - Sortable, filterable, with bulk actions
+- **8 Auth Methods** - OTP, 2FA, social login, passkeys, and more
+- **AI Integration** - OpenAI, Anthropic, Gemini, DeepSeek providers
+- **Vue 3 + Inertia.js** - Modern reactive frontend
+
 ## Table of Contents
 
 ### Getting Started
 - [Installation](getting-started/installation.md)
-- [Configuration](getting-started/configuration.md)
 - [Quick Start](getting-started/quick-start.md)
 - [Architecture Overview](getting-started/architecture.md)
 
@@ -19,7 +28,7 @@ Laravilt is a modern, modular admin panel framework for Laravel 12+ with Vue 3 (
 - [Pages](panel/pages.md)
 - [Navigation](panel/navigation.md)
 - [Themes & Branding](panel/themes.md)
-- [Multi-Tenancy](panel/tenancy.md)
+- [Multi-Tenancy](panel/tenancy.md) - Single & Multi-Database SaaS support
 
 #### Forms
 - [Introduction](forms/introduction.md)
@@ -34,14 +43,10 @@ Laravilt is a modern, modular admin panel framework for Laravel 12+ with Vue 3 (
 - [Columns](tables/columns.md)
 - [Filters](tables/filters.md)
 - [Actions](tables/actions.md)
-- [Bulk Actions](tables/bulk-actions.md)
-- [API Resources](tables/api-resources.md)
+- [API Reference](tables/api.md)
 
 #### Actions
 - [Introduction](actions/introduction.md)
-- [Creating Actions](actions/creating-actions.md)
-- [Modal Actions](actions/modal-actions.md)
-- [Bulk Actions](actions/bulk-actions.md)
 
 #### Auth
 - [Introduction](auth/introduction.md)
@@ -52,14 +57,21 @@ Laravilt is a modern, modular admin panel framework for Laravel 12+ with Vue 3 (
 - [Profile Management](auth/profile.md)
 
 ### Additional Packages
-- [Schemas](schemas/introduction.md)
-- [Infolists](infolists/introduction.md)
-- [Widgets](widgets/introduction.md)
-- [Notifications](notifications/introduction.md)
-- [Query Builder](query-builder/introduction.md)
-- [AI Integration](ai/introduction.md)
-- [Plugins](plugins/introduction.md)
-- [Support](support/introduction.md)
+- [Schemas](schemas/introduction.md) - Layout components (Section, Tabs, Grid, Wizard)
+- [Infolists](infolists/introduction.md) - Data display components
+- [Widgets](widgets/introduction.md) - Stats, charts, and dashboard widgets
+- [Notifications](notifications/introduction.md) - Toast notifications with actions
+- [Query Builder](query-builder/introduction.md) - Advanced filtering and sorting
+- [AI Integration](ai/introduction.md) - Multi-provider AI support
+- [Plugins](plugins/introduction.md) - Plugin system
+- [Support](support/introduction.md) - Foundation traits and utilities
+
+### Frontend
+- [Overview](frontend/README.md)
+- [Components](frontend/components.md)
+- [Layouts](frontend/layouts.md)
+- [Styling](frontend/styling.md)
+- [Utilities](frontend/utilities.md)
 
 ## Requirements
 
