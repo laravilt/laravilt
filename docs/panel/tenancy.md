@@ -62,18 +62,39 @@ This will create:
 - `app/Models/Team.php` - Team model with tenancy support
 - `app/Concerns/HasTeams.php` - Trait for User model
 
-Then add the trait to your User model:
+Then configure your User model with the required trait and interfaces:
 
 ```php
 // app/Models/User.php
-use App\Concerns\HasTeams;
+namespace App\Models;
 
-class User extends Authenticatable
+use App\Concerns\HasTeams;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravilt\Panel\Contracts\HasDefaultTenant;
+use Laravilt\Panel\Contracts\HasTenants;
+
+class User extends Authenticatable implements HasTenants, HasDefaultTenant
 {
-    use HasTeams;
-    // ...
+    use HasFactory, Notifiable, HasTeams;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'current_team_id', // Required for team switching
+    ];
+
+    // ... rest of your model
 }
 ```
+
+**Important:** The User model **must**:
+- Implement `HasTenants` interface - provides `getTenants()` and `canAccessTenant()` methods
+- Implement `HasDefaultTenant` interface - provides `getDefaultTenant()` method
+- Use the `HasTeams` trait - provides the `teams()` relationship and helper methods
+- Include `current_team_id` in the `$fillable` array if you want team switching to work
 
 ### Option A: Use Existing Team Model (Single Database)
 
@@ -85,8 +106,12 @@ use App\Models\Team;
 
 Panel::make('admin')
     ->path('admin')
-    ->tenant(Team::class, 'team', 'slug');
+    ->tenant(Team::class, 'team', 'slug')
+    ->tenantRegistration()  // Enable team registration
+    ->tenantProfile();      // Enable team settings
 ```
+
+> **Note:** Make sure your User model is configured with the `HasTeams` trait and implements `HasTenants` and `HasDefaultTenant` interfaces as shown in the [Quick Start](#quick-start-publish-teams-scaffolding) section above.
 
 **Required:** Add the `HasTenantName` interface to your Team model:
 
@@ -895,6 +920,42 @@ class ProcessOrder implements ShouldQueue
 ```
 
 ## Troubleshooting
+
+### User Has No Teams After Registration
+
+If a user registers a team but the middleware still redirects to the registration page:
+
+1. **Check User model implements required interfaces:**
+   ```php
+   class User extends Authenticatable implements HasTenants, HasDefaultTenant
+   ```
+
+2. **Check User model uses HasTeams trait:**
+   ```php
+   use HasTeams;
+   ```
+
+3. **Check `current_team_id` is in fillable array:**
+   ```php
+   protected $fillable = ['name', 'email', 'password', 'current_team_id'];
+   ```
+
+4. **Verify the `team_user` pivot table exists** - run migrations if needed:
+   ```bash
+   php artisan migrate
+   ```
+
+5. **Check the HasTeams trait has the correct relationship name:**
+   The `teams()` method should match what's configured in your panel:
+   ```php
+   // In HasTeams trait
+   public function teams(): BelongsToMany
+   {
+       return $this->belongsToMany(Team::class, 'team_user')
+           ->withPivot('role')
+           ->withTimestamps();
+   }
+   ```
 
 ### Tenant Not Found
 
