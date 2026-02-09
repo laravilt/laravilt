@@ -70,8 +70,9 @@ return [
     |
     */
     'locales' => [
-        'en' => 'English',
-        'ar' => 'العربية',
+        'en'  => 'English',
+        'ar'  => 'العربية',
+        'ckb' => 'کوردی',
     ],
 
     /*
