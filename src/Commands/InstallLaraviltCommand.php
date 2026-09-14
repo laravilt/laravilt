@@ -6,6 +6,8 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
+use Laravilt\Laravilt\Support\StubManifestPublisher;
+use Laravilt\Support\Frontend;
 
 use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\multiselect;
@@ -18,6 +20,7 @@ class InstallLaraviltCommand extends Command
      * The name and signature of the console command.
      */
     protected $signature = 'laravilt:install
+                            {--stack= : The frontend stack to install (vue or react)}
                             {--skip-migrations : Skip running migrations}
                             {--skip-npm : Skip running npm install and build}
                             {--skip-panel : Skip panel creation}';
@@ -26,6 +29,11 @@ class InstallLaraviltCommand extends Command
      * The console command description.
      */
     protected $description = 'Install Laravilt admin panel and all its packages';
+
+    /**
+     * The frontend stack being installed (vue or react).
+     */
+    protected string $stack = Frontend::VUE;
 
     /**
      * Panel configuration.
@@ -89,6 +97,14 @@ class InstallLaraviltCommand extends Command
      */
     public function handle(): int
     {
+        $stack = $this->option('stack');
+
+        if (is_string($stack) && $stack !== '' && ! Frontend::isValid($stack)) {
+            $this->components->error("Invalid stack [{$stack}]. Use one of: ".implode(', ', Frontend::STACKS).'.');
+
+            return self::FAILURE;
+        }
+
         $this->newLine();
         $this->components->info('Installing Laravilt Admin Panel...');
         $this->newLine();
@@ -102,65 +118,29 @@ class InstallLaraviltCommand extends Command
         // STEP 2: Run all non-interactive tasks
         // ============================================
         $this->newLine();
-        $this->components->info('Publishing files...');
+        $this->components->info("Publishing files ({$this->stackLabel()})...");
         $this->newLine();
 
-        // Publish package.json
-        $this->publishPackageJson();
+        // Remember the stack for generators and publish tags
+        $this->persistFrontendStack();
 
-        // Publish Vite config
-        $this->publishViteConfig();
+        if ($this->stack === Frontend::REACT) {
+            $this->publishSharedFiles();
+            $this->publishReactFrontend();
+        } else {
+            $this->publishVueFrontend();
+        }
 
-        // Publish CSS
-        $this->publishCss();
-
-        // Publish app.ts
-        $this->publishAppTs();
-
-        // Publish app.blade.php
-        $this->publishAppBlade();
-
-        // Publish middleware
-        $this->publishMiddleware();
-
-        // Publish layouts
-        $this->publishLayouts();
-
-        // Publish components
-        $this->publishComponents();
-
-        // Publish UI components
-        $this->publishUiComponents();
-
-        // Publish composables
-        $this->publishComposables();
-
-        // Publish types
-        $this->publishTypes();
-
-        // Publish User model
-        $this->publishUserModel();
-
-        // Publish bootstrap files
-        $this->publishBootstrap();
-
-        // Publish route files
-        $this->publishRoutes();
-
-        // Delete settings folder (handled by auth package)
-        $this->deleteSettingsFolder();
-
-        // Delete Dashboard.vue (panels have their own dashboard)
-        $this->deleteDashboardPage();
-
-        // Publish Welcome.vue page
-        $this->publishWelcomePage();
+        // Publish the Laravilt favicon and app icons
+        $this->publishBrandAssets();
 
         // Publish all package configs
         $this->publishConfigs();
 
-        // Publish assets
-        $this->publishAssets();
+        // Publish Vue page/component copies (React resolves them from vendor)
+        if ($this->stack === Frontend::VUE) {
+            $this->publishAssets();
+        }
 
         // Run migrations
         if (! $this->option('skip-migrations')) {
@@ -202,10 +182,139 @@ class InstallLaraviltCommand extends Command
     }
 
     /**
+     * Publish the Vue frontend (the original Laravilt stack).
+     */
+    protected function publishVueFrontend(): void
+    {
+        $this->publishPackageJson();
+        $this->publishViteConfig();
+        $this->publishCss();
+        $this->publishAppTs();
+        $this->publishAppBlade();
+        $this->publishMiddleware();
+        $this->publishLayouts();
+        $this->publishComponents();
+        $this->publishUiComponents();
+        $this->publishLib();
+        $this->publishComposables();
+        $this->publishTypes();
+        $this->publishUserModel();
+        $this->publishBootstrap();
+        $this->publishRoutes();
+
+        // Delete settings folder (handled by auth package)
+        $this->deleteSettingsFolder();
+
+        // Delete Dashboard.vue (panels have their own dashboard)
+        $this->deleteDashboardPage();
+
+        $this->publishWelcomePage();
+    }
+
+    /**
+     * Publish the Laravilt favicon, SVG icon and Apple touch icon into public/.
+     */
+    protected function publishBrandAssets(): void
+    {
+        foreach (['favicon.ico', 'favicon.svg', 'apple-touch-icon.png'] as $asset) {
+            $this->copyStub($this->getStubPath("public/{$asset}"), public_path($asset));
+        }
+
+        $this->components->info('Brand icons published');
+    }
+
+    /**
+     * Publish the backend files shared by every frontend stack.
+     */
+    protected function publishSharedFiles(): void
+    {
+        $this->publishMiddleware();
+        $this->publishUserModel();
+        $this->publishBootstrap();
+        $this->publishRoutes();
+    }
+
+    /**
+     * Publish the React frontend described by the panel's React stub manifest.
+     */
+    protected function publishReactFrontend(): void
+    {
+        $manifest = $this->getStubPath('react/manifest.php');
+
+        $result = (new StubManifestPublisher)->publish($manifest, base_path());
+
+        $this->components->info(sprintf(
+            'React frontend published (%d files, %d starter-kit files removed)',
+            count($result['published']),
+            count($result['deleted']),
+        ));
+    }
+
+    /**
+     * Store the chosen stack in the environment so generators and publish tags follow it.
+     */
+    protected function persistFrontendStack(): void
+    {
+        config(['laravilt-support.frontend' => $this->stack]);
+
+        foreach (['.env', '.env.example'] as $file) {
+            $path = base_path($file);
+
+            if (! File::exists($path)) {
+                continue;
+            }
+
+            $content = File::get($path);
+            $line = 'LARAVILT_FRONTEND='.$this->stack;
+
+            $content = preg_match('/^LARAVILT_FRONTEND=.*$/m', $content)
+                ? preg_replace('/^LARAVILT_FRONTEND=.*$/m', $line, $content)
+                : rtrim($content)."\n\n".$line."\n";
+
+            File::put($path, $content);
+        }
+    }
+
+    /**
+     * Human-readable label for the chosen stack.
+     */
+    protected function stackLabel(): string
+    {
+        return $this->stack === Frontend::REACT ? 'React' : 'Vue';
+    }
+
+    /**
+     * Ask which frontend stack to install (or take it from --stack).
+     */
+    protected function askForStack(): void
+    {
+        $option = $this->option('stack');
+
+        if (is_string($option) && $option !== '') {
+            $this->stack = strtolower($option);
+
+            return;
+        }
+
+        $this->stack = select(
+            label: 'Which frontend stack would you like to use?',
+            options: [
+                Frontend::VUE => 'Vue 3 (Inertia + shadcn-vue)',
+                Frontend::REACT => 'React 19 (Inertia + shadcn/ui)',
+            ],
+            default: Frontend::detect(base_path('package.json')),
+            hint: 'Pick the starter kit your application was created with'
+        );
+    }
+
+    /**
      * Gather all user input at the beginning.
      */
     protected function gatherUserInput(): void
     {
+        // Frontend stack
+        $this->askForStack();
+
         // Panel configuration
         if (! $this->option('skip-panel')) {
             $this->components->info('Panel Configuration');
@@ -237,7 +346,8 @@ class InstallLaraviltCommand extends Command
 
         // Ask about creating admin user
         $this->newLine();
-        $this->shouldCreateUser = confirm(
+        // laravilt:user prompts for credentials, so only offer it when someone can answer
+        $this->shouldCreateUser = $this->input->isInteractive() && confirm(
             label: 'Would you like to create an admin user after installation?',
             default: true
         );
@@ -808,6 +918,21 @@ VITE;
         $this->components->task('Publishing UI components', function () {
             Artisan::call('vendor:publish', [
                 '--tag' => 'laravilt-panel-ui',
+                '--force' => true,
+            ]);
+
+            return true;
+        });
+    }
+
+    /**
+     * Publish lib utilities (urlIsActive and friends, which newer starter kits no longer ship).
+     */
+    protected function publishLib(): void
+    {
+        $this->components->task('Publishing lib utilities', function () {
+            Artisan::call('vendor:publish', [
+                '--tag' => 'laravilt-panel-lib',
                 '--force' => true,
             ]);
 
