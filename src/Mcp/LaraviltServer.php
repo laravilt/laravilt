@@ -3,6 +3,7 @@
 namespace Laravilt\Laravilt\Mcp;
 
 use Laravel\Mcp\Server;
+use Laravel\Mcp\Server\Tool;
 use Laravilt\Laravilt\Mcp\Tools\InstallLaraviltTool;
 use Laravilt\Laravilt\Mcp\Tools\ListPackagesTool;
 use Laravilt\Laravilt\Mcp\Tools\MakeUserTool;
@@ -50,7 +51,7 @@ class LaraviltServer extends Server
     /**
      * The tools registered with this MCP server.
      *
-     * @var array<int, class-string<\Laravel\Mcp\Server\Tool>>
+     * @var array<int, class-string<Tool>>
      */
     protected array $tools = [
         ListPackagesTool::class,
