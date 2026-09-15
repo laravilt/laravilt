@@ -31,9 +31,18 @@ class InstallLaraviltCommand extends Command
     protected $description = 'Install Laravilt admin panel and all its packages';
 
     /**
+     * Supported frontend stacks (mirrors Laravilt\Support\Frontend, which older support releases lack).
+     */
+    protected const VUE = 'vue';
+
+    protected const REACT = 'react';
+
+    protected const STACKS = [self::VUE, self::REACT];
+
+    /**
      * The frontend stack being installed (vue or react).
      */
-    protected string $stack = Frontend::VUE;
+    protected string $stack = self::VUE;
 
     /**
      * Panel configuration.
@@ -99,8 +108,8 @@ class InstallLaraviltCommand extends Command
     {
         $stack = $this->option('stack');
 
-        if (is_string($stack) && $stack !== '' && ! Frontend::isValid($stack)) {
-            $this->components->error("Invalid stack [{$stack}]. Use one of: ".implode(', ', Frontend::STACKS).'.');
+        if (is_string($stack) && $stack !== '' && ! in_array(strtolower($stack), self::STACKS, true)) {
+            $this->components->error("Invalid stack [{$stack}]. Use one of: ".implode(', ', self::STACKS).'.');
 
             return self::FAILURE;
         }
@@ -124,7 +133,7 @@ class InstallLaraviltCommand extends Command
         // Remember the stack for generators and publish tags
         $this->persistFrontendStack();
 
-        if ($this->stack === Frontend::REACT) {
+        if ($this->stack === self::REACT) {
             $this->publishSharedFiles();
             $this->publishReactFrontend();
         } else {
@@ -138,7 +147,7 @@ class InstallLaraviltCommand extends Command
         $this->publishConfigs();
 
         // Publish Vue page/component copies (React resolves them from vendor)
-        if ($this->stack === Frontend::VUE) {
+        if ($this->stack === self::VUE) {
             $this->publishAssets();
         }
 
@@ -280,7 +289,7 @@ class InstallLaraviltCommand extends Command
      */
     protected function stackLabel(): string
     {
-        return $this->stack === Frontend::REACT ? 'React' : 'Vue';
+        return $this->stack === self::REACT ? 'React' : 'Vue';
     }
 
     /**
@@ -299,10 +308,10 @@ class InstallLaraviltCommand extends Command
         $this->stack = select(
             label: 'Which frontend stack would you like to use?',
             options: [
-                Frontend::VUE => 'Vue 3 (Inertia + shadcn-vue)',
-                Frontend::REACT => 'React 19 (Inertia + shadcn/ui)',
+                self::VUE => 'Vue 3 (Inertia + shadcn-vue)',
+                self::REACT => 'React 19 (Inertia + shadcn/ui)',
             ],
-            default: Frontend::detect(base_path('package.json')),
+            default: class_exists(Frontend::class) ? Frontend::detect(base_path('package.json')) : self::VUE,
             hint: 'Pick the starter kit your application was created with'
         );
     }
