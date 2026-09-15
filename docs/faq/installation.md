@@ -84,7 +84,7 @@ use Laravilt\Panel\Panel;
 
 Panel::make()
     ->colors([
-        'primary' => '#04bdaf',
+        'primary' => '#FF2D20',
     ])
     ->darkMode()
     ->favicon('/favicon.ico');

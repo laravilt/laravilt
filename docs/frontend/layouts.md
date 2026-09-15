@@ -196,13 +196,13 @@ const breadcrumbs = [
 
 ```css
 :root {
-    --primary: 174 94% 38%;  /* #04bdaf */
-    --secondary: 296 53% 31%; /* #822478 */
+    --primary: 3.5 100% 56.3%;       /* #FF2D20 */
+    --brand-accent: 266.4 77.3% 62%; /* #9553E9 */
 }
 
 .dark {
-    --primary: 174 94% 45%;
-    --secondary: 296 53% 40%;
+    --primary: 3.5 100% 56.3%;
+    --brand-accent: 266.4 77.3% 62%;
 }
 ```
 

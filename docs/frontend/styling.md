@@ -64,10 +64,11 @@ Theme colors are defined as CSS variables for light/dark mode:
         --card-foreground: 240 10% 3.9%;
         --popover: 0 0% 100%;
         --popover-foreground: 240 10% 3.9%;
-        --primary: 174 94% 38%;       /* Laravilt teal #04bdaf */
-        --primary-foreground: 0 0% 98%;
-        --secondary: 296 53% 31%;      /* Laravilt purple #822478 */
-        --secondary-foreground: 0 0% 98%;
+        --primary: 3.5 100% 56.3%;     /* Laravilt red #FF2D20 */
+        --primary-foreground: 40 33.3% 91.2%; /* #f0ebe1 */
+        --brand-accent: 266.4 77.3% 62%; /* Laravilt purple #9553E9 */
+        --secondary: 240 4.8% 95.9%;
+        --secondary-foreground: 240 5.9% 10%;
         --muted: 240 4.8% 95.9%;
         --muted-foreground: 240 3.8% 46.1%;
         --accent: 240 4.8% 95.9%;
@@ -76,7 +77,7 @@ Theme colors are defined as CSS variables for light/dark mode:
         --destructive-foreground: 0 0% 98%;
         --border: 240 5.9% 90%;
         --input: 240 5.9% 90%;
-        --ring: 174 94% 38%;
+        --ring: 3.5 100% 56.3%;
         --radius: 0.5rem;
     }
 
@@ -87,9 +88,10 @@ Theme colors are defined as CSS variables for light/dark mode:
         --card-foreground: 0 0% 98%;
         --popover: 240 10% 3.9%;
         --popover-foreground: 0 0% 98%;
-        --primary: 174 94% 45%;
-        --primary-foreground: 240 10% 3.9%;
-        --secondary: 296 53% 40%;
+        --primary: 3.5 100% 56.3%;
+        --primary-foreground: 40 33.3% 91.2%;
+        --brand-accent: 266.4 77.3% 62%;
+        --secondary: 240 3.7% 15.9%;
         --secondary-foreground: 0 0% 98%;
         --muted: 240 3.7% 15.9%;
         --muted-foreground: 240 5% 64.9%;
@@ -99,7 +101,7 @@ Theme colors are defined as CSS variables for light/dark mode:
         --destructive-foreground: 0 0% 98%;
         --border: 240 3.7% 15.9%;
         --input: 240 3.7% 15.9%;
-        --ring: 174 94% 45%;
+        --ring: 3.5 100% 56.3%;
     }
 }
 ```
