@@ -1,39 +1,27 @@
 ---
-title: First Resource
-description: Complete guide to building your first resource
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: getting-started
+title: Your First Resource
+description: The files laravilt:resource generates, and how to customize the resource, form and table.
+order: 5
 ---
 
 # Your First Resource
 
-A complete guide to building a Product resource.
+This page walks through the `Product` resource from the [Quick Start](quick-start.md) and customizes each part.
 
-## Resource Structure
+## The resource class
 
-When you run `php artisan laravilt:resource admin --model=Product`, it creates:
-
-```
-app/Laravilt/Admin/Resources/Product/
-├── ProductResource.php
-├── Form/
-│   └── ProductForm.php
-├── Table/
-│   └── ProductTable.php
-└── Pages/
-    ├── ListProduct.php
-    ├── CreateProduct.php
-    └── EditProduct.php
-```
-
-## ProductResource.php
+`app/Laravilt/Admin/Resources/Product/ProductResource.php` connects the model to its form, table, infolist and pages:
 
 ```php
 namespace App\Laravilt\Admin\Resources\Product;
 
+use App\Laravilt\Admin\Resources\Product\Form\ProductForm;
+use App\Laravilt\Admin\Resources\Product\InfoList\ProductInfoList;
+use App\Laravilt\Admin\Resources\Product\Pages\CreateProduct;
+use App\Laravilt\Admin\Resources\Product\Pages\EditProduct;
+use App\Laravilt\Admin\Resources\Product\Pages\ListProduct;
+use App\Laravilt\Admin\Resources\Product\Pages\ViewProduct;
+use App\Laravilt\Admin\Resources\Product\Table\ProductTable;
 use App\Models\Product;
 use Laravilt\Panel\Resources\Resource;
 use Laravilt\Schemas\Schema;
@@ -43,13 +31,15 @@ class ProductResource extends Resource
 {
     protected static string $model = Product::class;
 
-    protected static ?string $navigationIcon = 'Package';
-    protected static ?string $navigationGroup = 'Shop';
-    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationIcon = 'Package';   // any Lucide icon name
 
-    public static function form(Schema $form): Schema
+    protected static ?string $navigationGroup = 'Shop';
+
+    protected static int $navigationSort = 1;
+
+    public static function form(Schema $schema): Schema
     {
-        return ProductForm::configure($form);
+        return ProductForm::configure($schema);
     }
 
     public static function table(Table $table): Table
@@ -57,25 +47,36 @@ class ProductResource extends Resource
         return ProductTable::configure($table);
     }
 
-    public static function getNavigationBadge(): ?string
+    public static function infolist(Schema $schema): Schema
     {
-        return (string) static::getModel()::count();
+        return ProductInfoList::configure($schema);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'list' => ListProduct::route('/'),
+            'create' => CreateProduct::route('/create'),
+            'edit' => EditProduct::route('/{record}/edit'),
+            'view' => ViewProduct::route('/{record}'),
+        ];
     }
 }
 ```
 
-## Form Configuration
+With `--simple` (or by answering "yes" to the simple question), you get one `ManageProduct` page that handles create and edit in modals.
 
-Complete `Form/ProductForm.php`:
+## The form
+
+`Form/ProductForm.php` returns a schema of fields. Fields come from `laravilt/forms`, and layout components such as `Section` come from `laravilt/schemas`:
 
 ```php
 namespace App\Laravilt\Admin\Resources\Product\Form;
 
+use Laravilt\Forms\Components\FileUpload;
 use Laravilt\Forms\Components\MarkdownEditor;
 use Laravilt\Forms\Components\TextInput;
 use Laravilt\Forms\Components\Toggle;
-use Laravilt\Forms\Components\FileUpload;
-use Laravilt\Forms\Components\Select;
 use Laravilt\Schemas\Components\Section;
 use Laravilt\Schemas\Schema;
 
@@ -84,72 +85,87 @@ class ProductForm
     public static function configure(Schema $form): Schema
     {
         return $form->schema([
-            Section::make('Basic Information')
+            Section::make('Basic information')
                 ->columns(2)
                 ->schema([
-                    TextInput::make('name')
-                        ->required()
-                        ->maxLength(255)
-                        ->live(onBlur: true)
-                        ->afterStateUpdated(fn ($set, $state) =>
-                            $set('slug', str($state)->slug())
-                        ),
-
-                    TextInput::make('slug')
-                        ->required()
-                        ->unique(ignoreRecord: true)
-                        ->maxLength(255),
-
-                    MarkdownEditor::make('description')
-                        ->columnSpanFull(),
-
-                    FileUpload::make('image')
-                        ->image()
-                        ->directory('products')
-                        ->columnSpanFull(),
+                    TextInput::make('name')->required()->maxLength(255),
+                    TextInput::make('slug')->required()->unique(ignoreRecord: true),
+                    MarkdownEditor::make('description')->columnSpanFull(),
+                    FileUpload::make('image')->image()->directory('products')->columnSpanFull(),
                 ]),
 
-            Section::make('Pricing & Inventory')
-                ->columns(3)
+            Section::make('Pricing & stock')
+                ->columns(2)
                 ->schema([
-                    TextInput::make('price')
-                        ->numeric()
-                        ->prefix('$')
-                        ->required()
-                        ->minValue(0),
-
-                    TextInput::make('compare_price')
-                        ->numeric()
-                        ->prefix('$')
-                        ->minValue(0),
-
-                    TextInput::make('stock')
-                        ->integer()
-                        ->default(0)
-                        ->minValue(0),
-                ]),
-
-            Section::make('Status')
-                ->schema([
-                    Toggle::make('is_active')
-                        ->label('Active')
-                        ->default(true),
-
-                    Toggle::make('is_featured')
-                        ->label('Featured'),
-
-                    Select::make('category_id')
-                        ->relationship('category', 'name')
-                        ->searchable()
-                        ->preload(),
+                    TextInput::make('price')->numeric()->prefix('$')->required()->minValue(0),
+                    TextInput::make('stock')->integer()->default(0)->minValue(0),
+                    Toggle::make('is_active')->label('Active')->default(true),
                 ]),
         ]);
     }
 }
 ```
 
-## Next Steps
+Fields can react to each other with `->live()` and `->afterStateUpdated(...)`. See [Reactive Fields](../forms/reactive/README.md) and [Validation](../forms/validation/README.md).
 
-- [Resource Table](resource-table) - Table configuration
-- [Forms](../forms/introduction) - All form components
-- [Tables](../tables/introduction) - Table features
+## The table
+
+`Table/ProductTable.php` defines columns, filters and actions. Actions come from `laravilt/actions`:
+
+```php
+namespace App\Laravilt\Admin\Resources\Product\Table;
+
+use Laravilt\Actions\BulkActionGroup;
+use Laravilt\Actions\DeleteAction;
+use Laravilt\Actions\DeleteBulkAction;
+use Laravilt\Actions\EditAction;
+use Laravilt\Actions\ViewAction;
+use Laravilt\Tables\Columns\ImageColumn;
+use Laravilt\Tables\Columns\TextColumn;
+use Laravilt\Tables\Columns\ToggleColumn;
+use Laravilt\Tables\Filters\TernaryFilter;
+use Laravilt\Tables\Table;
+
+class ProductTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table
+            ->columns([
+                ImageColumn::make('image')->circular(),
+                TextColumn::make('name')->searchable()->sortable(),
+                TextColumn::make('price')->money('USD')->sortable(),
+                TextColumn::make('stock')->badge(),
+                ToggleColumn::make('is_active')->label('Active'),
+                TextColumn::make('created_at')->dateTime()->sortable()->toggleable(),
+            ])
+            ->filters([
+                TernaryFilter::make('is_active')->label('Active'),
+            ])
+            ->recordActions([
+                ViewAction::make(),
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ])
+            ->defaultSort('created_at', 'desc');
+    }
+}
+```
+
+See [Columns](../tables/columns/README.md), [Filters](../tables/filters/README.md) and [Actions](../actions/README.md).
+
+## More generators
+
+| Command | Creates |
+|---------|---------|
+| `php artisan laravilt:relation admin Product reviews` | A relation manager for a relationship. |
+| `php artisan laravilt:nested Variant --parent=Product` | A resource nested under another. |
+| `php artisan laravilt:page admin Reports --type=table` | A custom page (`.vue` or `.tsx`, depending on your stack). |
+| `php artisan laravilt:widget --panel=admin --type=stats` | A dashboard widget. |
+
+Continue with [Panel & Resources](../panel/README.md).

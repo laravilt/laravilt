@@ -1,157 +1,75 @@
 ---
 title: Troubleshooting
-description: Common installation issues and solutions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: getting-started
+description: Fixes for the most common installation and setup problems.
+order: 8
 ---
 
 # Troubleshooting
 
-Common issues and solutions during installation.
+Start with `storage/logs/laravel.log` and the browser console. Most problems show up in one of them.
 
-## Assets Not Loading
+## Blank page or missing styles
 
-**Symptoms**: Blank page, missing styles, broken layout
-
-**Solution**:
+The frontend isn't built, or you're running a stale build.
 
 ```bash
-# Clear all caches
+npm install
+npm run build        # or keep `npm run dev` running
 php artisan optimize:clear
-
-# Rebuild assets
-npm run build
-
-# If using Vite dev server
-npm run dev
 ```
 
-## Database Connection Errors
+Check that `APP_URL` matches the URL you open.
 
-**Symptoms**: SQLSTATE errors, connection refused
+## "Page not found" for a Laravilt page / Inertia can't resolve a component
 
-**Solution**:
+- **Vue:** the panel pages must be published. Re-run `php artisan vendor:publish --tag=laravilt-panel-views --force`, then rebuild.
+- **React:** pages resolve from `vendor/`. Run `composer install`, then rebuild.
+- Make sure `LARAVILT_FRONTEND` in `.env` matches your starter kit (`vue` or `react`), then run `php artisan config:clear`.
+
+## The installer ran with the wrong stack
+
+Set `LARAVILT_FRONTEND` correctly and re-run the installer with an explicit stack on a starter kit of that stack:
 
 ```bash
-# Clear config cache
-php artisan config:clear
-
-# Verify database exists
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS your_database"
-
-# Re-run migrations
-php artisan migrate:fresh
+php artisan laravilt:install --stack=react
 ```
 
-## Permission Errors
+## `/admin` returns 404
 
-**Symptoms**: Failed to write, permission denied
+- The panel provider must be listed in `bootstrap/providers.php` (the installer adds `App\Providers\Laravilt\AdminPanelProvider::class`).
+- Run `php artisan route:clear` and `php artisan optimize:clear`.
+- The panel `->path()` sets the URL prefix.
 
-**Solution**:
+## Login loops or "CSRF token mismatch"
 
-```bash
-# Fix storage permissions
-chmod -R 775 storage bootstrap/cache
+- `APP_URL`, `SESSION_DOMAIN` and the browser URL must agree (same host and scheme).
+- With `SESSION_DRIVER=database`, the `sessions` table must exist (`php artisan migrate`).
 
-# Set ownership (Linux)
-chown -R www-data:www-data storage bootstrap/cache
+## A resource doesn't appear in the navigation
 
-# Set ownership (macOS)
-sudo chown -R $(whoami):staff storage bootstrap/cache
-```
+- It must live under `app/Laravilt/{Panel}/Resources/{Name}/{Name}Resource.php` for auto-discovery.
+- Check `canViewAny()` / policies. See [Authorization](../panel/resources/authorization.md).
 
-## Composer Memory Errors
-
-**Symptoms**: Allowed memory size exhausted
-
-**Solution**:
+## npm install or the build fails
 
 ```bash
-# Increase PHP memory limit
-php -d memory_limit=-1 /usr/local/bin/composer install
-
-# Or update php.ini
-memory_limit = 2G
-```
-
-## Vite Build Errors
-
-**Symptoms**: npm run build fails, module not found
-
-**Solution**:
-
-```bash
-# Remove node_modules and reinstall
 rm -rf node_modules package-lock.json
 npm install
-
-# Clear Vite cache
-rm -rf node_modules/.vite
 npm run build
 ```
 
-## Session Issues
+Use Node.js 20 or newer.
 
-**Symptoms**: Login loop, CSRF token mismatch
-
-**Solution**:
+## Class "Laravilt\..." not found
 
 ```bash
-# Clear session data
-php artisan session:table
-php artisan migrate
-
-# Update .env
-SESSION_DRIVER=database
-SESSION_DOMAIN=localhost
-```
-
-## Class Not Found
-
-**Symptoms**: Class 'Laravilt\...' not found
-
-**Solution**:
-
-```bash
-# Regenerate autoload
 composer dump-autoload
-
-# Clear bootstrap cache
-php artisan clear-compiled
-
-# Republish assets
-php artisan vendor:publish --tag=laravilt-assets --force
+php artisan optimize:clear
 ```
 
-## Frontend Component Errors
+## Still stuck?
 
-**Symptoms**: Vue component not rendering, hydration mismatch
-
-**Solution**:
-
-```bash
-# Clear Laravel cache
-php artisan view:clear
-php artisan cache:clear
-
-# Rebuild with fresh dependencies
-npm ci
-npm run build
-```
-
-## Getting Help
-
-If issues persist:
-
-1. Check Laravel logs: `storage/logs/laravel.log`
-2. Check browser console for JavaScript errors
-3. Verify `.env` configuration matches your environment
-4. Check [GitHub Issues](https://github.com/laravilt/laravilt/issues)
-
-## Next Steps
-
-- [Installation](installation) - Installation guide
-- [Configuration](configuration) - Configuration options
+- Compare with the [live demo](https://demo.laravilt.com) (`admin@laravilt.com` / `password`).
+- Ask your AI assistant through the [Laravilt MCP server](../mcp/README.md).
+- Search or open an issue on [GitHub](https://github.com/laravilt/laravilt/issues).
+- See the [FAQ](../faq/README.md).

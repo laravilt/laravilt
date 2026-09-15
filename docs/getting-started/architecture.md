@@ -1,96 +1,47 @@
 ---
 title: Architecture
-description: Understanding Laravilt's modular architecture
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: getting-started
+description: How Laravilt's packages fit together and how a request becomes a rendered page.
+order: 10
 ---
 
 # Architecture
 
-Laravilt uses a modular, layered architecture.
+`laravilt/laravilt` is a meta-package. It installs these packages, each also usable on its own:
 
-## Package Layers
+| Layer | Package | What it provides |
+|-------|---------|------------------|
+| Foundation | `laravilt/support` | Base `Component`, shared concerns, the `Frontend` stack resolver |
+| Building blocks | `laravilt/schemas` | Layout: Section, Grid, Tabs, Wizard, Split, Fieldset |
+| | `laravilt/forms` | 30+ form fields, validation, reactivity |
+| | `laravilt/tables` | Columns, filters, sorting, grouping, pagination |
+| | `laravilt/actions` | Buttons and modal actions (create, edit, delete, export, import…) |
+| | `laravilt/infolists` | Read-only entries for view pages |
+| | `laravilt/notifications` | Toast and database notifications |
+| | `laravilt/widgets` | Stats and chart widgets |
+| | `laravilt/query-builder` | Filtering and sorting for Eloquent queries |
+| Application | `laravilt/panel` | Panels, resources, pages, navigation, tenancy |
+| | `laravilt/auth` | Login, registration, 2FA, passkeys, social login, profile |
+| Extensions | `laravilt/ai` | AI providers, chat, tools, agents, global search |
+| | `laravilt/plugins` | Plugin system and generators |
 
-```
-┌─────────────────────────────────────┐
-│          LARAVILT (Meta)            │
-├─────────────────────────────────────┤
-│  AI  │  Plugins  │  Auth            │  ← Advanced
-├─────────────────────────────────────┤
-│              Panel                  │  ← Integration
-├─────────────────────────────────────┤
-│  Forms │ Tables │ Infolists │Widgets│  ← Core 2
-├─────────────────────────────────────┤
-│ Schemas │ Query-Builder │ Actions   │  ← Core 1
-├─────────────────────────────────────┤
-│              Support                │  ← Foundation
-└─────────────────────────────────────┘
-```
+Each PHP package ships its frontend next to it: Vue components in `resources/js`, React components in `resources/react` (v1.1+).
 
-## Core Concepts
-
-### Panels
-
-Self-contained admin interfaces:
-
-```php
-$panel
-    ->id('admin')
-    ->path('admin')
-    ->login()
-    ->discoverResources(in: app_path('Laravilt/Admin/Resources'));
-```
-
-### Resources
-
-CRUD entities with forms, tables, and actions:
-
-```php
-class UserResource extends Resource
-{
-    protected static string $model = User::class;
-
-    public static function form(Schema $form): Schema { }
-    public static function table(Table $table): Table { }
-}
-```
-
-### Components
-
-All UI elements use fluent builder pattern:
-
-```php
-TextInput::make('email')
-    ->email()
-    ->required()
-    ->maxLength(255);
-```
-
-## Data Flow
+## How a page renders
 
 ```
-HTTP Request
-    ↓
-Laravel Router → Panel Middleware → Controller
-    ↓
-Inertia Response (JSON props)
-    ↓
-Vue Component (renders UI)
+Request → panel route & middleware → Resource page (PHP)
+        → form / table / infolist built from fluent components
+        → components serialized to props (toArray)
+        → Inertia response
+        → Vue or React page renders the props with Laravilt components
 ```
 
-## Frontend Stack
+Components are defined once in PHP and serialized. The frontend packages render them, so the same resource works with both stacks.
 
-- **Inertia.js v2** - Laravel + Vue integration
-- **Vue 3** - Reactive UI framework
-- **shadcn/ui** - UI component library
-- **Tailwind CSS** - Utility-first styling
+## Core ideas
 
-## Next Steps
+- **Panel:** a self-contained admin area with its own path, auth, theme and navigation, configured in a `PanelProvider`.
+- **Resource:** binds an Eloquent model to a form, a table, an infolist and pages.
+- **Components:** everything is `Component::make(...)` with chained configuration.
 
-- [Data Flow](data-flow) - How data flows through the system
-- [Packages](packages) - Package details
-- [Panel](../panel/introduction) - Panel configuration
-- [Support](../support/introduction) - Base utilities
+Next: [Panel & Resources](../panel/README.md).
