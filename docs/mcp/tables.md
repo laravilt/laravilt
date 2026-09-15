@@ -1,96 +1,52 @@
 ---
-title: Tables MCP Server
-description: MCP server for table generation
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: mcp
+title: Tables MCP
+description: Local MCP server that generates table classes.
+order: 3
 ---
 
 # Tables MCP Server
 
-MCP server for generating data tables with columns, filters, and actions.
+`Laravilt\Tables\Mcp\LaraviltTablesServer` generates table classes and searches the tables docs.
 
-## Installation
-
-```bash
-php artisan laravilt:install-mcp
-```
-
-Registers in `routes/ai.php`:
+## Register
 
 ```php
-<?php
-
+// routes/ai.php
 use Laravel\Mcp\Facades\Mcp;
 use Laravilt\Tables\Mcp\LaraviltTablesServer;
 
 Mcp::local('laravilt-tables', LaraviltTablesServer::class);
 ```
 
-## Available Tools
+```bash
+php artisan mcp:start laravilt-tables
+```
 
-### generate-table
+## Tools
 
-Generate a new table class.
+### generate-table-tool
 
-**Arguments:**
+Generates a new table class (the same result as `php artisan make:table`).
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
+| Argument | Type | Required | Description |
+|----------|------|----------|-------------|
 | `name` | string | Yes | Table class name (StudlyCase) |
 | `actions` | boolean | No | Include row and bulk actions |
-| `force` | boolean | No | Overwrite existing |
+| `force` | boolean | No | Overwrite an existing file |
 
-**Usage:**
+### search-docs-tool
 
-```
-generate-table(name="UserTable", actions=true)
-```
-
-**Output:**
-
-```
-✅ Table 'UserTable' created successfully!
-
-📖 Location: app/Tables/UserTable.php
-
-📦 Available column types: TextColumn, ImageColumn, BadgeColumn,
-   IconColumn, SelectColumn, ToggleColumn
-```
-
-### search-docs
-
-Search tables documentation.
-
-**Arguments:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
+| Argument | Type | Required | Description |
+|----------|------|----------|-------------|
 | `query` | string | Yes | Search query |
 
-**Usage:**
+## Example prompts
 
 ```
-search-docs(query="bulk actions")
-```
-
-## AI Agent Examples
-
-```
-You: "Create a users table with actions"
-Claude: [calls generate-table with name="UserTable", actions=true]
-
-You: "Generate a posts table for the admin panel"
-Claude: [calls generate-table with name="PostTable", actions=true]
-
-You: "How do I add filters to a table?"
-Claude: [calls search-docs with query="filters"]
+"Create a UserTable with actions."
+"How do I add filters to a table?"
 ```
 
 ## Related
 
-- [Tables Introduction](../tables/introduction) - Tables overview
-- [MCP Introduction](introduction) - MCP overview
-
+- [Tables](../tables/README.md)

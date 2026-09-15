@@ -1,98 +1,67 @@
 ---
 title: Sessions
-description: Chat session management
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-component: AISession
+description: Persist chat conversations with the AISession model.
+order: 2
 ---
 
 # Sessions
 
-Manage chat sessions with message history.
+Conversations are stored in the `ai_sessions` table through `Laravilt\AI\Models\AISession`. The primary key is a UUID string.
 
-## Create Session
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | string (UUID) | Session ID |
+| `user_id` | integer | Owner (relation `user()` uses `auth.providers.users.model`) |
+| `title` | string | Session title |
+| `provider` | string | Provider name |
+| `model` | string | Model name |
+| `messages` | array | Message list (`role`, `content`) |
+| `metadata` | array | Extra data |
+
+## Working with sessions
 
 ```php
-<?php
-
+use Illuminate\Support\Str;
+use Laravilt\AI\AIManager;
 use Laravilt\AI\Models\AISession;
 
 $session = AISession::create([
+    'id' => (string) Str::uuid(),
     'user_id' => auth()->id(),
-    'metadata' => [
-        'provider' => 'openai',
-        'model' => 'gpt-4o-mini',
-    ],
-]);
-```
-
-## Add Messages
-
-```php
-<?php
-
-use Laravilt\AI\Models\AISession;
-
-$session->addMessage([
-    'role' => 'user',
-    'content' => 'Hello!',
+    'title' => 'Product questions',
+    'provider' => 'openai',
+    'model' => 'gpt-4o-mini',
+    'messages' => [],
 ]);
 
-$session->addMessage([
-    'role' => 'assistant',
-    'content' => 'Hi! How can I help you?',
-]);
-```
+$session->addMessage('user', 'Hello!');
+$session->addMessage('assistant', 'Hi! How can I help?');
 
-## Load Session
+$session->getLastMessage();   // ['role' => 'assistant', ...]
+$session->getMessageCount();  // 2
+$session->clearMessages();
 
-```php
-<?php
-
-use Laravilt\AI\Models\AISession;
-use Laravilt\AI\AIManager;
-
-$session = AISession::find($sessionId);
-$messages = $session->messages;
-
-// Continue conversation
-$ai = app(AIManager::class);
-$newResponse = $ai->provider()->chat([
-    ...$messages,
+// Continue a conversation
+$response = app(AIManager::class)->provider($session->provider)->chat([
+    ...$session->messages,
     ['role' => 'user', 'content' => 'What were we talking about?'],
 ]);
 ```
 
-## Session Endpoints
+## Endpoints
 
-```
-GET    /laravilt-ai/sessions          # List sessions
-POST   /laravilt-ai/sessions          # Create session
-GET    /laravilt-ai/sessions/{id}     # Get session
-PATCH  /laravilt-ai/sessions/{id}     # Update session
-DELETE /laravilt-ai/sessions/{id}     # Delete session
-```
+| Method | URI | Description |
+|--------|-----|-------------|
+| GET | `/laravilt-ai/sessions` | Latest 50 sessions for the current user |
+| POST | `/laravilt-ai/sessions` | Create (`title`, `provider`, `model`) |
+| GET | `/laravilt-ai/sessions/{id}` | Show a session |
+| PATCH | `/laravilt-ai/sessions/{id}` | Update `title` or `messages` |
+| DELETE | `/laravilt-ai/sessions/{id}` | Delete a session |
 
-## Session Timeout
+When `session_id` is passed to `/laravilt-ai/chat` or `/laravilt-ai/stream`, the last user message and the assistant reply are appended to the session.
 
-```php
-<?php
-
-$panel->ai(function ($ai) {
-    $ai->sessionTimeout(3600); // 1 hour
-});
-```
-
-## Clear Old Sessions
+## Pruning old sessions
 
 ```php
-<?php
-
-use Laravilt\AI\Models\AISession;
-
-// Delete sessions older than 7 days
-AISession::where('updated_at', '<', now()->subDays(7))->delete();
+AISession::where('updated_at', '<', now()->subDays(30))->delete();
 ```

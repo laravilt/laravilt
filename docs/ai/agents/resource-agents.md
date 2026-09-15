@@ -1,28 +1,19 @@
 ---
 title: Resource Agents
-description: Per-resource AI capabilities
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-component: AIAgent
+description: Configure the AI agent of a panel resource.
+order: 1
 ---
 
 # Resource Agents
 
-Configure AI capabilities for each resource.
-
-## Basic Configuration
+A panel resource gets AI capabilities when it overrides `ai()`. The agent passed in is already prepared by `Resource::makeAIAgent()`: its name is the resource slug, its model is the resource model, and it has a default description.
 
 ```php
-<?php
-
 namespace App\Laravilt\Admin\Resources\Product;
 
-use Laravilt\Panel\Resources\Resource;
 use Laravilt\AI\AIAgent;
 use Laravilt\AI\AIColumn;
+use Laravilt\Panel\Resources\Resource;
 
 class ProductResource extends Resource
 {
@@ -38,71 +29,57 @@ class ProductResource extends Resource
                 AIColumn::make('price')->type('decimal')->sortable(),
                 AIColumn::make('is_active')->type('boolean')->filterable(),
             ])
-            ->canCreate(true)
-            ->canUpdate(true)
-            ->canDelete(false)
-            ->canQuery(true);
+            ->canDelete(false);
     }
 }
 ```
 
-## CRUD Permissions
+`php artisan laravilt:resource` can generate this for you. With the AI option it creates `Resources/{Model}/Ai/{Model}Ai.php` with a `configure(AIAgent $ai)` method, and the resource's `ai()` returns `{Model}Ai::configure($ai)`.
+
+## Permissions
+
+`canCreate`, `canUpdate`, `canDelete` and `canQuery` all default to `true`.
 
 ```php
-<?php
-
-use Laravilt\AI\AIAgent;
-
 $agent
     ->canCreate(auth()->user()->can('create', Product::class))
     ->canUpdate(auth()->user()->can('update', Product::class))
     ->canDelete(false)
-    ->canQuery(true);
+    ->canQuery();
 ```
 
-## Custom Provider
+## Provider and model
 
 ```php
-<?php
-
-use Laravilt\AI\AIAgent;
 use Laravilt\AI\Enums\OpenAIModel;
 
-$agent
-    ->provider('openai')
-    ->aiModel(OpenAIModel::GPT_4O);
+$agent->provider('openai')->aiModel(OpenAIModel::GPT_4O);
 ```
 
-## Custom Tools
+## Custom tools
 
 ```php
-<?php
-
-use Laravilt\AI\AIAgent;
-use Laravilt\AI\Tools\Tool;
-
-$agent->tools([
-    Tool::make('calculate_discount')
-        ->description('Calculate discount price')
-        ->addParameter('price', 'number', 'Original price', true)
-        ->addParameter('percent', 'number', 'Discount %', true)
-        ->handler(fn ($args) => $args['price'] * (1 - $args['percent'] / 100)),
-]);
+$agent->tools([new WeatherTool('get_weather')]);
+$agent->addTool($anotherTool);
 ```
 
-## API Reference
+See [Custom tools](../tools/custom-tools.md).
+
+## Methods
 
 | Method | Description |
 |--------|-------------|
-| `name()` | Agent name |
-| `description()` | Agent description |
-| `systemPrompt()` | System instructions |
-| `searchable()` | Searchable columns |
-| `columns()` | AI column definitions |
-| `tools()` | Custom tools |
-| `canCreate()` | Allow create |
-| `canUpdate()` | Allow update |
-| `canDelete()` | Allow delete |
-| `canQuery()` | Allow query |
-| `provider()` | AI provider |
-| `aiModel()` | AI model |
+| `name(string)` | Agent name |
+| `description(string)` | Agent description |
+| `systemPrompt(string)` | System instructions |
+| `model(string)` | Eloquent model class |
+| `searchable(array)` | Searchable columns |
+| `columns(array)` / `addColumn(AIColumn)` | AI column definitions |
+| `tools(array)` / `addTool(Tool)` | Custom tools |
+| `metadata(array)` | Extra data |
+| `canCreate()`, `canUpdate()`, `canDelete()`, `canQuery()` | Permissions (default `true`) |
+| `provider(string)` | Provider name |
+| `aiModel(string\|BackedEnum)` | Model name or enum |
+| `handler(Closure)` | Custom handler |
+| `toResourceAgent()` | Convert to an executable `ResourceAgent` |
+| `toArray()` | Export for the frontend |

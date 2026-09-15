@@ -1,142 +1,54 @@
 ---
-title: Plugin Traits
-description: Reusable plugin concerns
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: plugins
-concept: traits
+title: Traits
+description: Concerns that load a plugin's migrations, translations, views, assets and commands.
+order: 2
 ---
 
 # Plugin Traits
 
-Reusable concerns for plugin features.
-
-## HasMigrations
+The concerns in `Laravilt\Plugins\Concerns` wrap Laravel's `ServiceProvider` helpers (`loadMigrationsFrom()`, `loadTranslationsFrom()`, `loadViewsFrom()`, `publishes()`, `commands()`). Use them in your plugin's **service provider**, not in the `PluginProvider` class.
 
 ```php
-<?php
+namespace Laravilt\BlogManager;
 
+use Illuminate\Support\ServiceProvider;
+use Laravilt\Plugins\Concerns\HasCommands;
 use Laravilt\Plugins\Concerns\HasMigrations;
-
-class MyPlugin extends PluginProvider
-{
-    use HasMigrations;
-
-    public function boot(Panel $panel): void
-    {
-        $this->loadMigrations();
-    }
-}
-```
-
-Methods: `migrations()`, `getMigrations()`, `loadMigrations()`
-
-## HasTranslations
-
-```php
-<?php
-
 use Laravilt\Plugins\Concerns\HasTranslations;
-
-class MyPlugin extends PluginProvider
-{
-    use HasTranslations;
-
-    public function boot(Panel $panel): void
-    {
-        $this->loadTranslations();
-    }
-}
-```
-
-Methods: `translations()`, `getTranslationNamespaces()`, `loadTranslations()`
-
-## HasViews
-
-```php
-<?php
-
 use Laravilt\Plugins\Concerns\HasViews;
 
-class MyPlugin extends PluginProvider
-{
-    use HasViews;
-
-    public function boot(Panel $panel): void
-    {
-        $this->loadViews();
-        $this->publishViews();
-    }
-}
-```
-
-Methods: `viewNamespace()`, `getViewNamespace()`, `loadViews()`, `publishViews()`
-
-## HasAssets
-
-```php
-<?php
-
-use Laravilt\Plugins\Concerns\HasAssets;
-
-class MyPlugin extends PluginProvider
-{
-    use HasAssets;
-
-    public function boot(Panel $panel): void
-    {
-        $this->assets(['app.css', 'app.js']);
-        $this->publishAssets();
-    }
-}
-```
-
-Methods: `assets()`, `assetsPath()`, `getAssets()`, `getAssetsPath()`, `publishAssets()`
-
-## HasCommands
-
-```php
-<?php
-
-use Laravilt\Plugins\Concerns\HasCommands;
-
-class MyPlugin extends PluginProvider
+class BlogManagerServiceProvider extends ServiceProvider
 {
     use HasCommands;
+    use HasMigrations;
+    use HasTranslations;
+    use HasViews;
 
-    protected array $pluginCommands = [
-        Commands\InstallCommand::class,
-    ];
-
-    public function boot(Panel $panel): void
+    public function boot(): void
     {
+        $this->loadMigrations();
+        $this->loadTranslations();
+
+        $this->viewNamespace('blog-manager');
+        $this->loadViews();
+
+        $this->pluginCommands([
+            Commands\InstallBlogManagerCommand::class,
+        ]);
         $this->registerPluginCommands();
     }
 }
 ```
 
-Methods: `pluginCommands()`, `getPluginCommands()`, `registerPluginCommands()`
+The generated service provider already calls the plain Laravel helpers, so these traits are optional.
 
-## HasComponents
+## Reference
 
-```php
-<?php
-
-use Laravilt\Plugins\Concerns\HasComponents;
-
-class MyPlugin extends PluginProvider
-{
-    use HasComponents;
-
-    public function boot(Panel $panel): void
-    {
-        $this->components([MyComponent::class]);
-        $this->registerComponents();
-    }
-}
-```
-
-Methods: `components()`, `getComponents()`, `registerComponents()`
-
+| Trait | Methods |
+|-------|---------|
+| `HasMigrations` | `migrations(array)`, `getMigrations()`, `loadMigrations()` |
+| `HasTranslations` | `translations(array $namespaces)`, `getTranslationNamespaces()`, `loadTranslations()` |
+| `HasViews` | `viewNamespace(string)`, `getViewNamespace()`, `loadViews()`, `publishViews()` |
+| `HasAssets` | `assets(array)`, `assetsPath(string)` (default `dist`), `getAssets()`, `getAssetsPath()`, `publishAssets()` |
+| `HasCommands` | `pluginCommands(array)`, `getPluginCommands()`, `registerPluginCommands()` |
+| `HasComponents` | `components(array)`, `getComponents()`, `registerComponents()` |

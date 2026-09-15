@@ -1,78 +1,50 @@
 ---
-title: Gemini Provider
-description: Google Gemini models integration
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-provider: gemini
+title: Gemini
+description: Use Google Gemini models with Laravilt AI.
+order: 3
 ---
 
 # Gemini Provider
 
-Integration with Google Gemini models.
-
-## Supported Models
-
-| Model | Description |
-|-------|-------------|
-| gemini-2.0-flash | Latest fast model |
-| gemini-1.5-pro | High capability |
-| gemini-1.5-flash | Fast responses |
-| gemini-pro | Original model |
+`Laravilt\AI\Providers\GeminiProvider` talks to the Google Generative Language API (`v1beta`).
 
 ## Configuration
 
 ```env
-GEMINI_API_KEY=...
-GEMINI_MODEL=gemini-2.0-flash-exp
+GOOGLE_AI_API_KEY=...
+GOOGLE_AI_MODEL=gemini-2.0-flash-exp
+# Optional
+GOOGLE_AI_BASE_URL=
+GOOGLE_AI_TEMPERATURE=0.7
+GOOGLE_AI_MAX_TOKENS=2048
 ```
+
+## Models
+
+`Laravilt\AI\Enums\GeminiModel`:
+
+| Case | Value |
+|------|-------|
+| `GEMINI_2_FLASH` | `gemini-2.0-flash-exp` (default) |
+| `GEMINI_15_PRO` | `gemini-1.5-pro` |
+| `GEMINI_15_FLASH` | `gemini-1.5-flash` |
+| `GEMINI_PRO` | `gemini-pro` |
 
 ## Usage
 
-```php
-<?php
+Send messages in the standard `role`/`content` format. The provider converts them to Gemini's format, including system messages. `temperature` and `max_tokens` map to Gemini's `temperature` and `maxOutputTokens`.
 
+```php
 use Laravilt\AI\AIManager;
 
-$ai = app(AIManager::class);
-
-$response = $ai->provider('gemini')->chat([
-    ['role' => 'user', 'content' => 'Hello!'],
-]);
-
-echo $response['content'];
-```
-
-## Advanced Options
-
-```php
-<?php
-
-use Laravilt\AI\AIManager;
-
-$response = $ai->provider('gemini')->chat($messages, [
-    'temperature' => 0.7,
-    'topP' => 0.9,
-    'topK' => 40,
-    'maxOutputTokens' => 2048,
-]);
-```
-
-## Message Conversion
-
-Gemini uses different message format. The provider automatically converts:
-
-```php
-<?php
-
-// Standard format (auto-converted)
-$messages = [
+$response = app(AIManager::class)->provider('gemini')->chat([
     ['role' => 'user', 'content' => 'Hello'],
     ['role' => 'assistant', 'content' => 'Hi!'],
     ['role' => 'user', 'content' => 'How are you?'],
-];
+], [
+    'temperature' => 0.7,
+    'max_tokens' => 2048,
+]);
 
-$response = $ai->provider('gemini')->chat($messages);
+echo $response['content'];
 ```

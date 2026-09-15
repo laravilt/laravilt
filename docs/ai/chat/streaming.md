@@ -1,99 +1,92 @@
 ---
 title: Streaming
-description: Real-time AI responses
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-concept: streaming
+description: Stream AI responses in PHP and consume the server-sent events endpoint.
+order: 1
 ---
 
 # Streaming
 
-Real-time streaming responses using SSE.
+## Realtime callback
 
-## Basic Streaming
-
-```php
-<?php
-
-use Laravilt\AI\AIManager;
-
-$ai = app(AIManager::class);
-
-foreach ($ai->provider('openai')->streamChat($messages) as $chunk) {
-    echo $chunk;
-    flush();
-}
-```
-
-## Streaming with Callback
+`streamChatRealtime()` calls your callback for each chunk as the provider sends it:
 
 ```php
-<?php
-
 use Laravilt\AI\AIManager;
 
-$provider = $ai->provider('openai');
+$provider = app(AIManager::class)->provider('openai');
 
 $provider->streamChatRealtime(
-    messages: [['role' => 'user', 'content' => 'Write a story']],
-    callback: function ($chunk) {
+    [['role' => 'user', 'content' => 'Write a short story']],
+    function (string $chunk) {
         echo $chunk;
         flush();
-    }
+    },
+    ['model' => 'gpt-4o-mini'],
 );
 ```
 
-## Streaming with Tools
+## Generator
+
+`streamChat()` returns a generator of chunks:
 
 ```php
-<?php
-
-use Laravilt\AI\AIManager;
-
-$messages = [
-    ['role' => 'user', 'content' => 'Find the 3 cheapest products'],
-];
-
-$tools = $agent->getTools();
-
-foreach ($ai->provider()->streamChatWithTools($messages, $tools) as $event) {
-    if ($event['type'] === 'text') {
-        echo $event['content'];
-    } elseif ($event['type'] === 'tool_call') {
-        $result = $event['tool']->handle($event['arguments']);
-        $messages[] = [
-            'role' => 'tool',
-            'content' => json_encode($result),
-            'tool_call_id' => $event['id'],
-        ];
-    }
+foreach ($provider->streamChat($messages) as $chunk) {
+    echo $chunk;
 }
 ```
 
-## Vue Integration
+> Some providers (such as OpenAI) collect the full response before yielding from `streamChat()`. Use `streamChatRealtime()` when you need output as it arrives.
 
-```vue
-<script setup lang="ts">
-import { ref } from 'vue'
+## The stream endpoint
 
-const response = ref('')
+`POST /laravilt-ai/stream` accepts:
 
-async function streamChat(messages: Message[]) {
-  const eventSource = new EventSource('/laravilt-ai/stream')
+| Field | Type | Description |
+|-------|------|-------------|
+| `messages` | array | `role` (`system`, `user`, `assistant`, `tool`) and `content` |
+| `provider` | string | Optional provider name |
+| `model` | string | Optional model |
+| `session_id` | string | Optional session to save the exchange to |
+| `mentioned_resources` | array | Optional resource slugs to focus on |
 
-  eventSource.onmessage = (event) => {
-    response.value += event.data
+It responds with `text/event-stream`. Each event is a JSON object with `content` (or `error`), and the stream ends with `data: [DONE]`:
+
+```
+data: {"content":"Hello"}
+
+data: {"content":" there"}
+
+data: [DONE]
+```
+
+Before streaming, the controller lets the model call the resource tools (`list_resources`, `query_resource`) and then streams the final answer.
+
+## Consuming the stream
+
+The endpoint is a POST, so read it with `fetch` rather than `EventSource`:
+
+```ts
+const res = await fetch('/laravilt-ai/stream', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-CSRF-TOKEN': csrfToken,
+  },
+  body: JSON.stringify({ messages }),
+})
+
+const reader = res.body!.getReader()
+const decoder = new TextDecoder()
+
+while (true) {
+  const { value, done } = await reader.read()
+  if (done) break
+  for (const line of decoder.decode(value).split('\n')) {
+    if (!line.startsWith('data: ') || line === 'data: [DONE]') continue
+    const data = JSON.parse(line.slice(6))
+    if (data.content) output += data.content
   }
 }
-</script>
 ```
 
-## Best Practices
-
-- Enable streaming for better UX
-- Handle connection errors gracefully
-- Show typing indicators
-- Buffer chunks for smooth display
+The `useAI()` composable (Vue and React) wraps this for you; see [Frontend components](frontend-components.md).

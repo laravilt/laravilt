@@ -1,91 +1,84 @@
 ---
 title: Plugin Classes
-description: Plugin base classes
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: plugins
-concept: plugin-classes
+description: The PluginProvider base class and the Plugin contract.
+order: 1
 ---
 
 # Plugin Classes
 
-Base class for plugin development.
-
 ## PluginProvider
 
-For panel integration:
+Extend `Laravilt\Plugins\PluginProvider`. It already implements `Laravilt\Plugins\Contracts\Plugin`.
 
 ```php
-<?php
+namespace Laravilt\BlogManager;
 
-namespace MyCompany\BlogManager;
-
-use Laravilt\Plugins\PluginProvider;
-use Laravilt\Plugins\Contracts\Plugin;
 use Laravilt\Panel\Panel;
+use Laravilt\Plugins\PluginProvider;
 
-class BlogManagerPlugin extends PluginProvider implements Plugin
+class BlogManagerPlugin extends PluginProvider
 {
     protected static string $id = 'blog-manager';
+
     protected static string $name = 'Blog Manager';
+
     protected static string $version = '1.0.0';
+
     protected static string $description = 'Blog management';
-    protected static string $author = 'MyCompany';
+
+    protected static string $author = 'Laravilt';
 
     public function register(Panel $panel): void
     {
         $panel->resources([
-            Resources\PostResource::class,
-        ])->pages([
-            Pages\Dashboard::class,
+            Resources\Posts\PostResource::class,
+        ]);
+
+        $panel->pages([
+            Pages\BlogDashboard::class,
         ]);
     }
 
     public function boot(Panel $panel): void
     {
-        // Boot logic
+        // Optional: runs after register()
     }
 }
 ```
 
-## Required Properties
+`register()` is abstract and required. `boot()` is optional.
 
-```php
-<?php
+## Properties
 
-protected static string $id = 'unique-plugin-id';
-```
+| Property | Required | Default |
+|----------|----------|---------|
+| `protected static string $id` | Yes | none, must be unique |
+| `protected static string $name` | No | `''` |
+| `protected static string $version` | No | `'1.0.0'` |
+| `protected static string $description` | No | `''` |
+| `protected static string $author` | No | `''` |
+| `protected bool $enabled` | No | `true` |
 
-## Optional Properties
+## Methods
 
-```php
-<?php
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `make()` | `static` | Create an instance |
+| `getId()` | `string` | Plugin ID |
+| `getName()` | `string` | Display name |
+| `getVersion()` | `string` | Version |
+| `getDescription()` | `string` | Description |
+| `getAuthor()` | `string` | Author |
+| `isEnabled()` | `bool` | Whether the plugin is enabled |
+| `enable()` / `disable()` | `static` | Toggle the plugin |
+| `register(Panel $panel)` | `void` | Register components on the panel |
+| `boot(Panel $panel)` | `void` | Panel-specific boot logic |
 
-protected static string $name = 'Display Name';
-protected static string $version = '1.0.0';
-protected static string $description = 'Description';
-protected static string $author = 'Author Name';
-protected bool $enabled = true;
-```
+## The Plugin contract
 
-## Instance Methods
-
-| Method | Return | Description |
-|--------|--------|-------------|
-| `make()` | `static` | Create instance |
-| `getId()` | `string` | Get plugin ID |
-| `getName()` | `string` | Get plugin name |
-| `getVersion()` | `string` | Get version |
-| `getDescription()` | `string` | Get description |
-| `getAuthor()` | `string` | Get author |
-| `isEnabled()` | `bool` | Check if enabled |
-| `enable()` | `static` | Enable plugin |
-| `disable()` | `static` | Disable plugin |
+`Laravilt\Plugins\Contracts\Plugin` requires `getId()`, `register(Panel)`, `boot(Panel)`, `isEnabled()` and `static make()`. `Panel::plugin()` and `Panel::plugins()` accept any object that implements it.
 
 ## Related
 
-- [Traits](traits) - Plugin concerns
-- [Configuration](configuration) - Config files
-
+- [Traits](traits.md)
+- [Configuration](configuration.md)

@@ -1,86 +1,51 @@
 ---
-title: Schemas MCP Server
-description: MCP server for schema and layout management
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: mcp
+title: Schemas MCP
+description: Local MCP server that generates schema classes.
+order: 4
 ---
 
 # Schemas MCP Server
 
-MCP server for schema components and layout management.
+`Laravilt\Schemas\Mcp\LaraviltSchemasServer` generates schema (layout) classes and searches the schemas docs.
 
-## Installation
-
-```bash
-php artisan laravilt:install-mcp
-```
-
-Registers in `routes/ai.php`:
+## Register
 
 ```php
-<?php
-
+// routes/ai.php
 use Laravel\Mcp\Facades\Mcp;
 use Laravilt\Schemas\Mcp\LaraviltSchemasServer;
 
 Mcp::local('laravilt-schemas', LaraviltSchemasServer::class);
 ```
 
-## Available Tools
-
-### list-components
-
-List available schema components.
-
-**Usage:**
-
-```
-list-components
+```bash
+php artisan mcp:start laravilt-schemas
 ```
 
-**Output:**
+## Tools
 
-- Section - Collapsible sections
-- Grid - Multi-column layouts
-- Tabs - Tabbed interfaces
-- Wizard - Multi-step forms
-- Split - Split layouts
-- Fieldset - Grouped fields
+### generate-schema-tool
 
-### search-docs
+Generates a new schema class (the same result as `php artisan make:schema`).
 
-Search schemas documentation.
+| Argument | Type | Required | Description |
+|----------|------|----------|-------------|
+| `name` | string | Yes | Schema class name (StudlyCase) |
+| `force` | boolean | No | Overwrite an existing file |
 
-**Arguments:**
+### search-docs-tool
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
+| Argument | Type | Required | Description |
+|----------|------|----------|-------------|
 | `query` | string | Yes | Search query |
 
-**Usage:**
+## Example prompts
 
 ```
-search-docs(query="wizard validation")
-```
-
-## AI Agent Examples
-
-```
-You: "What layout components are available?"
-Claude: [calls list-components]
-
-You: "How do I create a multi-step form?"
-Claude: [calls search-docs with query="wizard"]
-
-You: "How do I use grid layouts?"
-Claude: [calls search-docs with query="grid columns"]
+"Create a ProductSchema."
+"How do I build a multi-step wizard?"
 ```
 
 ## Related
 
-- [Schemas Introduction](../schemas/introduction) - Schemas overview
-- [MCP Introduction](introduction) - MCP overview
-
+- [Schemas](../schemas/README.md)

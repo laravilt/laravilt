@@ -1,96 +1,53 @@
 ---
-title: Forms MCP Server
-description: MCP server for form generation
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: mcp
+title: Forms MCP
+description: Local MCP server that generates form classes.
+order: 2
 ---
 
 # Forms MCP Server
 
-MCP server for generating forms with 30+ field types.
+`Laravilt\Forms\Mcp\LaraviltFormsServer` generates form classes and searches the forms docs.
 
-## Installation
-
-```bash
-php artisan laravilt:install-mcp
-```
-
-Registers in `routes/ai.php`:
+## Register
 
 ```php
-<?php
-
+// routes/ai.php
 use Laravel\Mcp\Facades\Mcp;
 use Laravilt\Forms\Mcp\LaraviltFormsServer;
 
 Mcp::local('laravilt-forms', LaraviltFormsServer::class);
 ```
 
-## Available Tools
+```bash
+php artisan mcp:start laravilt-forms
+```
 
-### generate-form
+## Tools
 
-Generate a new form class.
+### generate-form-tool
 
-**Arguments:**
+Generates a new form class (the same result as `php artisan make:form`).
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
+| Argument | Type | Required | Description |
+|----------|------|----------|-------------|
 | `name` | string | Yes | Form class name (StudlyCase) |
-| `resource` | boolean | No | Generate resource form |
-| `force` | boolean | No | Overwrite existing |
+| `resource` | boolean | No | Generate a resource form |
+| `force` | boolean | No | Overwrite an existing file |
 
-**Usage:**
+### search-docs-tool
 
-```
-generate-form(name="UserForm", resource=true)
-```
-
-**Output:**
-
-```
-✅ Form 'UserForm' created successfully!
-
-📖 Location: app/Forms/UserForm.php
-
-📦 Available field types: TextInput, Select, DatePicker,
-   FileUpload, RichEditor, Repeater, and 24+ more
-```
-
-### search-docs
-
-Search forms documentation.
-
-**Arguments:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
+| Argument | Type | Required | Description |
+|----------|------|----------|-------------|
 | `query` | string | Yes | Search query |
 
-**Usage:**
+## Example prompts
 
 ```
-search-docs(query="file upload validation")
-```
-
-## AI Agent Examples
-
-```
-You: "Create a contact form"
-Claude: [calls generate-form with name="ContactForm"]
-
-You: "Create a resource form for managing posts"
-Claude: [calls generate-form with name="PostForm", resource=true]
-
-You: "How do I add file upload validation?"
-Claude: [calls search-docs with query="file upload validation"]
+"Create a ContactForm."
+"Create a resource form for posts."
+"How do I validate file uploads?"
 ```
 
 ## Related
 
-- [Forms Introduction](../forms/introduction) - Forms overview
-- [MCP Introduction](introduction) - MCP overview
-
+- [Forms](../forms/README.md)
