@@ -1,72 +1,47 @@
 ---
 title: Checkbox
-description: Single checkbox field
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: Checkbox
-vue_component: FormCheckbox
-vue_package: "radix-vue (Checkbox)"
+description: Single checkbox for boolean values.
+order: 3
 ---
 
 # Checkbox
 
-Single checkbox for boolean values.
+A single checkbox for boolean values.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\Checkbox;
 
 Checkbox::make('is_active')
-    ->label('Active');
-```
-
-## Agreement Checkbox
-
-```php
-<?php
-
-use Laravilt\Forms\Components\Checkbox;
-
-Checkbox::make('terms_accepted')
-    ->label('I accept the terms and conditions')
-    ->required()
-    ->accepted();
-```
-
-## Default Value
-
-```php
-<?php
-
-use Laravilt\Forms\Components\Checkbox;
-
-Checkbox::make('newsletter')
-    ->label('Subscribe to newsletter')
+    ->label('Active')
     ->default(true);
 ```
 
-## Vue Component
+## Must be accepted
 
-Uses Radix Vue Checkbox:
-
-```vue
-<script setup>
-import { CheckboxRoot, CheckboxIndicator } from 'radix-vue'
-</script>
+```php
+Checkbox::make('terms_accepted')
+    ->label('I accept the terms and conditions')
+    ->rules(['accepted']);
 ```
 
-## API Reference
+## Custom values and description
+
+```php
+Checkbox::make('status')
+    ->checkedValue('enabled')
+    ->uncheckedValue('disabled')
+    ->description('Enable the feature for all users');
+```
+
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `label()` | Set label |
-| `default()` | Set default |
-| `accepted()` | Must be checked |
-| `inline()` | Display inline |
-| `helperText()` | Add helper text |
+| `checkedValue(mixed)` | Value stored when checked |
+| `uncheckedValue(mixed)` | Value stored when unchecked |
+| `description(string\|Closure)` | Text below the label |
+| `inline(bool)` | Inline layout |
+
+For several checkboxes, use [CheckboxList](checkbox-list.md).

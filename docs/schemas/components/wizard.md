@@ -1,117 +1,23 @@
 ---
 title: Wizard
-description: Multi-step form workflow
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: schemas
-vue_component: Wizard
-vue_package: "@laravilt/schemas"
+description: Multi-step flow with labelled steps and custom button labels.
+order: 4
 ---
 
 # Wizard
 
-Multi-step form interface.
-
-## Basic Usage
+A multi-step flow.
 
 ```php
-<?php
-
-use Laravilt\Schemas\Components\Wizard;
-use Laravilt\Schemas\Components\Step;
 use Laravilt\Forms\Components\TextInput;
+use Laravilt\Schemas\Components\Step;
+use Laravilt\Schemas\Components\Wizard;
 
-Wizard::make()
-    ->steps([
-        Step::make('account')
-            ->label('Account')
-            ->description('Create your account')
-            ->schema([
-                TextInput::make('email')->email(),
-                TextInput::make('password')->password(),
-            ]),
-        Step::make('profile')
-            ->label('Profile')
-            ->schema([
-                TextInput::make('name'),
-            ]),
-    ]);
-```
-
-## Step with Icon
-
-```php
-<?php
-
-Step::make('account')
-    ->label('Account')
-    ->icon('User')
-    ->schema([...]);
-
-Step::make('payment')
-    ->label('Payment')
-    ->icon('CreditCard')
-    ->schema([...]);
-```
-
-## Skippable Wizard
-
-```php
-<?php
-
-Wizard::make()
-    ->skippable()
-    ->steps([...]);
-```
-
-## Custom Button Labels
-
-```php
-<?php
-
-Wizard::make()
-    ->submitButtonLabel('Complete')
-    ->nextButtonLabel('Continue')
-    ->previousButtonLabel('Back')
-    ->steps([...]);
-```
-
-## Wizard Methods
-
-| Method | Description |
-|--------|-------------|
-| `make(string)` | Create wizard |
-| `steps(array)` | Set step array |
-| `skippable(bool)` | Allow step skipping |
-| `submitButtonLabel(string\|Closure)` | Submit text |
-| `nextButtonLabel(string\|Closure)` | Next text |
-| `previousButtonLabel(string\|Closure)` | Previous text |
-| `getSteps()` | Get steps array |
-
-## Step Methods
-
-| Method | Description |
-|--------|-------------|
-| `make(string)` | Create step |
-| `label(string\|Closure)` | Step label |
-| `description(string\|Closure)` | Step description |
-| `icon(string\|Closure)` | Lucide icon |
-| `schema(array)` | Step content |
-| `getLabel()` | Get label |
-| `getDescription()` | Get description |
-| `getIcon()` | Get icon |
-| `getSchema()` | Get schema |
-
-## Complete Example
-
-```php
-<?php
-
-Wizard::make()
+Wizard::make('onboarding')
     ->skippable()
     ->submitButtonLabel('Create Account')
+    ->nextButtonLabel('Continue')
+    ->previousButtonLabel('Back')
     ->steps([
         Step::make('account')
             ->label('Account')
@@ -123,17 +29,32 @@ Wizard::make()
             ]),
         Step::make('profile')
             ->label('Profile')
-            ->description('Your information')
             ->icon('UserCircle')
             ->schema([
                 TextInput::make('name')->required(),
-                TextInput::make('phone'),
             ]),
     ]);
 ```
 
-## Related
+The panel's schema renderer maps `wizard` on both stacks, so a Wizard works inside resource forms. Each step renders its schema like any other form content.
 
-- [Tabs](tabs) - Tabbed interface
-- [Section](section) - Grouped content
+## API reference
 
+**Wizard**
+
+| Method | Description |
+|--------|-------------|
+| `make(string)` | Create (name required) |
+| `steps(array)` | `Step` instances |
+| `skippable(bool)` | Allow jumping between steps |
+| `submitButtonLabel()` / `nextButtonLabel()` / `previousButtonLabel()` | Button labels |
+
+**Step**
+
+| Method | Description |
+|--------|-------------|
+| `make(string)` | Create |
+| `label(string\|Closure)` | Step label |
+| `description(string\|Closure)` | Step description |
+| `icon(string\|Closure)` | Lucide icon |
+| `schema(array)` | Step content |

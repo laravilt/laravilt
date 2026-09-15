@@ -1,76 +1,29 @@
 ---
 title: CodeEditor
-description: Code editor with syntax highlighting
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: CodeEditor
-vue_component: FormCodeEditor
-vue_package: "codemirror, @codemirror/vue"
+description: Syntax-highlighted code editor built on CodeMirror 6.
+order: 4
 ---
 
 # CodeEditor
 
-Code editor with syntax highlighting.
-
-## Basic Usage
+A code editor with syntax highlighting, built on CodeMirror 6.
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\CodeEditor;
+use Laravilt\Forms\Components\CodeEditor\Language;
 
-CodeEditor::make('code')
-    ->label('Source Code');
-```
-
-## Language Support
-
-```php
-<?php
-
-use Laravilt\Forms\Components\CodeEditor;
-
-CodeEditor::make('php_code')->language('php');
-CodeEditor::make('js_code')->language('javascript');
+CodeEditor::make('php_code')->language(Language::PHP);
 CodeEditor::make('config')->language('json');
-CodeEditor::make('template')->language('html');
-CodeEditor::make('styles')->language('css');
+CodeEditor::make('styles')->language('css')->darkTheme();
+CodeEditor::make('snippet')->readonly();
 ```
 
-## Configuration
+`language()` accepts a `Language` enum case or its string value. The cases include `javascript`, `typescript`, `php`, `python`, `java`, `html`, `css`, `json`, `xml`, `yaml`, `markdown`, `sql`, `bash`, `vue`, `jsx` and more.
 
-```php
-<?php
-
-use Laravilt\Forms\Components\CodeEditor;
-
-CodeEditor::make('code')
-    ->lineNumbers()
-    ->minHeight(200)
-    ->maxHeight(500)
-    ->theme('github-dark');
-```
-
-## Vue Component
-
-Uses CodeMirror:
-
-```vue
-<script setup>
-import { Codemirror } from 'vue-codemirror'
-import { javascript } from '@codemirror/lang-javascript'
-</script>
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `language()` | Set language |
-| `lineNumbers()` | Show line numbers |
-| `minHeight()` | Minimum height |
-| `theme()` | Editor theme |
-| `readOnly()` | Read-only mode |
+| `language(Language\|string)` | Syntax mode |
+| `darkTheme()` / `lightTheme()` | Editor theme |
+| `readonly()` | Read-only mode |

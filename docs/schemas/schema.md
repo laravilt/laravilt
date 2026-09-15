@@ -1,26 +1,18 @@
 ---
 title: Schema Class
-description: Base schema for layouts
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: schemas
-vue_component: Schema
-vue_package: "@laravilt/schemas"
+description: The Schema container, its configuration methods, validation helpers and serialization.
+order: 1
 ---
 
 # Schema Class
 
-Base class for form and infolist layouts.
+`Laravilt\Schemas\Schema` is the container behind resource forms and infolists. `Laravilt\Infolists\Infolist` extends it.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
-use Laravilt\Schemas\Schema;
 use Laravilt\Forms\Components\TextInput;
+use Laravilt\Schemas\Schema;
 
 $schema = Schema::make()
     ->schema([
@@ -30,37 +22,34 @@ $schema = Schema::make()
     ->columns(2);
 ```
 
-## Methods
+## Configuration
 
 ```php
-<?php
-
 Schema::make()
-    ->schema([...])           // Set components
-    ->columns(2)              // Grid columns
-    ->model(User::class)      // Model class
-    ->resourceSlug('users')   // Resource slug
-    ->operation('edit')       // create/edit/view
-    ->record($user)           // Model instance
-    ->fill($data);            // Fill with data
+    ->schema([/* ... */])      // components
+    ->columns(2)               // grid columns (int)
+    ->model(User::class)       // model class
+    ->resourceSlug('users')    // resource slug
+    ->operation('edit')        // create, edit or view
+    ->record($user)            // current record
+    ->fill(['name' => 'Ada']); // initial data (array)
 ```
 
 ## Getters
 
-| Method | Return | Description |
-|--------|--------|-------------|
-| `getSchema()` | `array` | Get components |
-| `getGridColumns()` | `int` | Column count |
-| `getModel()` | `?string` | Model class |
-| `getOperation()` | `?string` | Current operation |
-| `getRecord()` | `mixed` | Model instance |
-| `getData()` | `array` | Form data |
+| Method | Description |
+|--------|-------------|
+| `getSchema()` | Components |
+| `getGridColumns()` | Column count |
+| `getModel()` | Model class |
+| `getOperation()` | Current operation |
+| `getRecord()` | Current record |
+| `getData()` | Filled data |
+| `getVisibleComponents()` | Components that are not hidden |
 
 ## Validation
 
 ```php
-<?php
-
 $rules = $schema->getValidationRules();
 $messages = $schema->getValidationMessages();
 $attributes = $schema->getValidationAttributes();
@@ -69,17 +58,10 @@ $attributes = $schema->getValidationAttributes();
 ## Serialization
 
 ```php
-<?php
-
-// For Inertia
-$props = $schema->toInertiaProps();
-
-// With form data
-$props = $schema->toLaraviltProps($data, $record);
+$props = $schema->toInertiaProps();   // for an Inertia page
+$props = $schema->toLaraviltProps();  // component tree
 ```
 
 ## Related
 
-- [Section](components/section) - Sections
-- [Tabs](components/tabs) - Tabbed layout
-
+- [Layout Components](components/README.md)

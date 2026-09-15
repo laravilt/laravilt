@@ -1,72 +1,42 @@
 ---
 title: DateTimePicker
-description: Date and time selection
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: DateTimePicker
-vue_component: FormDateTimePicker
-vue_package: "v-calendar"
+description: Combined date and time selection.
+order: 2
 ---
 
 # DateTimePicker
 
 Combined date and time selection.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\DateTimePicker;
 
 DateTimePicker::make('scheduled_at')
-    ->label('Schedule Date & Time');
+    ->label('Schedule');
 ```
 
-## Time Steps
+## Options
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\DateTimePicker;
-
-DateTimePicker::make('meeting_time')
-    ->minutesStep(15);
+DateTimePicker::make('meeting_at')
+    ->step(15)                         // minute interval
+    ->withSeconds()
+    ->format24Hour()
+    ->minDateTime(now()->toDateTimeString())
+    ->maxDateTime(now()->addMonth()->toDateTimeString())
+    ->timezone('America/New_York');
 ```
 
-## Date and Time Formats
-
-```php
-<?php
-
-use Laravilt\Forms\Components\DateTimePicker;
-
-DateTimePicker::make('event_start')
-    ->format('Y-m-d H:i:s')
-    ->displayFormat('M j, Y g:i A');
-```
-
-## Vue Component
-
-Uses v-calendar with time:
-
-```vue
-<script setup>
-import { DatePicker } from 'v-calendar'
-// mode="dateTime" enables time selection
-</script>
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `minutesStep()` | Set minute intervals |
-| `seconds()` | Show/hide seconds |
-| `format()` | Set storage format |
-| `displayFormat()` | Set display format |
-| `minDate()` | Set minimum date |
-| `maxDate()` | Set maximum date |
+| `step(int)` | Minute interval |
+| `withSeconds(bool)` | Show seconds |
+| `format24Hour(bool)` | 24-hour clock |
+| `minDateTime(string)` / `maxDateTime(string)` | Bounds |
+| `timezone(string)` | Timezone |
+
+For finer control over formats, use [DatePicker](date-picker.md) with `->time()`.

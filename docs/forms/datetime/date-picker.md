@@ -1,84 +1,67 @@
 ---
 title: DatePicker
-description: Date selection with calendar
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: DatePicker
-vue_component: FormDatePicker
-vue_package: "v-calendar"
+description: Date selection with a calendar popup, formats and constraints.
+order: 1
 ---
 
 # DatePicker
 
-Date selection with calendar popup.
+Date selection with a calendar popup.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\DatePicker;
 
 DatePicker::make('birth_date')
     ->label('Date of Birth');
 ```
 
-## Date Formats
+## Formats
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\DatePicker;
-
 DatePicker::make('event_date')
-    ->format('Y-m-d')
-    ->displayFormat('F j, Y');
+    ->format('Y-m-d')          // stored value
+    ->displayFormat('F j, Y')  // shown to the user
+    ->locale('fr');
 ```
 
-## Date Constraints
+## Constraints
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\DatePicker;
-
 DatePicker::make('start_date')
     ->minDate(now())
-    ->maxDate(now()->addYear());
+    ->maxDate(now()->addYear())
+    ->disabledDates(['2026-12-25', '2027-01-01']);
 ```
 
-## Disable Specific Dates
+## Time and calendar options
 
 ```php
-<?php
+DatePicker::make('starts_at')
+    ->time()             // include time selection
+    ->seconds()
+    ->minutesStep(15)
+    ->timezone('Europe/Paris')
+    ->weekStartsOnMonday()
+    ->closeOnDateSelection();
 
-use Laravilt\Forms\Components\DatePicker;
-
-DatePicker::make('appointment_date')
-    ->disabledDates(['2025-12-25', '2025-01-01']);
+DatePicker::make('dob')->native(); // native browser input
 ```
 
-## Vue Component
-
-Uses v-calendar:
-
-```vue
-<script setup>
-import { DatePicker } from 'v-calendar'
-import 'v-calendar/style.css'
-</script>
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `format()` | Set storage format |
-| `displayFormat()` | Set display format |
-| `minDate()` | Set minimum date |
-| `maxDate()` | Set maximum date |
-| `disabledDates()` | Disable dates |
-| `native()` | Use native input |
+| `format(string)` | Storage format |
+| `displayFormat(string)` | Display format |
+| `locale(string)` / `timezone(string)` | Locale and timezone |
+| `minDate()` / `maxDate()` | Date bounds |
+| `disabledDates(array\|Closure)` | Dates that can't be picked |
+| `date()` / `time()` / `datetime()` / `seconds()` | Which parts to pick |
+| `format12hr(bool)` | 12-hour clock |
+| `hoursStep()` / `minutesStep()` / `secondsStep()` | Time steps |
+| `firstDayOfWeek(int)` / `weekStartsOnMonday()` / `weekStartsOnSunday()` | Calendar start day |
+| `closeOnDateSelection(bool)` | Close after picking |
+| `defaultFocusedDate()` | Month shown when empty |
+| `native(bool)` | Use the native input |

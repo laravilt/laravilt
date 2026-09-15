@@ -1,91 +1,74 @@
 ---
 title: TextEntry
-description: Text display entry
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: infolists
-component: TextEntry
-vue_component: InfolistTextEntry
+description: Display text with date, money, number, badge, HTML and markdown formatting.
+order: 1
 ---
 
 # TextEntry
 
-Text display with formatting options.
+Displays text with formatting options.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Infolists\Entries\TextEntry;
 
-TextEntry::make('name')
-    ->label('Full Name');
+TextEntry::make('name')->label('Full Name');
 ```
 
-## Badge Display
+## Badge
 
 ```php
-<?php
-
-use Laravilt\Infolists\Entries\TextEntry;
-
 TextEntry::make('status')
     ->badge()
-    ->color(fn (string $state): string => match($state) {
+    ->color(fn (string $state): string => match ($state) {
         'active' => 'success',
         'pending' => 'warning',
-        default => 'secondary',
+        default => 'gray',
     });
 ```
 
-## Date Formatting
+## Dates and numbers
 
 ```php
-<?php
-
-use Laravilt\Infolists\Entries\TextEntry;
-
-TextEntry::make('created_at')
-    ->dateTime('M d, Y')
-    ->since();
-```
-
-## Currency & Copyable
-
-```php
-<?php
-
-use Laravilt\Infolists\Entries\TextEntry;
+TextEntry::make('created_at')->dateTime('M d, Y H:i');
+TextEntry::make('published_at')->date();
+TextEntry::make('updated_at')->since();
 
 TextEntry::make('price')->money('USD');
-TextEntry::make('api_key')->copyable();
+TextEntry::make('views')->numeric(decimalPlaces: 0);
 ```
 
-## HTML & Markdown
+## Content
 
 ```php
-<?php
-
-use Laravilt\Infolists\Entries\TextEntry;
-
 TextEntry::make('content')->html();
 TextEntry::make('readme')->markdown()->prose();
+TextEntry::make('summary')->limit(100)->wrap();
+TextEntry::make('tags')->separator(', ');
 ```
 
-## API Reference
+## Links, affixes and copy
+
+```php
+TextEntry::make('website')->url('https://example.com', openInNewTab: true);
+TextEntry::make('weight')->suffix(' kg');
+TextEntry::make('api_key')->copyable()->copyMessage('Copied!');
+```
+
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `badge()` | Badge display |
-| `copyable()` | Copy button |
-| `date()` | Date format |
-| `dateTime()` | DateTime format |
-| `since()` | Relative time |
-| `money()` | Currency format |
-| `html()` | Render HTML |
-| `markdown()` | Render markdown |
-| `icon()` | Add icon |
-| `limit()` | Character limit |
+| `badge(bool)` | Render as a badge |
+| `date(format)` / `dateTime(format)` / `since()` | Date formatting |
+| `money(currency, divideBy)` | Currency |
+| `numeric(decimalPlaces, decimalSeparator, thousandsSeparator, locale)` | Number format |
+| `html()` / `markdown()` / `prose()` | Rich content |
+| `limit(int)` / `wrap()` | Length and wrapping |
+| `prefix(string)` / `suffix(string)` | Affixes |
+| `weight(?string)` / `size(?string)` | Typography |
+| `url(?string, openInNewTab)` / `openUrlInNewTab()` | Links |
+| `copyable()` / `copyMessage(?string)` | Copy to clipboard |
+| `separator(?string)` | Join array values |
+| `strikethrough(bool)` | Strike through |

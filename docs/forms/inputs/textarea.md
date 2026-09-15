@@ -1,25 +1,16 @@
 ---
 title: Textarea
-description: Multi-line text input field
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: Textarea
-vue_component: FormTextarea
-vue_package: "@vueuse/core (useTextareaAutosize)"
+description: Multi-line text input with autosize and character or word counters.
+order: 2
 ---
 
 # Textarea
 
-Multi-line text input with auto-expand.
+A multi-line text input.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\Textarea;
 
 Textarea::make('description')
@@ -27,49 +18,32 @@ Textarea::make('description')
     ->rows(4);
 ```
 
-## Auto-Sizing
+## Autosize
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\Textarea;
-
 Textarea::make('notes')
     ->autosize()
-    ->rows(3);
+    ->minRows(3)
+    ->maxRows(10);
 ```
 
-## Character Limits
+## Limits and counters
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\Textarea;
-
 Textarea::make('bio')
     ->minLength(50)
     ->maxLength(500)
-    ->characterCount();
+    ->characterCount()
+    ->wordCount();
 ```
 
-## Vue Component
-
-Uses `@vueuse/core` for autosize:
-
-```vue
-<script setup>
-import { useTextareaAutosize } from '@vueuse/core'
-const { textarea } = useTextareaAutosize()
-</script>
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `rows()` | Set visible rows |
-| `cols()` | Set visible columns |
-| `autosize()` | Enable auto-expansion |
-| `minLength()` | Minimum characters |
-| `maxLength()` | Maximum characters |
-| `characterCount()` | Show counter |
+| `rows(int)` | Visible rows |
+| `minRows(int)` / `maxRows(int)` | Row bounds for autosize |
+| `autosize(bool)` | Grow with content |
+| `minLength(int)` / `maxLength(int)` | Length limits |
+| `characterCount(bool)` | Show a character counter (alias: `showCharacterCount()`) |
+| `wordCount(bool)` | Show a word counter (alias: `showWordCount()`) |

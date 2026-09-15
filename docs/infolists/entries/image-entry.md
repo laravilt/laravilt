@@ -1,75 +1,36 @@
 ---
 title: ImageEntry
-description: Image display entry
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: infolists
-component: ImageEntry
-vue_component: InfolistImageEntry
+description: Images and avatars, including stacked groups and fallbacks.
+order: 4
 ---
 
 # ImageEntry
 
-Display images and avatars.
-
-## Basic Usage
+Displays images and avatars.
 
 ```php
-<?php
-
 use Laravilt\Infolists\Entries\ImageEntry;
 
 ImageEntry::make('avatar')
     ->circular()
-    ->size(80);
-```
+    ->size(80)
+    ->defaultImageUrl('/images/default-avatar.png');
 
-## Shapes
-
-```php
-<?php
-
-use Laravilt\Infolists\Entries\ImageEntry;
-
-ImageEntry::make('photo')->rounded();
-ImageEntry::make('avatar')->circular();
-```
-
-## Stacked Images
-
-```php
-<?php
-
-use Laravilt\Infolists\Entries\ImageEntry;
+ImageEntry::make('photo')->rounded()->width(320)->height(200)->alt('Product photo');
 
 ImageEntry::make('team_photos')
     ->stacked()
     ->limit(4)
     ->ring(2)
-    ->limitedRemainingText();
+    ->overlap(4);
 ```
 
-## Default Image
-
-```php
-<?php
-
-use Laravilt\Infolists\Entries\ImageEntry;
-
-ImageEntry::make('avatar')
-    ->defaultImageUrl('/images/default-avatar.png');
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `circular()` | Round shape |
-| `rounded()` | Rounded corners |
-| `size()` | Width/height |
-| `stacked()` | Stack multiple |
-| `limit()` | Max images |
-| `ring()` | Border ring |
-| `defaultImageUrl()` | Fallback |
+| `size(int)` / `width(int)` / `height(int)` | Dimensions |
+| `circular(bool)` / `rounded(bool)` | Shape |
+| `alt(string)` | Alt text |
+| `defaultImageUrl(string\|Closure)` / `defaultImage(string)` | Fallback image |
+| `stacked(bool)` / `limit(int)` / `ring(int)` / `overlap(int)` | Multiple images |

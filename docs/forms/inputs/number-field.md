@@ -1,71 +1,57 @@
 ---
 title: NumberField
-description: Numeric input with controls
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: NumberField
-vue_component: FormNumberInput
-vue_package: "radix-vue (NumberField)"
+description: Numeric input with increment and decrement controls, currency and percentage formats.
+order: 3
 ---
 
 # NumberField
 
-Numeric input with increment/decrement controls.
+A numeric input with increment and decrement buttons.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\NumberField;
 
 NumberField::make('quantity')
     ->label('Quantity');
 ```
 
-## Value Range
+## Range and step
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\NumberField;
-
 NumberField::make('age')
     ->minValue(0)
     ->maxValue(120);
-```
-
-## Step Increment
-
-```php
-<?php
-
-use Laravilt\Forms\Components\NumberField;
 
 NumberField::make('price')
     ->step(0.01)
     ->prefix('$');
 ```
 
-## Vue Component
+## Formatting
 
-Uses Radix Vue NumberField:
+```php
+NumberField::make('amount')->currency('EUR');
 
-```vue
-<script setup>
-import { NumberFieldRoot } from 'radix-vue'
-</script>
+NumberField::make('discount')->percentage();
+
+NumberField::make('total')
+    ->locale('de-DE')
+    ->formatOptions(['minimumFractionDigits' => 2]);
 ```
 
-## API Reference
+`formatOptions()` accepts `Intl.NumberFormat` options.
+
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `minValue()` | Minimum value |
-| `maxValue()` | Maximum value |
-| `step()` | Step increment |
-| `prefix()` | Prefix text |
-| `suffix()` | Suffix text |
+| `min()` / `minValue()` | Minimum value |
+| `max()` / `maxValue()` | Maximum value |
+| `step(int\|float)` | Increment step |
+| `prefix(string)` / `suffix(string)` | Text affixes |
+| `currency(string)` | Currency format (default `USD`) |
+| `percentage()` | Percentage format |
+| `locale(string)` | Number locale |
+| `formatOptions(array)` | Custom `Intl.NumberFormat` options |

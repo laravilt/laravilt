@@ -1,25 +1,16 @@
 ---
 title: CheckboxList
-description: Multiple checkbox group
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: CheckboxList
-vue_component: FormCheckboxList
-vue_package: "radix-vue (Checkbox)"
+description: Multiple checkboxes with columns, search, bulk toggle and grouping.
+order: 4
 ---
 
 # CheckboxList
 
-Multiple checkboxes for selecting multiple options.
+A list of checkboxes for selecting several options.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\CheckboxList;
 
 CheckboxList::make('technologies')
@@ -30,13 +21,9 @@ CheckboxList::make('technologies')
     ]);
 ```
 
-## Multi-Column Layout
+## Columns, search and bulk toggle
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\CheckboxList;
-
 CheckboxList::make('permissions')
     ->options([
         'create' => 'Create',
@@ -44,37 +31,38 @@ CheckboxList::make('permissions')
         'update' => 'Update',
         'delete' => 'Delete',
     ])
-    ->columns(2);
-```
-
-## Bulk Toggle
-
-```php
-<?php
-
-use Laravilt\Forms\Components\CheckboxList;
-
-CheckboxList::make('features')
-    ->options(['sso' => 'SSO', '2fa' => '2FA'])
+    ->columns(2)
+    ->searchable()
     ->bulkToggleable();
 ```
 
-## Vue Component
+## Relationship
 
-Uses Radix Vue Checkbox:
-
-```vue
-<script setup>
-import { CheckboxRoot, CheckboxIndicator } from 'radix-vue'
-</script>
+```php
+CheckboxList::make('roles')
+    ->relationship('roles', 'name');
 ```
 
-## API Reference
+## Grouping
+
+```php
+CheckboxList::make('permissions')
+    ->relationship('permissions', 'name')
+    ->groupBy('group', ['users' => 'User Management'])
+    ->groupSelectAll()
+    ->collapsible();
+```
+
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `options()` | Set options |
-| `columns()` | Set column count |
-| `bulkToggleable()` | Enable bulk toggle |
-| `descriptions()` | Add descriptions |
-| `relationship()` | Load from relation |
+| `options(array\|Closure)` | Set options |
+| `relationship(name, titleAttribute, ?modifyQuery)` | Load from a relationship |
+| `columns(?int)` | Number of columns |
+| `gridDirection(string)` | Fill order of the grid |
+| `searchable(bool)` | Filter options |
+| `bulkToggleable(bool)` | Select-all / deselect-all |
+| `inline(bool)` | Inline layout |
+| `groupBy(attribute, labels)` / `groupLabels(array)` | Group options |
+| `groupSelectAll(bool)` / `collapsible(bool)` / `defaultGroup(?string)` | Group behaviour |

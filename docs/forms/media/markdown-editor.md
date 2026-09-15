@@ -1,71 +1,33 @@
 ---
 title: MarkdownEditor
-description: Markdown editor with preview
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: MarkdownEditor
-vue_component: FormMarkdownEditor
-vue_package: "@tiptap/vue-3"
+description: Markdown editor with toolbar, preview and file attachments.
+order: 3
 ---
 
 # MarkdownEditor
 
-Markdown editor with live preview.
-
-## Basic Usage
+A Markdown editor with a toolbar and a live preview rendered by markdown-it.
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\MarkdownEditor;
-
-MarkdownEditor::make('content')
-    ->label('Content');
-```
-
-## Toolbar Configuration
-
-```php
-<?php
-
 use Laravilt\Forms\Components\MarkdownEditor;
 
 MarkdownEditor::make('readme')
-    ->toolbarButtons([
-        'bold', 'italic', 'strike',
-        'link', 'heading', 'bulletList',
-        'orderedList', 'codeBlock', 'table',
-    ]);
+    ->toolbarButtons(['bold', 'italic', 'link', 'heading', 'bulletList', 'orderedList', 'codeBlock'])
+    ->preview()
+    ->fileAttachments()
+    ->fileAttachmentsDisk('public')
+    ->fileAttachmentsDirectory('docs')
+    ->showWordCount();
 ```
 
-## Height Configuration
-
-```php
-<?php
-
-use Laravilt\Forms\Components\MarkdownEditor;
-
-MarkdownEditor::make('documentation')
-    ->minHeight(300);
-```
-
-## Vue Component
-
-Uses Tiptap with markdown:
-
-```vue
-<script setup>
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-// markdown output mode
-</script>
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `toolbarButtons()` | Set toolbar |
-| `minHeight()` | Minimum height |
+| `toolbarButtons(array)` | Visible toolbar buttons |
+| `disableAllToolbarButtons()` | Hide the toolbar |
+| `preview(bool)` | Enable the preview |
+| `fileAttachments(bool)` | Allow attachments |
+| `fileAttachmentsDisk()` / `fileAttachmentsDirectory()` | Attachment storage |
+| `fileAttachmentsAcceptedFileTypes()` / `fileAttachmentsMaxSize()` | Attachment limits |
+| `showCharacterCount(bool)` / `showWordCount(bool)` | Counters |

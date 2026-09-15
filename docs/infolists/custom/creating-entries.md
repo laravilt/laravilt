@@ -1,99 +1,60 @@
 ---
 title: Creating Entries
-description: Custom PHP entry classes
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: infolists
-concept: creating-entries
+description: Write the PHP class for a custom infolist entry.
+order: 1
 ---
 
 # Creating Entries
 
-Create custom PHP entry classes for infolists.
+## Basic entry
 
-## Basic Entry
+Extend `Laravilt\Infolists\Entries\Entry` and add your options to `toLaraviltProps()`:
 
 ```php
 <?php
 
 namespace App\Infolists\Entries;
 
+use Closure;
 use Laravilt\Infolists\Entries\Entry;
 
 class ProgressEntry extends Entry
 {
-    protected string $view = 'infolist-progress-entry';
+    protected int|Closure $maxValue = 100;
 
-    protected int $max = 100;
-    protected string $color = 'primary';
-
-    public function max(int $max): static
+    public function maxValue(int|Closure $max): static
     {
-        $this->max = $max;
+        $this->maxValue = $max;
+
         return $this;
     }
 
-    public function color(string $color): static
+    public function toLaraviltProps(): array
     {
-        $this->color = $color;
-        return $this;
-    }
-
-    public function toArray(): array
-    {
-        return array_merge(parent::toArray(), [
-            'max' => $this->max,
-            'color' => $this->color,
+        return array_merge(parent::toLaraviltProps(), [
+            'maxValue' => $this->evaluate($this->maxValue),
         ]);
     }
 }
 ```
 
+The serialized `component` key is the snake_case class name (`progress_entry`).
+
+`Entry` already provides `color()`, `icon()`, `iconColor()`, `copyable()` and `formatStateUsing()`. Use them instead of redefining them.
+
 ## Usage
 
 ```php
-<?php
-
 use App\Infolists\Entries\ProgressEntry;
 
 ProgressEntry::make('completion')
-    ->max(100)
+    ->maxValue(100)
     ->color('success');
 ```
 
-## With Closure State
+## Extending an existing entry
 
-```php
-<?php
-
-namespace App\Infolists\Entries;
-
-use Laravilt\Infolists\Entries\Entry;
-use Closure;
-
-class ChartEntry extends Entry
-{
-    protected string $view = 'infolist-chart-entry';
-
-    protected array|Closure $data = [];
-
-    public function data(array|Closure $data): static
-    {
-        $this->data = $data;
-        return $this;
-    }
-
-    public function getState(): mixed
-    {
-        $data = $this->evaluate($this->data);
-        return $data;
-    }
-}
-```
-
-## Extending Existing
+To preconfigure a built-in entry, extend it. It keeps the parent's frontend component:
 
 ```php
 <?php
@@ -102,14 +63,13 @@ namespace App\Infolists\Entries;
 
 use Laravilt\Infolists\Entries\TextEntry;
 
-class TruncatedTextEntry extends TextEntry
+class PriceEntry extends TextEntry
 {
-    protected int $maxLength = 50;
-
-    public function maxLength(int $length): static
+    protected function setUp(): void
     {
-        $this->maxLength = $length;
-        return $this;
+        parent::setUp();
+
+        $this->money('USD')->weight('bold');
     }
 }
 ```

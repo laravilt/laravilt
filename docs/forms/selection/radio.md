@@ -1,25 +1,16 @@
 ---
 title: Radio
-description: Radio button group
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: Radio
-vue_component: FormRadioGroup
-vue_package: "radix-vue (RadioGroup)"
+description: Radio button group for choosing a single option.
+order: 2
 ---
 
 # Radio
 
-Radio group for mutually exclusive selection.
+A radio button group for choosing exactly one option.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\Radio;
 
 Radio::make('payment_method')
@@ -30,51 +21,32 @@ Radio::make('payment_method')
     ]);
 ```
 
-## With Descriptions
+## Descriptions
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\Radio;
-
 Radio::make('plan')
-    ->options([
-        'basic' => 'Basic',
-        'pro' => 'Professional',
-    ])
+    ->options(['basic' => 'Basic', 'pro' => 'Professional'])
     ->descriptions([
         'basic' => '$9/month',
         'pro' => '$29/month',
     ]);
 ```
 
-## Inline Display
+## Inline and boolean
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\Radio;
-
-Radio::make('gender')
-    ->options(['male' => 'Male', 'female' => 'Female'])
+Radio::make('size')
+    ->options(['s' => 'Small', 'm' => 'Medium', 'l' => 'Large'])
     ->inline();
+
+Radio::make('newsletter')->boolean();
 ```
 
-## Vue Component
-
-Uses Radix Vue RadioGroup:
-
-```vue
-<script setup>
-import { RadioGroupRoot, RadioGroupItem } from 'radix-vue'
-</script>
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `options()` | Set options |
-| `descriptions()` | Add descriptions |
-| `inline()` | Display inline |
-| `live()` | Enable reactivity |
+| `options(array\|Closure)` | Set options |
+| `descriptions(array)` | Description per option |
+| `inline(bool)` | Display options on one line |
+| `boolean(bool)` | Yes/No options |

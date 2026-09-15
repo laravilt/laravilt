@@ -1,87 +1,60 @@
 ---
 title: Toggle
-description: Boolean toggle switch
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: Toggle
-vue_component: FormSwitch
-vue_package: "radix-vue (Switch)"
+description: On/off switch with custom values, labels, icons and colors.
+order: 5
 ---
 
 # Toggle
 
-Boolean toggle switch for on/off states.
+An on/off switch.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\Toggle;
 
 Toggle::make('is_active')
     ->label('Active');
 ```
 
-## Custom Colors
+## Colors, icons and labels
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\Toggle;
-
 Toggle::make('published')
     ->onColor('success')
-    ->offColor('danger');
-```
-
-## With Icons
-
-```php
-<?php
-
-use Laravilt\Forms\Components\Toggle;
-
-Toggle::make('notifications')
+    ->offColor('danger')
     ->onIcon('Bell')
-    ->offIcon('BellOff');
+    ->offIcon('BellOff')
+    ->onLabel('Published')
+    ->offLabel('Draft');
 ```
 
-## Reactive Toggle
+## Custom values
 
 ```php
-<?php
+Toggle::make('status')
+    ->onValue('active')
+    ->offValue('inactive');
+```
 
-use Laravilt\Forms\Components\Toggle;
+## Reactive toggle
 
+```php
 Toggle::make('has_discount')
     ->live()
     ->afterStateUpdated(function ($state, $set) {
-        if (!$state) {
+        if (! $state) {
             $set('discount_percentage', null);
         }
     });
 ```
 
-## Vue Component
-
-Uses Radix Vue Switch:
-
-```vue
-<script setup>
-import { SwitchRoot, SwitchThumb } from 'radix-vue'
-</script>
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `onColor()` | Color when on |
-| `offColor()` | Color when off |
-| `onIcon()` | Icon when on |
-| `offIcon()` | Icon when off |
-| `live()` | Enable reactivity |
+| `onColor(string)` / `offColor(string)` | Colors per state |
+| `onIcon(string)` / `offIcon(string)` | Lucide icons per state |
+| `onLabel()` / `offLabel()` | Labels per state |
+| `onValue(mixed)` / `offValue(mixed)` | Stored values |
+| `inline(bool)` | Inline layout |

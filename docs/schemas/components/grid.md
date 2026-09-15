@@ -1,26 +1,18 @@
 ---
 title: Grid
-description: Multi-column layout component
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: schemas
-vue_component: Grid
-vue_package: "@laravilt/schemas"
+description: Responsive multi-column layout.
+order: 2
 ---
 
 # Grid
 
-Responsive multi-column layout for fields.
+A responsive multi-column layout.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
-use Laravilt\Schemas\Components\Grid;
 use Laravilt\Forms\Components\TextInput;
+use Laravilt\Schemas\Components\Grid;
 
 Grid::make(2)
     ->schema([
@@ -29,94 +21,40 @@ Grid::make(2)
     ]);
 ```
 
-## Column Count
+`make()` accepts a column count, a responsive array or a name. You can also call `columns()`:
 
 ```php
-<?php
-
-// Two columns
-Grid::make(2)->schema([...]);
-
-// Three columns
-Grid::make(3)->schema([...]);
-
-// Set via method
-Grid::make()
-    ->columns(4)
-    ->schema([...]);
+Grid::make()->columns(4)->schema([/* ... */]);
 ```
 
-## Responsive Columns
+## Responsive columns
 
 ```php
-<?php
-
-Grid::make()
-    ->columns([
-        'default' => 1,  // Mobile
-        'sm' => 2,       // 640px+
-        'md' => 3,       // 768px+
-        'lg' => 4,       // 1024px+
-    ])
-    ->schema([...]);
+Grid::make([
+    'default' => 1, // mobile
+    'sm' => 2,      // 640px+
+    'md' => 3,      // 768px+
+    'lg' => 4,      // 1024px+
+])->schema([/* ... */]);
 ```
 
-## Column Span
+Breakpoints follow Tailwind: `sm` 640px, `md` 768px, `lg` 1024px, `xl` 1280px, `2xl` 1536px.
+
+## Column span
 
 ```php
-<?php
-
 Grid::make(3)
     ->schema([
-        TextInput::make('title')
-            ->columnSpan(2),
-
+        TextInput::make('title')->columnSpan(2),
         TextInput::make('status'),
-
-        TextInput::make('description')
-            ->columnSpanFull(),
+        TextInput::make('description')->columnSpanFull(),
     ]);
 ```
 
-## Nested Grids
-
-```php
-<?php
-
-Grid::make(2)
-    ->schema([
-        Grid::make(2)
-            ->schema([
-                TextInput::make('first_name'),
-                TextInput::make('last_name'),
-            ]),
-        TextInput::make('email'),
-    ]);
-```
-
-## Methods
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `make(string\|int\|array)` | Create grid |
-| `columns(int\|array)` | Set columns |
+| `make(string\|int\|array)` | Create with a name or columns |
+| `columns(int\|array)` | Column layout |
 | `schema(array)` | Child components |
-| `getColumns()` | Get columns |
-| `getSchema()` | Get schema |
-
-## Responsive Breakpoints
-
-| Key | Width |
-|-----|-------|
-| `default` | 0px |
-| `sm` | 640px |
-| `md` | 768px |
-| `lg` | 1024px |
-| `xl` | 1280px |
-| `2xl` | 1536px |
-
-## Related
-
-- [Section](section) - Grouped content
-- [Tabs](tabs) - Tabbed interface
-

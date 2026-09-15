@@ -1,21 +1,22 @@
 ---
 title: Creating Fields
-description: Step-by-step guide to create custom fields
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-concept: custom
+description: Write the PHP class for a custom form field.
+order: 1
 ---
 
-# Creating Custom Fields
+# Creating Fields
 
-Step-by-step guide to create custom form fields.
+## Generate the class
 
-## Step 1: PHP Field Class
+```bash
+php artisan make:form-component EmojiPicker
+```
 
-Create `app/Forms/Components/RatingInput.php`:
+This creates `app/Forms/Components/EmojiPicker.php`, which extends `Laravilt\Forms\Components\Field`.
+
+## Add options
+
+Store each option in a property and expose it in `toLaraviltProps()`. Closures are resolved with `$this->evaluate()`:
 
 ```php
 <?php
@@ -25,110 +26,50 @@ namespace App\Forms\Components;
 use Closure;
 use Laravilt\Forms\Components\Field;
 
-class RatingInput extends Field
+class EmojiPicker extends Field
 {
-    protected string $view = 'forms.components.rating';
+    protected string $view = 'forms.components.emoji-picker';
 
-    protected int|Closure $max = 5;
-    protected bool|Closure $allowHalf = false;
+    protected array|Closure $emojis = ['😀', '🎉', '👍', '❤️'];
 
-    public function max(int|Closure $max): static
+    public function emojis(array|Closure $emojis): static
     {
-        $this->max = $max;
-        return $this;
-    }
+        $this->emojis = $emojis;
 
-    public function allowHalf(bool|Closure $allow = true): static
-    {
-        $this->allowHalf = $allow;
         return $this;
     }
 
     public function toLaraviltProps(): array
     {
         return array_merge(parent::toLaraviltProps(), [
-            'max' => $this->evaluate($this->max),
-            'allowHalf' => $this->evaluate($this->allowHalf),
+            'emojis' => $this->evaluate($this->emojis),
         ]);
     }
 }
 ```
 
-## Step 2: Vue Component
+Avoid method names that `Field` already defines with a different signature, such as `max()`, `min()`, `color()` or `options()`. PHP rejects incompatible overrides.
 
-Create `resources/js/components/forms/RatingInput.vue`:
+## Component name
 
-```vue
-<template>
-  <FieldWrapper :label="label" :errors="errors" :required="required">
-    <div class="flex gap-1">
-      <button
-        v-for="star in max"
-        :key="star"
-        type="button"
-        @click="setRating(star)"
-        :disabled="disabled"
-        class="text-2xl"
-      >
-        <Star
-          :class="star <= modelValue ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'"
-          class="h-6 w-6"
-        />
-      </button>
-    </div>
-  </FieldWrapper>
-</template>
+The props include a `component` key: the snake_case class name (`emoji_picker`). The frontend resolves it to the component registered as `laravilt-emoji-picker`. See [Frontend Components](frontend-components.md).
 
-<script setup lang="ts">
-import { Star } from 'lucide-vue-next'
-import { FieldWrapper } from '@/components/forms'
-
-const props = defineProps<{
-  modelValue?: number
-  label?: string
-  errors?: string[]
-  required?: boolean
-  disabled?: boolean
-  max?: number
-  allowHalf?: boolean
-}>()
-
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: number): void
-}>()
-
-function setRating(value: number) {
-  emit('update:modelValue', value)
-}
-</script>
-```
-
-## Step 3: Register Component
-
-In `resources/js/composables/useFormComponents.ts`:
-
-```typescript
-import RatingInput from '@/components/forms/RatingInput.vue'
-
-export const formComponents = {
-  'rating-input': RatingInput,
-}
-```
-
-## Step 4: Usage
+## Use it
 
 ```php
-<?php
+use App\Forms\Components\EmojiPicker;
 
-use App\Forms\Components\RatingInput;
-
-RatingInput::make('rating')
-    ->label('Your Rating')
-    ->max(5)
+EmojiPicker::make('reaction')
+    ->label('Reaction')
+    ->emojis(['👍', '👎'])
     ->required();
 ```
 
-## Extending Existing Fields
+Custom fields get every shared field feature: validation, `live()`, `default()`, `visible()` and so on.
+
+## Extend an existing field
+
+To preconfigure a built-in field, extend it and override `setUp()`. It keeps the parent's frontend component:
 
 ```php
 <?php
@@ -149,8 +90,3 @@ class PhoneInput extends TextInput
     }
 }
 ```
-
-## Related
-
-- [Vue Components](vue-components) - Component patterns
-- [Packages](packages) - Third-party integrations
