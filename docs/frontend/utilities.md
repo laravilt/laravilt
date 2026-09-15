@@ -1,223 +1,95 @@
 ---
 title: Utilities
-description: TypeScript utility functions for Laravilt frontends.
+description: The cn, urlIsActive and toUrl helpers plus the composables and hooks shipped with the app shell.
+order: 4
 ---
 
-# Frontend Utilities
+# Utilities
 
-Laravilt provides utility functions in `resources/js/lib/utils.ts` for common frontend operations.
+`resources/js/lib/utils.ts` is published for both stacks (tag `laravilt-panel-lib`) and exports the same three helpers.
 
-## utils.ts
+> React support requires Laravilt v1.1 or later.
 
-### cn() - Class Name Merger
+## cn()
 
-Combines and deduplicates Tailwind CSS classes using `clsx` and `tailwind-merge`:
+Merges class names with `clsx` and resolves Tailwind conflicts with `tailwind-merge`:
 
 ```typescript
 import { cn } from '@/lib/utils'
 
-// Basic usage
-cn('px-4 py-2', 'bg-blue-500')
-// => 'px-4 py-2 bg-blue-500'
-
-// With conditionals
-cn('base-class', isActive && 'active-class', isDisabled && 'opacity-50')
-// => 'base-class active-class' (if isActive is true)
-
-// Merging conflicting classes (tailwind-merge handles this)
-cn('px-2', 'px-4')
-// => 'px-4' (later class wins)
-
-// With objects
-cn('base', { 'conditional': condition })
-// => 'base conditional' (if condition is true)
+cn('px-4 py-2', isActive && 'bg-accent')   // conditional
+cn('px-2', 'px-4')                         // => 'px-4'
+cn('base', { 'opacity-50': disabled })     // object syntax
 ```
 
-### urlIsActive() - Active URL Detection
+## urlIsActive()
 
-Detects if a URL matches the current page for navigation highlighting:
+`urlIsActive(urlToCheck, currentUrl)` is used by `NavMain` to highlight the current item:
 
 ```typescript
 import { urlIsActive } from '@/lib/utils'
 
-// Exact match
-urlIsActive('/admin/users', '/admin/users')
-// => true
-
-// Nested route matching
-urlIsActive('/admin/users', '/admin/users/1/edit')
-// => true (prefix match for nested routes)
-
-// Root paths only exact match
-urlIsActive('/admin', '/admin/users')
-// => false (prevents /admin matching all sub-routes)
-
-// Handles query strings
-urlIsActive('/admin/users', '/admin/users?page=2')
-// => true
-
-// Handles full URLs
-urlIsActive('https://example.com/admin/users', '/admin/users')
-// => true (extracts path for comparison)
+urlIsActive('/admin/users', '/admin/users')           // true
+urlIsActive('/admin/users', '/admin/users/1/edit')    // true  (nested route)
+urlIsActive('/admin', '/admin/users')                 // false (single-segment paths match exactly)
+urlIsActive('/admin/cat', '/admin/categories')        // false (no partial segments)
+urlIsActive('/admin/users', '/admin/users?page=2')    // true  (query string ignored)
+urlIsActive('https://example.com/admin/users', '/admin/users') // true
 ```
 
-**Implementation Details:**
+`urlToCheck` may be a string or an Inertia link object (`{ url, method }`).
 
-- Normalizes URLs by removing query strings and trailing slashes
-- Root paths (single segment like `/admin`) only match exactly
-- Nested routes (`/admin/users`) match both exact and child routes
-- Prevents partial matches (`/admin/cat` won't match `/admin/categories`)
+## toUrl()
 
-### toUrl() - URL Extraction
-
-Extracts URL string from Inertia link objects:
+Returns the URL string from a string or an Inertia link object:
 
 ```typescript
 import { toUrl } from '@/lib/utils'
 
-// From string
-toUrl('/admin/users')
-// => '/admin/users'
-
-// From Inertia URL object
-toUrl({ url: '/admin/users', method: 'get' })
-// => '/admin/users'
+toUrl('/admin/users')                         // '/admin/users'
+toUrl({ url: '/admin/users', method: 'get' }) // '/admin/users'
 ```
 
-## Composables
+## Composables and Hooks
 
-### useSidebar()
+| Vue (`@/composables/...`) | React (`@/hooks/...`) | Purpose |
+|---|---|---|
+| `useAppearance` | `use-appearance` | Light / dark / system theme |
+| `useInitials` | `use-initials` | Initials for avatar fallbacks |
+| `useLocalization` | `use-localization` | Translations and locale |
+| `usePanelFont` | `use-panel-font` | Loads the panel's configured font |
+| `useTwoFactorAuth` | `use-two-factor-auth` | Two-factor setup helpers |
 
-Access sidebar state from anywhere in your components:
+### Sidebar State
 
 ```typescript
+// Vue
 import { useSidebar } from '@/components/ui/sidebar'
-
 const { state, open, setOpen, toggleSidebar, isMobile } = useSidebar()
-
-// Check if collapsed (icon-only mode)
 const isCollapsed = computed(() => state.value === 'collapsed')
-
-// Toggle sidebar
-const handleToggle = () => {
-    toggleSidebar()
-}
 ```
 
-### usePage()
+```tsx
+// React
+import { useSidebar } from '@/components/ui/sidebar';
+const { state, toggleSidebar, isMobile } = useSidebar();
+```
 
-Access Inertia page props reactively:
+### Inertia Helpers
+
+Use Inertia's own `usePage`, `useForm`, `Link` and `router` from `@inertiajs/vue3` or `@inertiajs/react`:
 
 ```typescript
-import { usePage } from '@inertiajs/vue3'
+import { useForm, usePage } from '@inertiajs/vue3'
 
 const page = usePage()
-
-// Access current URL
-const currentUrl = computed(() => page.url)
-
-// Access shared props
 const user = computed(() => page.props.auth?.user)
 
-// Access flash messages
-const flash = computed(() => page.props.flash)
+const form = useForm({ name: '', email: '' })
+form.post('/profile', { onSuccess: () => form.reset() })
 ```
 
-### useForm()
+## Related
 
-Inertia form handling with validation:
-
-```typescript
-import { useForm } from '@inertiajs/vue3'
-
-const form = useForm({
-    name: '',
-    email: '',
-    password: '',
-})
-
-const submit = () => {
-    form.post('/users', {
-        onSuccess: () => {
-            form.reset()
-        },
-    })
-}
-
-// Access errors
-form.errors.name // Validation error for name field
-
-// Check processing state
-form.processing // true while submitting
-
-// Reset specific fields
-form.reset('password')
-```
-
-## Navigation Helpers
-
-### Active State for Clusters
-
-For cluster-style navigation where multiple pages share a URL prefix:
-
-```typescript
-// In NavMain.vue
-const isNavItemActive = (item: NavItem): boolean => {
-    const currentPath = extractPath(currentUrl.value)
-
-    // Check activeMatchPrefix for cluster-style matching
-    if (item.activeMatchPrefix) {
-        const prefix = extractPath(item.activeMatchPrefix).replace(/\/$/, '')
-        const normalizedCurrent = currentPath.replace(/\/$/, '')
-
-        if (normalizedCurrent.startsWith(prefix) &&
-            (normalizedCurrent[prefix.length] === '/' ||
-             normalizedCurrent.length === prefix.length)) {
-            return true
-        }
-    }
-
-    // Fall back to regular URL matching
-    return urlIsActive(item.url || item.href, currentUrl.value)
-}
-```
-
-**Usage in navigation items:**
-
-```typescript
-const navItems = [
-    {
-        title: 'Settings',
-        url: '/admin/settings/profile',
-        activeMatchPrefix: '/admin/settings', // Matches all settings pages
-    },
-]
-```
-
-## Best Practices
-
-### Always Use cn() for Dynamic Classes
-
-```vue
-<template>
-    <!-- Good -->
-    <div :class="cn('base-styles', isActive && 'active-styles')">
-
-    <!-- Avoid -->
-    <div :class="{ 'base-styles': true, 'active-styles': isActive }">
-</template>
-```
-
-### Check Active State Reactively
-
-```typescript
-// Use computed for reactive URL checking
-const isActive = computed(() => urlIsActive(item.url, page.url))
-```
-
-### Handle URL Edge Cases
-
-```typescript
-// Always normalize URLs before comparison
-const normalizedUrl = url.split('?')[0].split('#')[0].replace(/\/$/, '')
-```
+- [App Shell Components](components.md)
+- [Styling & Theming](styling.md)

@@ -1,142 +1,61 @@
 ---
 title: Tooltip
-description: Tooltip component
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: frontend
-vue_component: Tooltip
-vue_package: "@laravilt/support"
+description: The Tooltip primitive for hover hints.
+order: 10
 ---
 
 # Tooltip
 
-Hover hint component.
-
 ## Import
 
 ```typescript
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from '@laravilt/support'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 ```
 
-## Basic Usage
+Tooltips need a `TooltipProvider` above them. On React, `app.tsx` already wraps the app in one. On Vue, the sidebar provider supplies one inside the app shell, so wrap your own tooltips in `TooltipProvider` when they render outside it.
+
+## Usage
 
 ```vue
-<template>
-    <TooltipProvider>
-        <Tooltip>
-            <TooltipTrigger as-child>
-                <Button variant="outline">Hover Me</Button>
-            </TooltipTrigger>
-            <TooltipContent>
-                <p>This is a tooltip</p>
-            </TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
-</template>
-```
-
-## Positions
-
-```vue
-<template>
-    <TooltipProvider>
-        <Tooltip>
-            <TooltipTrigger as-child>
-                <Button>Top</Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">Tooltip on top</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-            <TooltipTrigger as-child>
-                <Button>Bottom</Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Tooltip on bottom</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-            <TooltipTrigger as-child>
-                <Button>Left</Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">Tooltip on left</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-            <TooltipTrigger as-child>
-                <Button>Right</Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">Tooltip on right</TooltipContent>
-        </Tooltip>
-    </TooltipProvider>
-</template>
-```
-
-## Icon Button with Tooltip
-
-```vue
-<script setup>
-import { Settings, Trash, Edit } from 'lucide-vue-next'
+<script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Plus } from 'lucide-vue-next'
 </script>
 
 <template>
     <TooltipProvider>
-        <div class="flex gap-2">
-            <Tooltip>
-                <TooltipTrigger as-child>
-                    <Button variant="ghost" size="icon">
-                        <Edit class="h-4 w-4" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>Edit</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-                <TooltipTrigger as-child>
-                    <Button variant="ghost" size="icon">
-                        <Trash class="h-4 w-4" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>Delete</TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-                <TooltipTrigger as-child>
-                    <Button variant="ghost" size="icon">
-                        <Settings class="h-4 w-4" />
-                    </Button>
-                </TooltipTrigger>
-                <TooltipContent>Settings</TooltipContent>
-            </Tooltip>
-        </div>
+        <Tooltip>
+            <TooltipTrigger as-child>
+                <Button size="icon" variant="outline" aria-label="Add">
+                    <Plus />
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">Add item</TooltipContent>
+        </Tooltip>
     </TooltipProvider>
 </template>
 ```
 
-## Components
+```tsx
+<Tooltip>
+    <TooltipTrigger asChild>
+        <Button size="icon" variant="outline" aria-label="Add">
+            <Plus />
+        </Button>
+    </TooltipTrigger>
+    <TooltipContent side="top">Add item</TooltipContent>
+</Tooltip>
+```
 
-| Component | Description |
-|-----------|-------------|
-| `TooltipProvider` | Context provider |
-| `Tooltip` | Root container |
-| `TooltipTrigger` | Trigger element |
-| `TooltipContent` | Tooltip content |
+## Props
 
-## Props (TooltipContent)
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `side` | `string` | `top` | Position |
-| `sideOffset` | `number` | `4` | Offset from trigger |
+| Prop | On | Description |
+|------|----|-------------|
+| `side` | `TooltipContent` | `top`, `right`, `bottom`, `left` |
+| `align` | `TooltipContent` | `start`, `center`, `end` |
+| `delay-duration` / `delayDuration` | `TooltipProvider` | Open delay in ms |
 
 ## Related
 
-- [Button](button) - With tooltips
-- [Dropdown](dropdown) - Menus
-
+- [Button](button.md)

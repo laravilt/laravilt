@@ -1,102 +1,96 @@
 ---
-title: Frontend
-description: Vue 3 components and frontend architecture
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: frontend
+title: Frontend (Vue & React)
+description: How the Laravilt frontend is structured for the Vue and React stacks, and how to customize it.
+order: 14
 ---
 
-# Frontend Documentation
+# Frontend (Vue & React)
 
-Vue 3 components for building admin panels with Laravilt.
+Laravilt renders every panel with Inertia.js. You build resources, pages, forms and tables in PHP. The frontend shell (layouts, sidebar, header, UI primitives) is published into your application, so you own it and can change it.
 
-## Technology Stack
+Two frontend stacks are supported:
 
-| Technology | Description |
-|------------|-------------|
-| Vue 3 | Composition API with `<script setup>` |
-| TypeScript | Full type safety |
-| Inertia.js v2 | SPA-like experience |
-| Tailwind CSS | Utility-first styling |
-| Reka UI | Accessible primitives |
-| Lucide Icons | Icon library |
+| | Vue stack | React stack |
+|---|---|---|
+| Framework | Vue 3 (`<script setup>`, TypeScript) | React 19 (TypeScript) |
+| UI primitives | shadcn-vue (Reka UI) | shadcn/ui (Radix UI) |
+| Inertia adapter | `@inertiajs/vue3` | `@inertiajs/react` v3 + `@inertiajs/vite` |
+| Icons | `lucide-vue-next` | `lucide-react` |
+| Styling | Tailwind CSS v4 | Tailwind CSS v4 |
+| Entry point | `resources/js/app.ts` | `resources/js/app.tsx` |
 
-## Installation
+> React support requires Laravilt v1.1 or later.
+
+## Choosing a Stack
+
+The stack is chosen when you install:
 
 ```bash
-npm install @laravilt/support @laravilt/schemas
+php artisan laravilt:install --stack=vue    # or --stack=react
 ```
 
----
+Without `--stack`, the installer asks, defaulting to the stack it detects in your `package.json`. The choice is written to `.env` and `.env.example`:
 
-## Documentation
-
-### [UI Components](ui/introduction)
-
-Standalone UI components for any Vue project.
-
-| Component | Description |
-|-----------|-------------|
-| [Button](ui/button) | Button variants and sizes |
-| [Dialog](ui/dialog) | Modal dialogs |
-| [Sheet](ui/sheet) | Slide-out panels |
-| [Card](ui/card) | Content cards |
-| [Badge](ui/badge) | Status badges |
-| [Alert](ui/alert) | Alert messages |
-| [Avatar](ui/avatar) | User avatars |
-| [Dropdown](ui/dropdown) | Dropdown menus |
-| [Tabs](ui/tabs) | Tab navigation |
-| [Tooltip](ui/tooltip) | Hover tooltips |
-
-### [Form Components](forms/introduction)
-
-Form input components with validation.
-
-| Component | Description |
-|-----------|-------------|
-| [Input](forms/input) | Text inputs |
-| [Select](forms/select) | Select dropdowns |
-| [Checkbox](forms/checkbox) | Checkboxes |
-| [Switch](forms/switch) | Toggle switches |
-
-### [Chart Components](charts/introduction)
-
-Dashboard chart components.
-
-| Component | Description |
-|-----------|-------------|
-| LineChart | Line/area charts |
-| BarChart | Bar charts |
-| PieChart | Pie/doughnut charts |
-| StatsCard | Statistics cards |
-
----
-
-## Quick Start
-
-### Import Components
-
-```typescript
-// UI Components
-import { Button, Dialog, Card, Badge } from '@laravilt/support'
-
-// Form Components
-import { Input, Select, Checkbox, Switch } from '@laravilt/support'
-
-// Chart Components
-import { LineChart, BarChart, StatsCard } from '@laravilt/schemas'
+```env
+LARAVILT_FRONTEND=vue
 ```
 
-### Example Page
+It is read from the `laravilt-support.frontend` config key. In PHP you can check it with `Laravilt\Support\Frontend::stack()`, `Frontend::isVue()` or `Frontend::isReact()`. Generators follow the stack. For example, `php artisan laravilt:page` creates `resources/js/pages/{Panel}/{Name}.vue` or `.tsx`, and `php artisan make:form-component {name} --vue|--react` scaffolds a custom form component.
+
+See [Frontend Stacks](../getting-started/frontend-stacks.md) for a full comparison.
+
+## What Gets Published
+
+**Vue stack.** The installer publishes `package.json`, `vite.config.ts`, `resources/js/app.ts`, `resources/css/app.css`, and these app-owned folders under `resources/js/`:
+
+```
+resources/js/
+├── app.ts
+├── components/        # AppSidebar.vue, AppHeader.vue, NavMain.vue, NavUser.vue, Breadcrumbs.vue ...
+│   └── ui/            # shadcn-vue primitives (button, card, dialog, sidebar ...)
+├── composables/       # useAppearance.ts, useInitials.ts, useLocalization.ts ...
+├── layouts/           # AppLayout.vue, AuthLayout.vue, app/, auth/, settings/
+├── lib/utils.ts       # cn(), urlIsActive(), toUrl()
+├── pages/             # your own Inertia pages
+└── types/
+```
+
+**React stack.** The installer publishes the files listed in the panel package's `stubs/react/manifest.php`:
+
+```
+resources/js/
+├── app.tsx
+├── components/        # app-sidebar.tsx, app-header.tsx, nav-main.tsx, nav-user.tsx ...
+│   └── ui/            # shadcn/ui primitives (button, card, dialog, sidebar ...)
+├── hooks/             # use-appearance.tsx, use-initials.tsx, use-localization.ts ...
+├── layouts/           # app-layout.tsx, auth-layout.tsx, app/, auth/
+├── lib/utils.ts       # cn(), urlIsActive(), toUrl()
+├── pages/             # your own Inertia pages
+└── types/
+```
+
+## Where Laravilt Pages Come From
+
+The resource list, create, edit and view pages, the dashboard and the auth pages are **not** copied into your app. They are resolved straight from `vendor/`. Your `app.ts` / `app.tsx` resolves an Inertia page in this order:
+
+1. `resources/js/pages/` (your pages, which can override a vendor page with the same name)
+2. `vendor/laravilt/panel/resources/{js|react}/pages`
+3. `vendor/laravilt/auth/...`
+4. `vendor/laravilt/ai/...`
+
+Vite aliases `@laravilt/<package>` to `vendor/laravilt/<package>/resources/js` (Vue) or `resources/react` (React), so package sources are compiled as part of your app. For example, the entry point imports `@laravilt/forms/app` and `@laravilt/notifications/app`.
+
+## Importing Components
+
+UI primitives live in your app, so import them with the `@/` alias:
 
 ```vue
 <script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { ref } from 'vue'
-import { Card, CardHeader, CardTitle, CardContent } from '@laravilt/support'
-import { Button } from '@laravilt/support'
-import { Input, Label } from '@laravilt/support'
 
 const name = ref('')
 </script>
@@ -106,46 +100,73 @@ const name = ref('')
         <CardHeader>
             <CardTitle>Create User</CardTitle>
         </CardHeader>
-        <CardContent>
-            <form class="space-y-4">
-                <div class="grid gap-2">
-                    <Label>Name</Label>
-                    <Input v-model="name" placeholder="Enter name" />
-                </div>
-                <Button type="submit">Create</Button>
-            </form>
+        <CardContent class="space-y-4">
+            <div class="grid gap-2">
+                <Label for="name">Name</Label>
+                <Input id="name" v-model="name" placeholder="Enter name" />
+            </div>
+            <Button type="submit">Create</Button>
         </CardContent>
     </Card>
 </template>
 ```
 
----
+```tsx
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useState } from 'react';
 
-## Vue Package Mapping
+export default function CreateUser() {
+    const [name, setName] = useState('');
 
-| PHP Package | Vue Package |
-|-------------|-------------|
-| `laravilt/forms` | `@laravilt/forms` |
-| `laravilt/tables` | `@laravilt/tables` |
-| `laravilt/schemas` | `@laravilt/schemas` |
-| `laravilt/widgets` | `@laravilt/widgets` |
-| `laravilt/infolists` | `@laravilt/infolists` |
-| `laravilt/notifications` | `@laravilt/notifications` |
-| `laravilt/actions` | `@laravilt/actions` |
-| `laravilt/support` | `@laravilt/support` |
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Create User</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="grid gap-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                </div>
+                <Button type="submit">Create</Button>
+            </CardContent>
+        </Card>
+    );
+}
+```
 
----
+## Republishing Frontend Files
 
-## Related Documentation
+The panel package registers these publish tags (they follow the configured stack):
 
-- [Introduction](introduction) - Frontend overview
-- [Styling](styling) - Tailwind CSS configuration
-- [Layouts](layouts) - Page layouts
-- [Utilities](utilities) - Helper functions
-- [App Components](components) - Application components (NavMain, Page, Form, Table)
+| Tag | Publishes |
+|-----|-----------|
+| `laravilt-panel-ui` | UI primitives to `resources/js/components/ui` |
+| `laravilt-panel-lib` | `resources/js/lib/utils.ts` |
+| `laravilt-panel-components` | `NavMain.vue` / `nav-main.tsx` |
+| `laravilt-panel-views` | Panel pages to `resources/js/pages/laravilt` (to override them) |
+| `laravilt-panel-assets` | Panel components to `resources/js/components/laravilt` |
 
-## Support
+```bash
+php artisan vendor:publish --tag=laravilt-panel-ui --force
+```
 
-- [Discord Community](https://discord.gg/gyRhbVUXEZ)
-- [GitHub Issues](https://github.com/laravilt/laravilt/issues)
+`--force` overwrites your customized files, so commit your work first.
 
+## In This Section
+
+- [Layouts](layouts.md): app and auth layouts, breadcrumbs, sidebar behavior
+- [App Shell Components](components.md): sidebar, header, NavMain and navigation items
+- [Styling & Theming](styling.md): Tailwind CSS v4, theme variables, dark mode
+- [Utilities](utilities.md): `cn()`, `urlIsActive()`, composables and hooks
+- [UI Components](ui/README.md): the shadcn primitives catalog
+- [Form Inputs](forms/README.md): input, select, checkbox and switch primitives
+
+## Related
+
+- [Panel](../panel/README.md)
+- [Widgets](../widgets/README.md) (dashboard charts and stats are built in PHP)
+- Live demo: [demo.laravilt.com](https://demo.laravilt.com) (login `admin@laravilt.com` / `password`)

@@ -1,143 +1,109 @@
 ---
 title: Tables FAQ
-description: Table columns, filters, and actions questions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: faq
+description: Questions about table columns, filters and actions.
+order: 3
 ---
 
 # Tables FAQ
 
-Common questions about tables, columns, and filters.
+## How do I define a resource table?
 
-## Creating Tables
-
-### How do I create a table?
+The generator creates a `{Model}Table` class:
 
 ```php
 <?php
 
-use Laravilt\Tables\Table;
 use Laravilt\Tables\Columns\TextColumn;
+use Laravilt\Tables\Table;
 
-Table::make()
-    ->columns([
-        TextColumn::make('name'),
-        TextColumn::make('email'),
+class UserTable
+{
+    public static function configure(Table $table): Table
+    {
+        return $table->columns([
+            TextColumn::make('name')->searchable()->sortable(),
+            TextColumn::make('email')->searchable(),
+            TextColumn::make('created_at')->dateTime('M j, Y')->sortable(),
+        ]);
+    }
+}
+```
+
+## How do I format values?
+
+```php
+TextColumn::make('price')->money('USD');
+TextColumn::make('created_at')->dateTime('M j, Y');
+```
+
+See [Columns](../tables/columns/README.md).
+
+## How do I add filters?
+
+```php
+use Laravilt\Tables\Filters\SelectFilter;
+use Laravilt\Tables\Filters\TernaryFilter;
+use Laravilt\Tables\Filters\TrashedFilter;
+
+$table->filters([
+    SelectFilter::make('status')->options([
+        'active' => 'Active',
+        'inactive' => 'Inactive',
+    ]),
+    TernaryFilter::make('is_verified'),
+    TrashedFilter::make(),
+]);
+```
+
+## How do I filter by date?
+
+There is no dedicated date filter class. Use a `Filter` with a form and a query:
+
+```php
+use Laravilt\Forms\Components\DatePicker;
+use Laravilt\Tables\Filters\Filter;
+
+Filter::make('created_from')
+    ->form([DatePicker::make('created_from')])
+    ->query(fn ($query, $value) => $query->whereDate('created_at', '>=', $value));
+```
+
+See [Filters](../tables/filters/README.md).
+
+## How do I add row and bulk actions?
+
+Actions live in the `laravilt/actions` package (namespace `Laravilt\Actions`):
+
+```php
+use Laravilt\Actions\DeleteAction;
+use Laravilt\Actions\DeleteBulkAction;
+use Laravilt\Actions\EditAction;
+
+$table
+    ->recordActions([
+        EditAction::make(),
+        DeleteAction::make(),
+    ])
+    ->bulkActions([
+        DeleteBulkAction::make(),
     ]);
 ```
 
-## Columns
+`->actions()` also works for row actions. `->headerActions()` and `->toolbarActions()` place actions above the table.
 
-### How do I make a column searchable?
-
-```php
-<?php
-
-use Laravilt\Tables\Columns\TextColumn;
-
-TextColumn::make('name')->searchable();
-```
-
-### How do I make a column sortable?
+## How do I ask for confirmation?
 
 ```php
-<?php
+use Laravilt\Actions\Action;
 
-use Laravilt\Tables\Columns\TextColumn;
-
-TextColumn::make('created_at')->sortable();
-```
-
-### How do I format a column?
-
-```php
-<?php
-
-use Laravilt\Tables\Columns\TextColumn;
-
-TextColumn::make('price')
-    ->money('USD')
-    ->sortable();
-
-TextColumn::make('created_at')
-    ->dateTime('M j, Y');
-```
-
-## Filters
-
-### How do I add filters?
-
-```php
-<?php
-
-use Laravilt\Tables\Filters\SelectFilter;
-
-$table->filters([
-    SelectFilter::make('status')
-        ->options([
-            'active' => 'Active',
-            'inactive' => 'Inactive',
-        ]),
-]);
-```
-
-### How do I add a date filter?
-
-```php
-<?php
-
-use Laravilt\Tables\Filters\DateFilter;
-
-DateFilter::make('created_at')
-    ->label('Created Date');
-```
-
-## Actions
-
-### How do I add row actions?
-
-```php
-<?php
-
-use Laravilt\Tables\Actions\EditAction;
-use Laravilt\Tables\Actions\DeleteAction;
-
-$table->actions([
-    EditAction::make(),
-    DeleteAction::make(),
-]);
-```
-
-### How do I add bulk actions?
-
-```php
-<?php
-
-use Laravilt\Tables\Actions\DeleteBulkAction;
-
-$table->bulkActions([
-    DeleteBulkAction::make(),
-]);
-```
-
-### How do I add confirmation to actions?
-
-```php
-<?php
-
-use Laravilt\Tables\Actions\Action;
-
-Action::make('delete')
+Action::make('archive')
     ->requiresConfirmation()
-    ->modalHeading('Delete Record')
-    ->action(fn ($record) => $record->delete());
+    ->modalHeading('Archive record')
+    ->action(fn ($record) => $record->archive());
 ```
+
+See [Table Actions](../tables/actions/README.md) and [Actions](../actions/README.md).
 
 ## Related
 
-- [Tables Documentation](../tables/introduction)
-- [Filters](../tables/filters/introduction)
-
+- [Tables Documentation](../tables/README.md)

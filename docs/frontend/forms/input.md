@@ -1,133 +1,77 @@
 ---
 title: Input
-description: Text input component
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: frontend
-vue_component: Input
-vue_package: "@laravilt/support"
+description: The Input primitive for text, email, password, number and file inputs.
+order: 1
 ---
 
 # Input
 
-Text input component.
-
 ## Import
 
 ```typescript
-import { Input } from '@laravilt/support'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 ```
 
-## Basic Usage
+## Usage
 
 ```vue
-<script setup>
+<script setup lang="ts">
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { ref } from 'vue'
-import { Input } from '@laravilt/support'
 
-const value = ref('')
-</script>
-
-<template>
-    <Input v-model="value" placeholder="Enter text..." />
-</template>
-```
-
-## Types
-
-```vue
-<template>
-    <Input type="text" placeholder="Text" />
-    <Input type="email" placeholder="Email" />
-    <Input type="password" placeholder="Password" />
-    <Input type="number" placeholder="Number" />
-    <Input type="tel" placeholder="Phone" />
-    <Input type="url" placeholder="URL" />
-    <Input type="search" placeholder="Search" />
-</template>
-```
-
-## With Label
-
-```vue
-<script setup>
-import { Input, Label } from '@laravilt/support'
+const email = ref('')
 </script>
 
 <template>
     <div class="grid gap-2">
         <Label for="email">Email</Label>
-        <Input id="email" type="email" placeholder="Enter email" />
+        <Input id="email" v-model="email" type="email" placeholder="you@example.com" />
     </div>
 </template>
 ```
 
-## With Icon
+```tsx
+const [email, setEmail] = useState('');
 
-```vue
-<script setup>
-import { Mail, Lock, Search } from 'lucide-vue-next'
-</script>
-
-<template>
-    <div class="relative">
-        <Mail class="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-        <Input class="pl-9" placeholder="Email" />
-    </div>
-
-    <div class="relative">
-        <Search class="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-        <Input class="pl-9" placeholder="Search..." />
-    </div>
-</template>
+<div className="grid gap-2">
+    <Label htmlFor="email">Email</Label>
+    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+</div>;
 ```
 
-## Disabled
+Every native attribute passes through: `type` (`text`, `email`, `password`, `number`, `search`, `tel`, `url`, `file` ...), `placeholder`, `disabled`, `required`, `autocomplete` and so on.
+
+## With an Icon
 
 ```vue
-<template>
-    <Input disabled value="Disabled input" />
-</template>
+<div class="relative">
+    <Search class="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+    <Input class="pl-9" placeholder="Search..." />
+</div>
 ```
 
-## With Error
+## Error State
+
+Set `aria-invalid` to get the destructive border and ring:
 
 ```vue
-<template>
-    <div class="grid gap-2">
-        <Label for="email">Email</Label>
-        <Input
-            id="email"
-            type="email"
-            class="border-red-500"
-            placeholder="Enter email"
-        />
-        <p class="text-sm text-red-500">Invalid email address</p>
-    </div>
-</template>
+<Input id="email" v-model="form.email" :aria-invalid="!!form.errors.email" />
+<InputError :message="form.errors.email" />
 ```
 
-## File Input
+## Props (Vue)
 
-```vue
-<template>
-    <Input type="file" accept="image/*" />
-</template>
-```
+| Prop | Type | Description |
+|------|------|-------------|
+| `modelValue` | `string \| number` | `v-model` value |
+| `defaultValue` | `string \| number` | Initial value when uncontrolled |
+| `class` | `string` | Extra classes |
 
-## Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `type` | `string` | `text` | Input type |
-| `placeholder` | `string` | - | Placeholder |
-| `disabled` | `boolean` | `false` | Disabled state |
-| `modelValue` | `string` | - | v-model value |
+On React, `Input` is a plain `<input>` with styling, so it accepts all input props.
 
 ## Related
 
-- [Label](../ui/introduction) - Form label
-- [Button](../ui/button) - Submit button
-
+- [Select](select.md)
+- [Form Inputs](README.md)
