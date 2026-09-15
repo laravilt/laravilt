@@ -1,62 +1,39 @@
 ---
 title: Utilities
-description: Helper classes for state management
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: support
-vue_package: "@laravilt/support"
+description: Get and Set state helpers, RTL detection, colors and frontend stack detection.
+order: 3
 ---
 
 # Utilities
 
-Helper classes for state management.
+## Get
 
-## Get Utility
-
-Retrieve nested array values using dot notation:
+`Laravilt\Support\Utilities\Get` reads nested values with dot notation:
 
 ```php
-<?php
-
 use Laravilt\Support\Utilities\Get;
 
 $data = ['user' => ['name' => 'John']];
 $get = new Get($data);
 
-$name = $get('user.name');        // 'John'
-$email = $get('user.email', '');  // Default value
+$get('user.name');          // 'John'
+$get('user.email', '');     // default value
+
+Get::value($data, 'user.name', 'default');  // static helper
 ```
 
-Static method:
+It is injected into component closures:
 
 ```php
-<?php
-
-use Laravilt\Support\Utilities\Get;
-
-$value = Get::value($data, 'user.name', 'default');
-```
-
-Injected in closures:
-
-```php
-<?php
-
-use Laravilt\Support\Utilities\Get;
-
 TextInput::make('state')
     ->visible(fn (Get $get) => $get('country') === 'US');
 ```
 
-## Set Utility
+## Set
 
-Set nested array values with change tracking:
+`Laravilt\Support\Utilities\Set` writes nested values by reference and tracks changes:
 
 ```php
-<?php
-
 use Laravilt\Support\Utilities\Set;
 
 $data = [];
@@ -65,53 +42,60 @@ $set = new Set($data);
 $set('user.name', 'John');
 $set('user.address.city', 'NYC');
 
-if ($set->hasChanges()) {
-    $allData = $set->getData();
-}
+$set->hasChanges();  // true
+$set->getData();     // the updated array
+
+Set::value($data, 'user.name', 'Jane');  // static helper, returns the array
 ```
 
-Static method:
+In closures:
 
 ```php
-<?php
-
-use Laravilt\Support\Utilities\Set;
-
-Set::value($data, 'user.name', 'John');
-```
-
-Injected in closures:
-
-```php
-<?php
-
-use Laravilt\Support\Utilities\Set;
-
 TextInput::make('full_name')
-    ->afterStateUpdated(function (Set $set, $state) {
-        $set('display_name', strtoupper($state));
-    });
+    ->afterStateUpdated(fn (Set $set, $state) => $set('display_name', strtoupper($state)));
 ```
 
-## Translator Utility
+## Translator
 
-RTL/LTR language detection:
+`Laravilt\Support\Utilities\Translator` detects right-to-left locales:
 
 ```php
-<?php
-
 use Laravilt\Support\Utilities\Translator;
 
-Translator::isRTL('ar');        // true
-Translator::isRTL('en');        // false
-Translator::isRTL();            // Check current locale
-Translator::direction('he');    // 'rtl'
-Translator::getRTLLocales();    // ['ar', 'he', 'fa', ...]
-Translator::addRTLLocale('ku'); // Add Kurdish
+Translator::isRTL('ar');         // true
+Translator::isRTL();             // checks the current locale
+Translator::direction('he');     // 'rtl'
+Translator::getRTLLocales();     // ['ar', 'he', 'fa', 'ur', 'yi', 'ji', 'iw']
+Translator::addRTLLocale('ku');  // register another RTL locale
 ```
+
+## Color
+
+`Laravilt\Support\Colors\Color` holds the default hex colors as constants (`Color::Primary`, `Color::Secondary`, `Color::Success`, `Color::Danger`, `Color::Warning`, `Color::Info`, plus a palette). `Color::all()` and `Color::semantic()` return them as arrays.
+
+## Frontend
+
+`Laravilt\Support\Frontend` tells packages and your code which frontend stack the app uses:
+
+| Method | Returns |
+|--------|---------|
+| `Frontend::stack()` | `'vue'` or `'react'`: the `laravilt-support.frontend` config value, otherwise `detect()` |
+| `Frontend::detect(?string $packageJsonPath = null)` | `'react'` if `package.json` has React but not Vue, otherwise `'vue'` |
+| `Frontend::isReact()` / `Frontend::isVue()` | `bool` |
+| `Frontend::isValid(string $stack)` | `bool` |
+| `Frontend::resourceDirectory(?string $stack = null)` | `'react'` for React, `'js'` for Vue (the folder under a package's `resources/`) |
+
+Set the stack explicitly in `.env` (the installer writes this for you):
+
+```env
+LARAVILT_FRONTEND=react
+```
+
+This is the `frontend` key in `config/laravilt-support.php`.
+
+> React support requires Laravilt v1.1 or later.
 
 ## Related
 
-- [Component](component) - Base class
-- [Concerns](concerns/introduction) - Traits
-
+- [Component](component.md)
+- [Concerns](concerns/README.md)

@@ -1,72 +1,60 @@
 ---
-title: Auth Configuration
-description: Configure authentication settings for your panel
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
+title: Configuration
+description: Enable auth features on a panel and configure the laravilt-auth config file.
+order: 1
 ---
 
 # Auth Configuration
 
-Configure authentication features in your panel provider and config file.
+You enable authentication features **per panel** with methods on the `Panel` object. The config file holds package-wide defaults.
 
-## Enabling Authentication in Panel
+## Panel methods
+
+Every page-based method accepts an optional custom page class and URL path, for example `login(?string $page = null, ?string $path = null)`.
+
+| Method | Default path | What it enables |
+|--------|--------------|-----------------|
+| `login()` | `login` | Login page and `logout` route |
+| `registration()` | `register` | Registration page |
+| `passwordReset()` | `forgot-password` | Forgot password and `reset-password/{token}` pages |
+| `emailVerification()` | `verify-email` | Email verification notice and signed verify link |
+| `otp()` | `otp` | One-time code verification page |
+| `magicLinks()` | `magic-link` | Passwordless login by emailed link |
+| `twoFactor(?string $page, ?string $path, ?callable $builder)` | `profile/two-factor` | Two-factor authentication (see [Two-Factor](methods/two-factor.md)) |
+| `socialLogin(Closure\|array $config)` | `auth/{provider}/...` | OAuth login (see [Social Login](methods/social-auth.md)) |
+| `passkeys()` | `profile/passkeys` | Passkey management and passkey login |
+| `profile()` | `profile` | Profile page |
+| `sessionManagement()` | `profile/sessions` | Active sessions page |
+| `apiTokens()` | `profile/api-tokens` | Sanctum API token page |
+| `connectedAccounts()` | `profile/connected-accounts` | Link or unlink social accounts |
+| `localeTimezone()` | `settings/locale-timezone` | Language and timezone preferences |
+
+Related panel methods:
+
+- `disableTwoFactor()` and `disableSocialLogin()` switch those features off again.
+- `requirePasswordForSocialLogin(bool $require = true)` sends users who signed up through a social provider to a set-password page until they choose a password. It is on by default.
+
+### Custom pages and paths
 
 ```php
-<?php
+use App\Laravilt\Admin\Pages\Auth\Login;
 
-namespace App\Laravilt\Admin;
-
-use Laravel\Socialite\Two\GithubProvider;
-use Laravilt\Auth\Builders\SocialProviderBuilder;
-use Laravilt\Auth\Builders\TwoFactorProviderBuilder;
-use Laravilt\Auth\Drivers\TotpDriver;
-use Laravilt\Panel\PanelProvider;
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->id('admin')
-            ->path('admin')
-
-            // Basic auth
-            ->login()
-            ->registration()
-            ->passwordReset()
-            ->emailVerification()
-
-            // Two-factor authentication
-            ->twoFactor(builder: function (TwoFactorProviderBuilder $builder) {
-                $builder->provider(TotpDriver::class);
-            })
-            ->socialLogin(function (SocialProviderBuilder $builder) {
-                $builder->provider(GitHubProvider::class, fn (GitHubProvider $p) => $p->enabled());
-            })
-
-            // Profile & Security features
-            ->profile()
-            ->passkeys()
-            ->magicLinks()
-            ->connectedAccounts()
-            ->sessionManagement()
-            ->apiTokens()
-            ->localeTimezone();
-    }
-}
+$panel
+    ->login(Login::class)               // your own page class
+    ->registration(path: 'sign-up');    // default page, custom path
 ```
 
-## Configuration File
+A custom page class should extend the matching class in `Laravilt\Auth\Pages`, for example `Laravilt\Auth\Pages\Login`.
 
-Publish and customize `config/laravilt-auth.php`:
+## Config file
+
+Publish `config/laravilt-auth.php` to change the defaults:
+
+```bash
+php artisan vendor:publish --tag=laravilt-auth-config
+```
 
 ```php
-<?php
-
 return [
     'guard' => 'web',
 
@@ -78,9 +66,20 @@ return [
         'webauthn' => false,
     ],
 
+    'social' => [
+        'providers' => [
+            'google' => [
+                'client_id' => env('GOOGLE_CLIENT_ID'),
+                'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+                'redirect' => env('GOOGLE_REDIRECT_URI'),
+            ],
+            // github, facebook, twitter, linkedin, discord, jira ...
+        ],
+    ],
+
     'two_factor' => [
         'enabled' => false,
-        'methods' => ['totp', 'email', 'sms'],
+        'methods' => ['totp', 'sms', 'email'],
         'issuer' => env('APP_NAME', 'Laravilt'),
     ],
 
@@ -97,10 +96,49 @@ return [
         'sessions' => true,
         'api_tokens' => true,
     ],
+
+    'routes' => [
+        'prefix' => 'auth',
+        'middleware' => ['web'],
+    ],
+
+    'views' => [
+        'theme' => 'default',
+        'rtl' => false,
+    ],
 ];
+```
+
+Panel methods decide which features a panel actually shows. Configure the panel first and use the config file for shared defaults.
+
+## Publish tags
+
+| Tag | Publishes |
+|-----|-----------|
+| `laravilt-auth-config` | `config/laravilt-auth.php` |
+| `laravilt-auth-migrations` | Migrations (they also load automatically without publishing) |
+| `laravilt-auth-views` | Frontend pages for your stack (Vue or React) to `resources/js/pages/laravilt/auth` |
+| `laravilt-auth-blade-views` | Blade views, such as mail templates |
+| `laravilt-auth-assets` | Compiled assets |
+
+> React support requires Laravilt v1.1 or later.
+
+## Artisan commands
+
+```bash
+# Install the auth package
+php artisan laravilt:auth:install [--force]
+php artisan auth:install [--force] [--without-assets] [--without-migrations] [--without-seeders]
+
+# Interactively generate an auth provider configuration for a custom guard or model
+php artisan laravilt:auth:generate {name?} [--guard=] [--model=] [--methods=*] [--output=] [--add-to-config]
+
+# Create a panel user
+php artisan laravilt:user --name="Admin" --email=admin@example.com --password=secret
 ```
 
 ## Related
 
-- [User Model](user-model) - Setup user model
-- [Migrations](migrations) - Database migrations
+- [User Model](user-model.md)
+- [Migrations](migrations.md)
+- [Panel](../panel/README.md)

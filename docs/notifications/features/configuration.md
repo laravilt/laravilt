@@ -1,114 +1,52 @@
 ---
 title: Configuration
-description: Notification configuration options
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: notifications
-concept: configuration
+description: Config file and panel options for notifications.
+order: 2
 ---
 
 # Configuration
 
-Configure notification behavior globally.
+## Config file
 
-## Config File
+`config/laravilt-notifications.php` is intentionally small:
 
 ```php
-<?php
-
-// config/laravilt-notifications.php
 return [
-    'default_duration' => 4000,
-    'position' => 'top-right',
-    'sound_enabled' => true,
-    'max_visible' => 3,
-
-    'database' => [
-        'enabled' => true,
-        'polling' => 30,
-        'max_items' => 50,
-        'auto_read_on_view' => false,
-    ],
+    'enabled' => env('LARAVILT_NOTIFICATIONS_ENABLED', true),
 ];
 ```
 
-## Position Options
+Publish it with `php artisan notifications:install` (add `--force` to overwrite an existing copy).
 
-```php
-<?php
+## Panel options
 
-// config/laravilt-notifications.php
-return [
-    // top-left, top-center, top-right
-    // bottom-left, bottom-center, bottom-right
-    'position' => 'top-right',
-];
-```
+The notification center is configured on the panel:
 
-## Duration
-
-```php
-<?php
-
-// config/laravilt-notifications.php
-return [
-    'default_duration' => 4000, // 4 seconds
-];
-
-// Override per notification
-Notification::make()
-    ->title('Message')
-    ->duration(8000)
-    ->send();
-```
-
-## Sound Settings
-
-```php
-<?php
-
-// config/laravilt-notifications.php
-return [
-    'sound_enabled' => true,
-    'sound_file' => '/sounds/notification.mp3',
-];
-
-// Per notification
-Notification::make()
-    ->title('Alert')
-    ->sound()
-    ->send();
-```
-
-## Database Polling
-
-```php
-<?php
-
-// In panel provider
-$panel->databaseNotifications()
-    ->polling(30);  // Check every 30 seconds
-```
-
-## Max Visible Toasts
-
-```php
-<?php
-
-// config/laravilt-notifications.php
-return [
-    'max_visible' => 3,
-];
-```
-
-## API Reference
-
-| Option | Default | Description |
+| Method | Default | Description |
 |--------|---------|-------------|
-| `default_duration` | 4000 | Toast duration (ms) |
-| `position` | top-right | Toast position |
-| `sound_enabled` | true | Enable sounds |
-| `max_visible` | 3 | Max visible toasts |
-| `polling` | 30 | Database refresh (s) |
+| `databaseNotifications(bool $condition = true)` | off | Show the notification center and register its routes |
+| `databaseNotificationsPolling(string\|Closure\|null $interval)` | `'30s'` | How often the center refreshes. `null` disables polling. |
+| `apiNotifications(bool $condition = true)` | off | Register the `/{panel}/notifications` JSON routes without the UI |
+
+```php
+$panel
+    ->databaseNotifications()
+    ->databaseNotificationsPolling('15s');
+```
+
+## Per-notification options
+
+Duration, position, persistence and dismissing are set on each notification. See [Toast Notifications](../types/toast.md):
+
+```php
+Notification::info()
+    ->title('Heads up')
+    ->duration(8000)          // default 3000 ms
+    ->position('top-center')
+    ->send();
+```
+
+## Related
+
+- [Database Notifications](../types/database.md)
+- [Actions](actions.md)

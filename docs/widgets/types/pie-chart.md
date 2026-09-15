@@ -1,150 +1,64 @@
 ---
-title: Pie Chart Widget
-description: Pie and doughnut charts for proportion visualization
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: widgets
-vue_component: PieChartWidget
-vue_package: "@laravilt/widgets"
+title: Pie Chart
+description: Pie and doughnut charts for proportions.
+order: 4
 ---
 
 # Pie Chart Widget
 
-Pie and doughnut charts for proportional data.
+A pie chart takes one series of values. You pass a plain `data` array instead of Chart.js datasets.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Widgets\PieChartWidget;
 
 PieChartWidget::make(
     labels: ['Electronics', 'Furniture', 'Clothing'],
-    data: [45, 30, 25]
-);
-```
-
-## With Heading
-
-```php
-<?php
-
-use Laravilt\Widgets\PieChartWidget;
-
-PieChartWidget::make(...)
-    ->heading('Sales Distribution')
+    data: [45, 30, 25],
+)
+    ->heading('Sales distribution')
     ->description('By category');
 ```
 
-## Doughnut Chart
+## Doughnut, legend and percentages
 
 ```php
-<?php
-
-use Laravilt\Widgets\PieChartWidget;
-
-PieChartWidget::make(...)
-    ->doughnut();
-```
-
-## Show Legend
-
-```php
-<?php
-
-use Laravilt\Widgets\PieChartWidget;
-
-PieChartWidget::make(...)
-    ->showLegend();
-```
-
-## Show Percentage
-
-```php
-<?php
-
-use Laravilt\Widgets\PieChartWidget;
-
-PieChartWidget::make(...)
-    ->showPercentage();
-```
-
-## Chart Height
-
-```php
-<?php
-
-use Laravilt\Widgets\PieChartWidget;
-
-PieChartWidget::make(...)
+PieChartWidget::make($labels, $data)
+    ->doughnut()
+    ->showLegend()
+    ->showPercentage()
     ->height(300);
 ```
 
-## Polling
+## Dynamic data
 
 ```php
-<?php
-
-use Laravilt\Widgets\PieChartWidget;
-
-PieChartWidget::make(...)
-    ->polling(60);
-```
-
-## Dynamic Data
-
-```php
-<?php
-
-use Laravilt\Widgets\PieChartWidget;
+$statuses = ['completed', 'processing', 'pending', 'cancelled'];
 
 PieChartWidget::make(
-    labels: ['Completed', 'Processing', 'Pending', 'Cancelled'],
-    data: [
-        Order::where('status', 'completed')->count(),
-        Order::where('status', 'processing')->count(),
-        Order::where('status', 'pending')->count(),
-        Order::where('status', 'cancelled')->count(),
-    ]
+    labels: array_map('ucfirst', $statuses),
+    data: array_map(fn ($status) => Order::where('status', $status)->count(), $statuses),
 )
-->heading('Order Status')
-->doughnut();
-```
-
-## Chart Options
-
-```php
-<?php
-
-use Laravilt\Widgets\PieChartWidget;
-
-PieChartWidget::make(...)
-    ->options([
-        'plugins' => [
-            'legend' => ['position' => 'right'],
-        ],
-    ]);
+    ->heading('Order status')
+    ->doughnut()
+    ->polling(60);
 ```
 
 ## Methods
 
 | Method | Description |
 |--------|-------------|
-| `make(labels, data)` | Create chart |
-| `heading(string)` | Chart heading |
-| `description(string)` | Chart description |
-| `doughnut(bool)` | Doughnut variation |
-| `showLegend(bool)` | Show legend |
-| `showPercentage(bool)` | Show percentages |
-| `height(int)` | Chart height (px) |
-| `polling(?int)` | Refresh interval |
-| `options(array)` | Chart.js options |
+| `make(array $labels = [], array $data = [])` | Create the chart (static) |
+| `doughnut(bool $condition = true)` | Render as a doughnut |
+| `showLegend(bool $condition = true)` | Show the legend |
+| `showPercentage(bool $condition = true)` | Show percentages |
+| `data(array $data)` | Set `labels` and `datasets` directly |
+| `options(array $options)` | Chart.js options (replaces options set by the helpers) |
+| `height(int $height)` | Height in pixels |
+| plus `heading()`, `description()`, `polling()` ... | See [shared methods](../README.md#shared-methods) |
 
 ## Related
 
-- [Line Chart](line-chart) - Line charts
-- [Bar Chart](bar-chart) - Bar charts
-
+- [Line Chart](line-chart.md)
+- [Bar Chart](bar-chart.md)

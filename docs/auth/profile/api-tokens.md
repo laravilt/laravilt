@@ -1,109 +1,49 @@
 ---
 title: API Tokens
-description: Create and manage personal access tokens
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
-concept: profile
+description: Let users create and revoke Sanctum personal access tokens.
+order: 4
 ---
 
 # API Tokens
 
-Create and manage personal access tokens for API authentication using Sanctum.
+`->apiTokens()` adds an **API tokens** page (`Laravilt\Auth\Pages\Profile\ManageApiTokens`). There, users can:
 
-## Create Token
+- create a token with a name and a set of abilities (the plain-text token is shown once),
+- delete individual tokens,
+- revoke all tokens after confirming their password.
 
 ```php
-<?php
-
-namespace App\Http\Controllers\Profile;
-
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-
-class ApiTokenController extends Controller
-{
-    // Route: POST /admin/profile/api-tokens
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'abilities' => ['array'],
-            'abilities.*' => ['string'],
-        ]);
-
-        $token = $request->user()->createToken(
-            $validated['name'],
-            $validated['abilities'] ?? ['*']
-        );
-
-        // Flash plaintext token (shown once)
-        session()->flash('token', $token->plainTextToken);
-
-        return back();
-    }
-}
+$panel->apiTokens();
 ```
 
-## Enable API Tokens
+Tokens are Laravel Sanctum personal access tokens. The `LaraviltUser` trait already includes `HasApiTokens`, and the auth migrations create `personal_access_tokens` if it doesn't exist.
 
-```php
-<?php
+## Routes
 
-namespace App\Laravilt\Admin;
-
-use Laravilt\Panel\PanelProvider;
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->id('admin')
-            ->path('admin')
-            ->apiTokens();
-    }
-}
+```
+GET     /{panel}/profile/api-tokens            List tokens
+POST    /{panel}/profile/api-tokens            Create a token
+PUT     /{panel}/profile/api-tokens/{tokenId}  Update a token
+DELETE  /{panel}/profile/api-tokens/{tokenId}  Delete a token
 ```
 
-## Delete Token
+## Using a token
 
-```php
-<?php
+Send the token as a bearer token to any route protected by `auth:sanctum`:
 
-// Route: DELETE /admin/profile/api-tokens/{id}
-public function destroy(Request $request, $tokenId)
-{
-    $request->user()->tokens()
-        ->where('id', $tokenId)
-        ->delete();
-
-    return back()->with('status', 'token-deleted');
-}
+```bash
+curl -H "Authorization: Bearer <token>" https://your-app.test/api/user
 ```
 
-## Revoke All Tokens
+Check abilities in your code with Sanctum's API:
 
 ```php
-<?php
-
-// Route: DELETE /admin/profile/api-tokens
-public function revokeAll(Request $request)
-{
-    $request->validate([
-        'password' => ['required', 'current_password'],
-    ]);
-
-    $request->user()->tokens()->delete();
-
-    return back()->with('status', 'tokens-revoked');
+if ($request->user()->tokenCan('posts:write')) {
+    // ...
 }
 ```
 
 ## Related
 
-- [Sessions](sessions) - Session management
-- [Security](security) - Security best practices
+- [Sessions](sessions.md)
+- [Connected Accounts](connected-accounts.md)

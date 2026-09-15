@@ -1,99 +1,46 @@
 ---
-title: Session Management
-description: View and revoke active sessions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
-concept: profile
+title: Sessions
+description: Show active sessions and let users log out other devices.
+order: 3
 ---
 
 # Session Management
 
-View active sessions and revoke access from other devices.
-
-## Session Data
+`->sessionManagement()` adds a **Sessions** page (`Laravilt\Auth\Pages\Profile\ManageSessions`) listing the user's active sessions. Each session shows its IP address, browser, platform, device and last activity, and the page can log out a single session or all other sessions.
 
 ```php
-<?php
-
-use Illuminate\Support\Facades\DB;
-use Jenssegers\Agent\Agent;
-use Carbon\Carbon;
-
-// Get user's active sessions
-$sessions = DB::table('sessions')
-    ->where('user_id', $user->id)
-    ->get()
-    ->map(function ($session) use ($request) {
-        $agent = new Agent();
-        $agent->setUserAgent($session->user_agent);
-
-        return [
-            'id' => $session->id,
-            'ip_address' => $session->ip_address,
-            'user_agent' => $session->user_agent,
-            'device' => $agent->device() ?: 'Unknown',
-            'platform' => $agent->platform() ?: 'Unknown',
-            'browser' => $agent->browser() ?: 'Unknown',
-            'is_current' => $session->id === $request->session()->getId(),
-            'last_active' => Carbon::createFromTimestamp($session->last_activity),
-        ];
-    });
+$panel->sessionManagement();
 ```
 
-## Logout Other Sessions
+## Requirements
 
-```php
-<?php
+Sessions are read from the database, so use the database session driver:
 
-namespace App\Http\Controllers\Profile;
-
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\Controller;
-
-class SessionController extends Controller
-{
-    // Route: DELETE /admin/profile/sessions
-    public function destroyOtherSessions(Request $request)
-    {
-        $request->validate([
-            'password' => ['required', 'current_password'],
-        ]);
-
-        Auth::logoutOtherDevices($request->password);
-
-        DB::table('sessions')
-            ->where('user_id', $request->user()->id)
-            ->where('id', '!=', $request->session()->getId())
-            ->delete();
-
-        return back()->with('status', 'sessions-terminated');
-    }
-}
+```env
+SESSION_DRIVER=database
 ```
 
-## Logout Specific Session
+Laravel 13 ships the `sessions` table migration by default. Device details are parsed with `jenssegers/agent`.
+
+## Routes
+
+```
+GET     /{panel}/profile/sessions               List sessions
+DELETE  /{panel}/profile/sessions/{sessionId}   Log out one session
+DELETE  /{panel}/profile/sessions/others        Log out all other sessions
+```
+
+## In code
+
+The `LaraviltUser` trait exposes the same data:
 
 ```php
-<?php
-
-// Route: DELETE /admin/profile/sessions/{id}
-public function destroySession(Request $request, string $sessionId)
-{
-    DB::table('sessions')
-        ->where('user_id', $request->user()->id)
-        ->where('id', $sessionId)
-        ->delete();
-
-    return back()->with('status', 'session-terminated');
-}
+$user->sessions();            // Collection of the user's sessions
+$user->otherSessions();       // Excludes the current session
+$user->deleteOtherSessions(); // Returns the number of sessions removed
 ```
 
 ## Related
 
-- [Security](security) - Security best practices
-- [Delete Account](delete-account) - Account deletion
+- [API Tokens](api-tokens.md)
+- [User Model](../user-model.md)

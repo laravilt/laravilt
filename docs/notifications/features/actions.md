@@ -1,115 +1,66 @@
 ---
-title: Notification Actions
-description: Interactive notification buttons
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: notifications
-concept: actions
+title: Actions
+description: Add buttons to toast and database notifications.
+order: 1
 ---
 
 # Notification Actions
 
-Add interactive buttons to notifications.
-
-## Basic Actions
+`actions(array $actions)` attaches buttons to a notification. Each action is a plain array, which is serialized into the session (toasts) or the database (notification center).
 
 ```php
-<?php
-
 use Laravilt\Notifications\Notification;
-use Laravilt\Actions\Action;
 
-Notification::make()
-    ->title('New Comment')
-    ->body('Someone commented on your post.')
-    ->info()
-    ->actions([
-        Action::make('view')
-            ->button()
-            ->url(route('posts.show', $post)),
-    ])
-    ->send();
-```
-
-## Multiple Actions
-
-```php
-<?php
-
-use Laravilt\Notifications\Notification;
-use Laravilt\Actions\Action;
-
-Notification::make()
-    ->title('New Order')
+Notification::info()
+    ->title('New order')
     ->body('Order #12345 needs processing.')
-    ->success()
     ->actions([
-        Action::make('view')
-            ->label('View Order')
-            ->url('/orders/12345'),
-
-        Action::make('dismiss')
-            ->label('Dismiss')
-            ->close(),
-    ])
-    ->send();
-```
-
-## Action Callbacks
-
-```php
-<?php
-
-use Laravilt\Notifications\Notification;
-use Laravilt\Actions\Action;
-
-Notification::make()
-    ->title('New Comment')
-    ->actions([
-        Action::make('markAsRead')
-            ->button()
-            ->color('secondary')
-            ->action(function () {
-                // Mark as read logic
-            }),
-    ])
-    ->send();
-```
-
-## Database Actions
-
-```php
-<?php
-
-use Laravilt\Notifications\Notification;
-use Laravilt\Actions\Action;
-
-Notification::make()
-    ->title('Team Invitation')
-    ->body('Join Team Alpha')
-    ->actions([
-        Action::make('accept')
-            ->label('Accept')
-            ->url('/invitations/123/accept')
-            ->color('success'),
-
-        Action::make('decline')
-            ->label('Decline')
-            ->url('/invitations/123/decline')
-            ->color('danger'),
+        [
+            'name' => 'view',
+            'label' => 'View order',
+            'url' => route('orders.show', 12345),
+        ],
     ])
     ->sendToDatabase($user);
 ```
 
-## API Reference
+## Action keys
 
-| Method | Description |
-|--------|-------------|
-| `actions()` | Set action buttons |
-| `button()` | Button style |
-| `url()` | Action URL |
-| `close()` | Close notification |
-| `action()` | Callback function |
-| `color()` | Button color |
+| Key | Description |
+|-----|-------------|
+| `name` | Unique key for the button |
+| `label` | Button text |
+| `url` | Link opened when the button is clicked |
+| `color` | Button color. `danger` renders a destructive button. |
+| `variant` | Optional frontend variant, such as `destructive` |
+
+## Multiple actions
+
+```php
+Notification::warning()
+    ->title('Team invitation')
+    ->body('You were invited to join Team Alpha.')
+    ->actions([
+        ['name' => 'accept', 'label' => 'Accept', 'url' => url('/invitations/123/accept')],
+        ['name' => 'decline', 'label' => 'Decline', 'url' => url('/invitations/123/decline'), 'color' => 'danger'],
+    ])
+    ->sendToDatabase($user);
+```
+
+Actions are links. To run server-side code, point the URL at a route or controller that does the work.
+
+## Extra data
+
+Use `data(array $data)` to send extra values that your own frontend code can read:
+
+```php
+Notification::info()
+    ->title('Report ready')
+    ->data(['report_id' => $report->id])
+    ->sendToDatabase($user);
+```
+
+## Related
+
+- [Toast Notifications](../types/toast.md)
+- [Database Notifications](../types/database.md)

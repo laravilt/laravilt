@@ -1,110 +1,81 @@
 ---
 title: Toast Notifications
-description: Temporary on-screen messages
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: notifications
-component: Notification
-vue_component: Toast
+description: Short-lived on-screen messages sent with send().
+order: 1
 ---
 
 # Toast Notifications
 
-Temporary, auto-dismissing feedback messages.
+A toast is a short message that disappears on its own. `send()` flashes the notification to the session, and the panel shows it on the next response, so it also works after a redirect.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Notifications\Notification;
 
-Notification::make()
+Notification::success()
     ->title('Saved successfully')
-    ->success()
     ->send();
 ```
 
-## With Body & Icon
+## Body and icon
 
 ```php
-<?php
-
-use Laravilt\Notifications\Notification;
-
-Notification::make()
+Notification::success()
     ->title('File uploaded')
-    ->body('Your file has been uploaded.')
-    ->icon('Upload')
-    ->success()
+    ->body('report.pdf has been uploaded.')
+    ->icon('heroicon-o-arrow-up-tray')
     ->send();
 ```
 
-## Duration
+`icon(?string $icon, ?string $position = 'before')` replaces the status icon.
+
+## Duration and persistence
+
+Toasts stay for 3000 ms by default.
 
 ```php
-<?php
-
-use Laravilt\Notifications\Notification;
-
-Notification::make()
+Notification::info()
     ->title('Quick message')
-    ->duration(2000)  // 2 seconds
+    ->duration(1500)
     ->send();
 
-// Persistent (no auto-dismiss)
-Notification::make()
+// Stay until the user closes it
+Notification::warning()
     ->title('Action required')
-    ->warning()
     ->persistent()
     ->send();
 ```
 
-## With Sound
+## Position and dismissing
 
 ```php
-<?php
-
-use Laravilt\Notifications\Notification;
-
-Notification::make()
-    ->title('New message')
-    ->success()
-    ->sound()
+Notification::info()
+    ->title('Heads up')
+    ->position('bottom-right')
+    ->dismissible()
     ->send();
 ```
 
-## Position
-
-```php
-<?php
-
-use Laravilt\Notifications\Notification;
-
-Notification::make()
-    ->title('Message')
-    ->position('top-right')
-    ->send();
-
-// Positions: top-left, top-center, top-right
-//           bottom-left, bottom-center, bottom-right
-```
-
-## API Reference
+## Methods
 
 | Method | Description |
 |--------|-------------|
-| `title()` | Notification title |
-| `body()` | Notification body |
-| `icon()` | Lucide icon name |
-| `success()` | Green style |
-| `warning()` | Yellow style |
-| `danger()` | Red style |
-| `info()` | Blue style |
-| `duration()` | Duration in ms |
-| `persistent()` | No auto-dismiss |
-| `sound()` | Play sound |
-| `position()` | Toast position |
-| `send()` | Send notification |
+| `Notification::make()` / `success()` / `danger()` / `warning()` / `info()` | Create a notification (static) |
+| `title(?string)` | Title |
+| `body(?string)` | Body text |
+| `icon(?string $icon, ?string $position = 'before')` | Icon name |
+| `color(?string)` | Color (`success`, `danger`, `warning`, `info`, ...) |
+| `status(string)` | Status string |
+| `duration(?int)` | Display time in milliseconds (default `3000`) |
+| `persistent(bool $condition = true)` | Don't auto-dismiss |
+| `dismissible(bool $condition = true)` | Show a close button |
+| `position(?string)` | Toast position |
+| `actions(array)` | Buttons (see [Actions](../features/actions.md)) |
+| `data(array)` | Extra payload for your frontend |
+| `send()` | Flash as a toast |
+
+## Related
+
+- [Database Notifications](database.md)
+- [Actions](../features/actions.md)

@@ -1,85 +1,48 @@
 ---
-title: Auth Migrations
-description: Database migrations for authentication features
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
+title: Migrations
+description: Tables and columns created by the auth package.
+order: 3
 ---
 
 # Auth Migrations
 
-Run the auth migrations to create required database tables.
-
-## Installation
+The package loads its migrations automatically, so running migrations is enough:
 
 ```bash
-php artisan vendor:publish --tag=laravilt-auth-migrations
 php artisan migrate
 ```
 
-## Tables Created
+To customize them, publish them first:
+
+```bash
+php artisan vendor:publish --tag=laravilt-auth-migrations
+```
+
+## Tables
 
 | Table | Purpose |
 |-------|---------|
-| `social_accounts` | OAuth provider connections |
-| `webauthn_credentials` | Passkey registrations |
-| `two_factor_codes` | Temporary 2FA codes |
-| `otp_codes` | One-time passwords |
-| `personal_access_tokens` | API tokens (Sanctum) |
+| `social_accounts` | Linked OAuth accounts (`provider`, `provider_id`, `name`, `email`, `avatar`, `token`, `refresh_token`, `expires_at`) |
+| `webauthn_credentials` | Passkeys, using the `laragear/webauthn` schema (polymorphic `authenticatable`, `alias`, `public_key`, `counter`, `transports`, and more) |
+| `two_factor_codes` | Short-lived two-factor codes |
+| `otp_codes` | One-time codes (`identifier`, `code`, `purpose`, `expires_at`, `verified`) |
+| `personal_access_tokens` | Sanctum tokens (skipped if the table already exists) |
 
-## User Table Columns
+## Changes to `users`
 
-The migration adds these columns to the `users` table:
+| Column | Type |
+|--------|------|
+| `two_factor_enabled` | boolean, default `false` |
+| `two_factor_method` | string, nullable |
+| `two_factor_secret` | text, nullable |
+| `two_factor_recovery_codes` | text, nullable |
+| `two_factor_confirmed_at` | timestamp, nullable |
+| `locale` | string(10), nullable |
+| `timezone` | string(50), nullable |
 
-```sql
-ALTER TABLE users ADD (
-    two_factor_enabled boolean DEFAULT false,
-    two_factor_method string nullable,
-    two_factor_secret text nullable,
-    two_factor_recovery_codes text nullable,
-    two_factor_confirmed_at timestamp nullable,
-    locale string nullable,
-    timezone string nullable
-);
-```
-
-## Social Accounts Table
-
-```php
-Schema::create('social_accounts', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-    $table->string('provider');
-    $table->string('provider_id');
-    $table->string('name')->nullable();
-    $table->string('email')->nullable();
-    $table->string('avatar')->nullable();
-    $table->text('token')->nullable();
-    $table->text('refresh_token')->nullable();
-    $table->timestamp('token_expires_at')->nullable();
-    $table->timestamps();
-
-    $table->unique(['provider', 'provider_id']);
-});
-```
-
-## WebAuthn Credentials Table
-
-```php
-Schema::create('webauthn_credentials', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-    $table->string('name');
-    $table->text('credential_id');
-    $table->text('public_key');
-    $table->unsignedInteger('sign_count')->default(0);
-    $table->timestamps();
-});
-```
+`password` also becomes nullable so users who sign up with social login or a magic link can exist without a password.
 
 ## Related
 
-- [User Model](user-model) - Setup user model
-- [Configuration](configuration) - Auth configuration
+- [User Model](user-model.md)
+- [Configuration](configuration.md)

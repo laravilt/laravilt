@@ -1,18 +1,12 @@
 ---
-title: User Model Setup
-description: Configure your User model for Laravilt authentication
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
+title: User Model
+description: Add the LaraviltUser trait to your User model to enable every auth feature.
+order: 2
 ---
 
 # User Model Setup
 
-Add the `LaraviltUser` trait to your User model to enable all authentication features.
-
-## Basic Setup
+The installer publishes a `User` model that already uses the `LaraviltUser` trait. If you manage the model yourself, add the trait:
 
 ```php
 <?php
@@ -25,80 +19,58 @@ use Laravilt\Auth\Concerns\LaraviltUser;
 
 class User extends Authenticatable
 {
-    use Notifiable;
     use LaraviltUser;
+    use Notifiable;
 
-    protected $fillable = [
-        'name',
-        'email',
-        'password',
-        'locale',
-        'timezone',
-    ];
+    protected $fillable = ['name', 'email', 'password'];
 
-    protected $hidden = [
-        'password',
-        'remember_token',
-        'two_factor_secret',
-        'two_factor_recovery_codes',
-    ];
+    protected $hidden = ['password', 'remember_token'];
 
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
-            'two_factor_confirmed_at' => 'datetime',
-            'two_factor_enabled' => 'boolean',
             'password' => 'hashed',
         ];
     }
 }
 ```
 
-## Trait Features
+## What the trait adds
 
-The `LaraviltUser` trait adds:
+`LaraviltUser` includes Sanctum's `HasApiTokens` and Fortify's `TwoFactorAuthenticatable`. When the model initializes, it also merges these attributes for you:
 
-### Properties
-
-- `locale` - User's preferred language
-- `timezone` - User's timezone
-- `two_factor_enabled` - 2FA status
-- `two_factor_method` - Active 2FA method
-- `two_factor_secret` - Encrypted TOTP secret
-- `two_factor_recovery_codes` - Hashed backup codes
-- `two_factor_confirmed_at` - 2FA confirmation timestamp
+- **Fillable:** `locale`, `timezone`, `two_factor_enabled`, `two_factor_method`
+- **Hidden:** `two_factor_secret`, `two_factor_recovery_codes`
+- **Casts:** `two_factor_enabled` to `boolean`, `two_factor_confirmed_at` to `datetime`
 
 ### Relationships
 
-```php
-// OAuth connections
-$user->socialAccounts;
-
-// WebAuthn credentials
-$user->webauthnCredentials;
-
-// Active sessions
-$user->sessions;
-```
+| Method | Returns |
+|--------|---------|
+| `socialAccounts()` / `connectedAccounts()` | `HasMany` of `Laravilt\Auth\Models\SocialAccount` |
+| `webauthnCredentials()` / `passkeys()` | `MorphMany` of `Laravilt\Auth\Models\WebauthnCredential` |
 
 ### Methods
 
-```php
-// Check 2FA status
-$user->hasTwoFactorEnabled();
+| Method | Description |
+|--------|-------------|
+| `hasSocialAccount(string $provider)` | Whether a provider is linked |
+| `getSocialAccount(string $provider)` | The linked `SocialAccount` or `null` |
+| `hasPasskeys()` | Whether the user registered any passkey |
+| `sessions()` | Collection of the user's database sessions |
+| `otherSessions()` | Sessions other than the current one |
+| `deleteOtherSessions()` | Log out other sessions; returns the number removed |
+| `hasTwoFactorEnabled()` | Whether 2FA is enabled |
+| `hasConfirmedTwoFactor()` | Whether 2FA setup was confirmed |
+| `getPreferredLocale()` / `getPreferredTimezone()` | Saved preference, or the app default |
+| `setLocale(string $locale)` / `setTimezone(string $timezone)` | Save a preference |
+| `getSocialAvatarUrl()` | Avatar from a linked social account |
+| `getAvatarUrlFromAuth()` | Avatar URL with fallbacks |
 
-// Check passkeys
-$user->hasPasskeys();
-
-// Get avatar URL
-$user->getAvatarUrl();
-
-// Get initials for avatar fallback
-$user->getInitials();
-```
+`sessions()`, `otherSessions()` and `deleteOtherSessions()` read the sessions table, so they need `SESSION_DRIVER=database`.
 
 ## Related
 
-- [Configuration](configuration) - Auth configuration
-- [Migrations](migrations) - Database migrations
+- [Migrations](migrations.md)
+- [Configuration](configuration.md)

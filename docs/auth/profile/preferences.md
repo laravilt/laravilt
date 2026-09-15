@@ -1,112 +1,53 @@
 ---
-title: User Preferences
-description: Locale and timezone settings
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
-concept: profile
+title: Locale & Timezone
+description: Let users choose their language and timezone.
+order: 6
 ---
 
-# User Preferences
+# Locale & Timezone
 
-Configure user locale and timezone preferences.
-
-## Locale Setting
+`->localeTimezone()` adds a **Locale & timezone** page (`Laravilt\Auth\Pages\LocaleTimezone`) to the Settings cluster, at `/{panel}/settings/locale-timezone`.
 
 ```php
-<?php
-
-use Laravilt\Schemas\Components\Select;
-
-// User can set preferred locale
-Select::make('locale')
-    ->label('Language')
-    ->options([
-        'en' => 'English',
-        'ar' => 'العربية',
-        'es' => 'Español',
-        'fr' => 'Français',
-        'de' => 'Deutsch',
-    ]);
+$panel->localeTimezone();
 ```
 
-Apply locale via middleware:
+The page saves two columns on `users`, which the auth migrations add:
+
+| Field | Rules |
+|-------|-------|
+| `locale` | `required`, `string`, `max:10` |
+| `timezone` | `required`, a valid timezone identifier |
+
+## Available languages
+
+The language list comes from `config('app.available_locales')`, which defaults to English and Arabic. Define your own in `config/app.php`:
 
 ```php
-<?php
-
-namespace App\Http\Middleware;
-
-use Closure;
-use Illuminate\Http\Request;
-
-class SetLocale
-{
-    public function handle(Request $request, Closure $next)
-    {
-        if ($user = $request->user()) {
-            app()->setLocale($user->locale ?? config('app.locale'));
-        }
-
-        return $next($request);
-    }
-}
+'available_locales' => [
+    ['value' => 'en', 'label' => 'English', 'dir' => 'ltr'],
+    ['value' => 'ar', 'label' => 'العربية', 'dir' => 'rtl'],
+    ['value' => 'fr', 'label' => 'Français', 'dir' => 'ltr'],
+],
 ```
 
-## Timezone Setting
+`dir` tells the panel whether to use a right-to-left layout for that language.
+
+## Quick switching
+
+Every panel also exposes `POST /{panel}/locale` for a quick language switcher.
+
+## In code
 
 ```php
-<?php
+$user->getPreferredLocale();   // saved locale or config('app.locale')
+$user->getPreferredTimezone(); // saved timezone or config('app.timezone')
 
-use Laravilt\Schemas\Components\Select;
-
-// User can set timezone
-Select::make('timezone')
-    ->label('Timezone')
-    ->options(timezone_identifiers_list())
-    ->searchable();
-```
-
-Apply timezone for date formatting:
-
-```php
-<?php
-
-use Carbon\Carbon;
-
-// In your service provider or middleware
-Carbon::setTimezone($user->timezone ?? config('app.timezone'));
-```
-
-## Save Preferences
-
-```php
-<?php
-
-namespace App\Http\Controllers\Profile;
-
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-
-class PreferencesController extends Controller
-{
-    public function update(Request $request)
-    {
-        $validated = $request->validate([
-            'locale' => ['nullable', 'string', 'max:5'],
-            'timezone' => ['nullable', 'timezone'],
-        ]);
-
-        $request->user()->update($validated);
-
-        return back()->with('status', 'preferences-updated');
-    }
-}
+$user->setLocale('ar');
+$user->setTimezone('Africa/Cairo');
 ```
 
 ## Related
 
-- [Profile Info](profile-info) - Update profile
-- [User Model](../user-model) - User model setup
+- [Profile Information](profile-info.md)
+- [User Model](../user-model.md)

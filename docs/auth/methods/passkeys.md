@@ -1,215 +1,51 @@
 ---
-title: Passkeys (WebAuthn)
-description: Biometric authentication with fingerprint, Face ID, and security keys
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
-method: passkeys
+title: Passkeys
+description: Passwordless WebAuthn login with fingerprint, Face ID or hardware security keys.
+order: 4
 ---
 
 # Passkeys (WebAuthn)
 
-Passwordless authentication using biometrics (fingerprint, Face ID) or hardware security keys.
+Passkeys let users sign in with a fingerprint, Face ID, Windows Hello or a hardware security key instead of a password. Laravilt uses `laragear/webauthn`, which is installed with the auth package.
 
-## Enable in Panel
+## Enable in the panel
 
 ```php
-<?php
-
-namespace App\Laravilt\Admin;
-
-use Laravilt\Panel\PanelProvider;
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
+public function panel(Panel $panel): Panel
 {
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->id('admin')
-            ->path('admin')
-            ->passkeys();
-    }
+    return $panel
+        ->id('admin')
+        ->path('admin')
+        ->login()
+        ->passkeys();
 }
 ```
+
+`passkeys(?string $page = null, ?string $path = null)` does two things:
+
+- It adds a **Passkeys** settings page (`Laravilt\Auth\Pages\Profile\ManagePasskeys`) where users register, name and delete passkeys.
+- It enables a "Sign in with passkey" option on the login page, backed by `GET /{panel}/passkey/login-options` and `POST /{panel}/passkey/login`.
 
 ## Requirements
 
-- HTTPS required (except localhost)
-- Browser support for WebAuthn
-- Laravel package: `laragear/webauthn`
+- HTTPS (browsers allow plain HTTP only on `localhost`)
+- A browser with WebAuthn support (all current browsers)
+- The `webauthn_credentials` table, which is created by the auth migrations
 
-## Installation
-
-```bash
-composer require laragear/webauthn
-php artisan vendor:publish --provider="Laragear\WebAuthn\WebAuthnServiceProvider"
-php artisan migrate
-```
-
-## User Model Setup
+## Working with passkeys in code
 
 ```php
-use Laragear\WebAuthn\Contracts\WebAuthnAuthenticatable;
-use Laragear\WebAuthn\WebAuthnAuthentication;
-use Laravilt\Auth\Concerns\HasPasskeys;
-
-class User extends Authenticatable implements WebAuthnAuthenticatable
-{
-    use WebAuthnAuthentication;
-    use HasPasskeys;
-}
+$user->hasPasskeys();          // bool
+$user->passkeys()->get();      // WebauthnCredential models (alias: webauthnCredentials())
 ```
 
-## Configuration
+Credentials are stored in `webauthn_credentials` and belong to the user through a polymorphic `authenticatable` relation. Private keys never leave the user's device. Only the public key is stored.
 
-```php
-// config/webauthn.php
+## Events
 
-return [
-    'relying_party' => [
-        'name' => env('APP_NAME'),
-        'id' => env('WEBAUTHN_ID', parse_url(env('APP_URL'), PHP_URL_HOST)),
-    ],
+`PasskeyRegistered` and `PasskeyDeleted`. See [Events](../events.md).
 
-    'authenticator_selection' => [
-        'resident_key' => 'preferred',
-        'user_verification' => 'preferred',
-    ],
+## Related
 
-    'attestation_conveyance' => 'none',
-
-    'timeout' => 60,
-];
-```
-
-## Profile Integration
-
-Enable passkey management in user profile:
-
-```php
-$panel->profile()
-    ->passkeyManagement();
-```
-
-## Passkey Registration
-
-Users can register passkeys from their profile:
-
-```php
-// Register new passkey
-$user->webAuthnCredentials()->create([
-    'name' => 'My MacBook',
-    'credential_id' => $credentialId,
-    'public_key' => $publicKey,
-    // ...
-]);
-```
-
-## Passwordless Login
-
-Enable login with passkey only (no password):
-
-```php
-$panel
-    ->passkeys()
-    ->magicLink();
-```
-
-## Customizing Passkey Pages
-
-### Registration
-
-```php
-// app/Laravilt/Admin/Pages/RegisterPasskey.php
-
-use Laravilt\Auth\Pages\RegisterPasskey as BaseRegister;
-
-class RegisterPasskey extends BaseRegister
-{
-    protected function getFormSchema(): array
-    {
-        return [
-            TextInput::make('name')
-                ->label('Passkey Name')
-                ->placeholder('e.g., MacBook Pro, iPhone')
-                ->required()
-                ->maxLength(255),
-        ];
-    }
-}
-```
-
-### Authentication
-
-```php
-// app/Laravilt/Admin/Pages/PasskeyLogin.php
-
-use Laravilt\Auth\Pages\PasskeyLogin as BaseLogin;
-
-class PasskeyLogin extends BaseLogin
-{
-    protected function getHeading(): string
-    {
-        return 'Sign in with Passkey';
-    }
-
-    protected function getSubheading(): string
-    {
-        return 'Use your fingerprint, Face ID, or security key';
-    }
-}
-```
-
-## Passkey Management
-
-Users can manage their passkeys:
-
-```php
-// List passkeys
-$user->webAuthnCredentials;
-
-// Delete passkey
-$user->webAuthnCredentials()->find($id)->delete();
-
-// Rename passkey
-$credential->update(['name' => 'New Name']);
-```
-
-## Security Considerations
-
-1. **HTTPS Required** - WebAuthn only works over HTTPS (except localhost)
-2. **Credential Storage** - Public keys stored in database, private keys never leave user's device
-3. **User Verification** - Configure based on security requirements
-4. **Attestation** - Set to 'none' for privacy, 'direct' for enterprise
-
-## Fallback Authentication
-
-If passkey fails, allow fallback to password:
-
-```php
-$panel
-    ->passkeys()
-    ->allowPasswordFallback();
-```
-
-## API Reference
-
-### Panel Methods
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `passkeys()` | — | Enable passkey auth |
-| `passwordlessLogin()` | — | Allow passkey-only login |
-| `allowPasswordFallback()` | — | Allow password if passkey fails |
-
-### User Methods
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `webAuthnCredentials()` | — | Get passkey credentials |
-| `hasPasskeys()` | — | Check if has passkeys |
-| `registerPasskey()` | `array $data` | Register new passkey |
-| `deletePasskey()` | `string $id` | Delete passkey |
+- [Two-Factor Authentication](two-factor.md)
+- [Profile & Settings](../profile/README.md)

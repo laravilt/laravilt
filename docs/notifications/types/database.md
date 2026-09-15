@@ -1,103 +1,97 @@
 ---
 title: Database Notifications
-description: Persistent notification center
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: notifications
-component: Notification
-vue_component: NotificationCenter
+description: Persistent notifications shown in the panel notification center.
+order: 2
 ---
 
 # Database Notifications
 
-Persistent notifications with read/unread tracking.
+Database notifications use Laravel's `database` channel and appear in the panel's notification center, where users can mark them as read or delete them.
 
-## Enable in Panel
+## Setup
+
+1. Enable the notification center on the panel:
+
+    ```php
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->id('admin')
+            ->path('admin')
+            ->databaseNotifications();
+    }
+    ```
+
+    The installer adds this for you when you pick the `database-notifications` feature.
+
+2. Make sure the `notifications` table exists:
+
+    ```bash
+    php artisan make:notifications-table
+    php artisan migrate
+    ```
+
+3. The user model needs Laravel's `Notifiable` trait.
+
+## Sending
 
 ```php
-<?php
-
-use Laravilt\Panel\Panel;
-
-public function panel(Panel $panel): Panel
-{
-    return $panel->databaseNotifications();
-}
-```
-
-## Basic Usage
-
-```php
-<?php
-
 use Laravilt\Notifications\Notification;
 
-Notification::make()
+Notification::info()
     ->title('New comment')
     ->body('John commented on your post.')
-    ->icon('MessageCircle')
     ->sendToDatabase($user);
 ```
 
-## Multiple Recipients
+`sendToDatabase()` wraps the notification in `Laravilt\Notifications\DatabaseNotification`, which implements `ShouldQueue`. With a queue driver other than `sync`, keep a worker running (`php artisan queue:work`).
+
+### Multiple recipients
+
+`sendToDatabase()` takes a single notifiable. Loop for many:
 
 ```php
-<?php
+$notification = Notification::danger()->title('System alert');
 
-use Laravilt\Notifications\Notification;
-use App\Models\User;
-
-$admins = User::where('role', 'admin')->get();
-
-Notification::make()
-    ->title('System Alert')
-    ->danger()
-    ->sendToDatabase($admins);
+User::where('role', 'admin')->each(
+    fn (User $admin) => $notification->sendToDatabase($admin)
+);
 ```
 
 ## Polling
 
-```php
-<?php
+The notification center refreshes every `30s` by default:
 
-$panel->databaseNotifications()
-    ->polling(30);  // Check every 30 seconds
+```php
+$panel
+    ->databaseNotifications()
+    ->databaseNotificationsPolling('60s'); // or null to disable
 ```
 
-## Mark as Read
+## Routes
+
+With `databaseNotifications()` enabled, the panel registers JSON endpoints under `/{panel}/notifications`:
+
+```
+GET     /                 List notifications
+GET     /unread           Unread notifications
+POST    /{id}/read        Mark one as read
+POST    /read-all         Mark all as read
+DELETE  /{id}             Delete one
+DELETE  /                 Delete all
+```
+
+## Querying
+
+These are standard Laravel notifications:
 
 ```php
-<?php
-
-// Single notification
-$notification->markAsRead();
-
-// All notifications
+$user->notifications;
+$user->unreadNotifications;
 $user->unreadNotifications->markAsRead();
 ```
 
-## Query Notifications
+## Related
 
-```php
-<?php
-
-// All notifications
-$user->notifications;
-
-// Unread only
-$user->unreadNotifications;
-
-// Read only
-$user->readNotifications;
-```
-
-## API Reference
-
-| Method | Description |
-|--------|-------------|
-| `sendToDatabase()` | Save to database |
-| `markAsRead()` | Mark as read |
-| `databaseNotifications()` | Enable in panel |
-| `polling()` | Refresh interval |
+- [Toast Notifications](toast.md)
+- [Configuration](../features/configuration.md)
