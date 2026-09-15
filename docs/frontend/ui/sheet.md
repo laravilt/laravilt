@@ -1,55 +1,47 @@
 ---
 title: Sheet
-description: Slide-out panel component
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: frontend
-vue_component: Sheet
-vue_package: "@laravilt/support"
+description: The Sheet primitive for slide-out panels.
+order: 7
 ---
 
 # Sheet
 
-Slide-out panel from screen edge.
+A dialog that slides in from an edge of the screen. The mobile sidebar uses it.
 
 ## Import
 
 ```typescript
 import {
     Sheet,
+    SheetClose,
     SheetContent,
     SheetDescription,
     SheetFooter,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
-    SheetClose,
-} from '@laravilt/support'
+} from '@/components/ui/sheet'
 ```
 
-## Basic Usage
+## Usage
 
 ```vue
 <template>
     <Sheet>
         <SheetTrigger as-child>
-            <Button>Open Sheet</Button>
+            <Button variant="outline">Filters</Button>
         </SheetTrigger>
-        <SheetContent>
+        <SheetContent side="right">
             <SheetHeader>
-                <SheetTitle>Sheet Title</SheetTitle>
-                <SheetDescription>
-                    Sheet description goes here.
-                </SheetDescription>
+                <SheetTitle>Filters</SheetTitle>
+                <SheetDescription>Narrow down the results.</SheetDescription>
             </SheetHeader>
-            <div class="py-4">
-                Sheet content...
+            <div class="p-4">
+                <!-- content -->
             </div>
             <SheetFooter>
                 <SheetClose as-child>
-                    <Button>Close</Button>
+                    <Button>Apply</Button>
                 </SheetClose>
             </SheetFooter>
         </SheetContent>
@@ -57,105 +49,28 @@ import {
 </template>
 ```
 
-## Sides
-
-```vue
-<template>
-    <!-- Right (default) -->
-    <Sheet>
-        <SheetTrigger as-child>
-            <Button>Right</Button>
-        </SheetTrigger>
-        <SheetContent side="right">...</SheetContent>
-    </Sheet>
-
-    <!-- Left -->
-    <Sheet>
-        <SheetTrigger as-child>
-            <Button>Left</Button>
-        </SheetTrigger>
-        <SheetContent side="left">...</SheetContent>
-    </Sheet>
-
-    <!-- Top -->
-    <Sheet>
-        <SheetTrigger as-child>
-            <Button>Top</Button>
-        </SheetTrigger>
-        <SheetContent side="top">...</SheetContent>
-    </Sheet>
-
-    <!-- Bottom -->
-    <Sheet>
-        <SheetTrigger as-child>
-            <Button>Bottom</Button>
-        </SheetTrigger>
-        <SheetContent side="bottom">...</SheetContent>
-    </Sheet>
-</template>
+```tsx
+<Sheet>
+    <SheetTrigger asChild>
+        <Button variant="outline">Filters</Button>
+    </SheetTrigger>
+    <SheetContent side="right">
+        <SheetHeader>
+            <SheetTitle>Filters</SheetTitle>
+            <SheetDescription>Narrow down the results.</SheetDescription>
+        </SheetHeader>
+    </SheetContent>
+</Sheet>
 ```
 
-## With Form
+## Props
 
-```vue
-<script setup>
-import { ref } from 'vue'
+| Prop (`SheetContent`) | Values | Default |
+|------|--------|---------|
+| `side` | `top`, `right`, `bottom`, `left` | `right` |
 
-const name = ref('')
-const email = ref('')
-</script>
-
-<template>
-    <Sheet>
-        <SheetTrigger as-child>
-            <Button>Edit Profile</Button>
-        </SheetTrigger>
-        <SheetContent>
-            <SheetHeader>
-                <SheetTitle>Edit Profile</SheetTitle>
-                <SheetDescription>
-                    Update your profile information.
-                </SheetDescription>
-            </SheetHeader>
-            <div class="grid gap-4 py-4">
-                <div class="grid gap-2">
-                    <Label>Name</Label>
-                    <Input v-model="name" />
-                </div>
-                <div class="grid gap-2">
-                    <Label>Email</Label>
-                    <Input v-model="email" type="email" />
-                </div>
-            </div>
-            <SheetFooter>
-                <Button type="submit">Save Changes</Button>
-            </SheetFooter>
-        </SheetContent>
-    </Sheet>
-</template>
-```
-
-## Components
-
-| Component | Description |
-|-----------|-------------|
-| `Sheet` | Root container |
-| `SheetTrigger` | Trigger button |
-| `SheetContent` | Panel content |
-| `SheetHeader` | Header section |
-| `SheetTitle` | Title text |
-| `SheetDescription` | Description |
-| `SheetFooter` | Footer actions |
-| `SheetClose` | Close button |
-
-## Props (SheetContent)
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `side` | `string` | `right` | Panel side |
+Control it like a dialog: `v-model:open` (Vue) or `open` + `onOpenChange` (React).
 
 ## Related
 
-- [Dialog](dialog) - Modal dialogs
-- [Button](button) - Trigger buttons
-
+- [Dialog](dialog.md)

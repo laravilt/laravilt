@@ -1,97 +1,86 @@
 ---
 title: Installation
-description: Install Laravilt in your Laravel project
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: getting-started
+description: Create a Laravel app, choose Vue or React, and install Laravilt with one command.
+order: 2
 ---
 
 # Installation
 
-Get Laravilt up and running in minutes.
+Check the [requirements](requirements.md) first.
 
-## Requirements
-
-- PHP 8.2+ with BCMath, Ctype, JSON, Mbstring, OpenSSL, PDO, XML
-- Composer 2.x
-- Node.js 18+ with npm/pnpm
-- MySQL 8.0+, PostgreSQL 13+, or SQLite 3.35+
-
-## Step 1: Create Laravel Project
+## 1. Create a Laravel app
 
 ```bash
-laravel new my-project
+laravel new my-app
+cd my-app
 ```
 
-Select these options:
-- **Starter kit**: Vue
-- **Authentication**: Laravel's built-in
-- **Testing**: Pest
+When asked for a starter kit, pick **Vue** or **React**. Laravilt uses that stack for its panel.
+
+> React support requires Laravilt v1.1 or later.
+
+## 2. Require Laravilt
 
 ```bash
-cd my-project
+composer require laravilt/laravilt
 ```
 
-## Step 2: Install Laravilt
+This pulls in every Laravilt package: support, panel, auth, forms, tables, actions, schemas, infolists, notifications, widgets, query-builder, ai and plugins.
+
+## 3. Run the installer
 
 ```bash
 php artisan laravilt:install
 ```
 
-The installer configures:
-- Configuration files
-- Frontend assets
-- Database migrations
-- Default admin panel
-- Service providers
+The installer:
 
-## Step 3: Run Migrations
+1. Asks for the frontend stack (Vue or React). The default is detected from your `package.json`.
+2. Asks for the panel ID (default `admin`) and which features to enable: login, registration, 2FA, passkeys, social login, API tokens, AI and more.
+3. Publishes the frontend for that stack, the configs and brand icons, and writes `LARAVILT_FRONTEND=vue|react` to `.env` and `.env.example`.
+4. Runs migrations, creates `app/Providers/Laravilt/AdminPanelProvider.php` and the `app/Laravilt/Admin/` folders, and registers the provider in `bootstrap/providers.php`.
+5. Runs `npm install` and `npm run build`.
+6. Optionally creates an admin user (`php artisan laravilt:user`).
+
+[Installer Prompts](interactive-install.md) lists every question.
+
+### Options
+
+| Option | Effect |
+|--------|--------|
+| `--stack=vue` / `--stack=react` | Skip the stack question. |
+| `--skip-migrations` | Don't run `migrate`. |
+| `--skip-npm` | Don't run `npm install` / `npm run build`. |
+| `--skip-panel` | Don't create a panel. Create one later with `php artisan laravilt:panel`. |
+
+For example, a React install that you build yourself:
 
 ```bash
-php artisan migrate
-```
-
-## Step 4: Create Admin User
-
-```bash
-php artisan laravilt:user
-```
-
-Enter name, email, and password when prompted.
-
-## Step 5: Build Assets
-
-```bash
+php artisan laravilt:install --stack=react --skip-npm
 npm install && npm run build
 ```
 
-## Step 6: Start Server
+The installer overwrites starter-kit files such as `package.json`, `vite.config.ts`, `resources/js/app.*`, `routes/web.php` and `app/Models/User.php`. Run it on a fresh app, or commit your work first.
+
+## 4. Create an admin user
+
+If you skipped it during install:
 
 ```bash
-php artisan serve
+php artisan laravilt:user
+# or non-interactively
+php artisan laravilt:user --name="Admin" --email=admin@example.com --password=secret
 ```
 
-Visit `http://localhost:8000/admin` and log in.
-
-## Installation Options
+## 5. Open the panel
 
 ```bash
-# Minimal installation
-php artisan laravilt:install --minimal
-
-# With specific features
-php artisan laravilt:install --two-factor --social-auth
-
-# Custom panel path
-php artisan laravilt:install --path=dashboard
+composer run dev   # or: php artisan serve
 ```
 
-## Next Steps
+Visit `http://localhost:8000/admin` (or your Herd/Valet domain) and log in.
 
-- [Interactive Installation](interactive-install) - Detailed installation prompts
-- [Requirements](requirements) - Detailed system requirements
-- [Configuration](configuration) - Configure your installation
-- [Troubleshooting](troubleshooting) - Common issues and solutions
-- [Quick Start](quick-start) - Build your first resource
+## Next
+
+- [Quick Start](quick-start.md): generate your first resource.
+- [Troubleshooting](troubleshooting.md) if something didn't work.

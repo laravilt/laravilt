@@ -1,82 +1,48 @@
 ---
 title: Searching
-description: Global search functionality
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-concept: features
-vue_component: TableSearch
+description: Configure the global search box and which columns it searches.
+order: 1
 ---
 
 # Searching
 
-Global search across table columns.
-
-## Enable Search
+The global search box is enabled by default. It searches every column marked `searchable()`.
 
 ```php
-<?php
-
-use Laravilt\Tables\Table;
-
-$table->searchable();
-```
-
-## Searchable Columns
-
-```php
-<?php
-
 use Laravilt\Tables\Columns\TextColumn;
 
 TextColumn::make('name')->searchable();
 TextColumn::make('email')->searchable();
-TextColumn::make('phone')->searchable();
 ```
 
-## Search Placeholder
+## Table options
 
 ```php
-<?php
-
-use Laravilt\Tables\Table;
-
 $table
-    ->searchable()
+    ->searchable()                        // pass false to hide the search box
     ->searchPlaceholder('Search users...');
 ```
 
-## Debounced Search
+## Search other database columns
+
+Pass an array to search several database columns for one table column:
 
 ```php
-<?php
-
-use Laravilt\Tables\Table;
-
-$table
-    ->searchable()
-    ->searchDebounce(500); // 500ms
-```
-
-## Custom Search Query
-
-```php
-<?php
-
-use Laravilt\Tables\Columns\TextColumn;
-
 TextColumn::make('full_name')
-    ->searchable(query: function ($query, $search) {
-        $query->whereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"]);
-    });
+    ->searchable(['first_name', 'last_name']);
 ```
 
-## API Reference
+## Individual column search
+
+```php
+TextColumn::make('sku')
+    ->searchable(isIndividual: true, isGlobal: false);
+```
+
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `searchable()` | Enable global search |
-| `searchPlaceholder()` | Placeholder text |
-| `searchDebounce()` | Debounce ms |
+| `Table::searchable()` | Show or hide the global search box |
+| `Table::searchPlaceholder()` | Placeholder text |
+| `Column::searchable($condition, $isIndividual, $isGlobal)` | Mark a column searchable; `$condition` may be an array of database columns |

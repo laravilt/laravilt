@@ -1,135 +1,92 @@
 ---
-title: Interactive Installation
-description: Step-by-step interactive installation guide
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: getting-started
+title: Installer Prompts
+description: Every question php artisan laravilt:install asks, and the files it creates.
+order: 3
 ---
 
-# Interactive Installation
+# Installer Prompts
 
-Detailed walkthrough of the installation prompts.
+`php artisan laravilt:install` gathers all answers first, then runs every step without further questions.
 
-## Laravel Installation Prompts
-
-When running `laravel new my-project`:
+## 1. Frontend stack
 
 ```
- ┌ Would you like to install a starter kit? ─────────────────────┐
- │ › ○ None                                                      │
- │   ○ Breeze                                                    │
- │   ● Vue with Inertia (recommended for Laravilt)               │
- │   ○ React with Inertia                                        │
- │   ○ Livewire                                                  │
- └───────────────────────────────────────────────────────────────┘
+┌ Which frontend stack would you like to use? ─────────────┐
+│ › ● Vue 3 (Inertia + shadcn-vue)                         │
+│   ○ React 19 (Inertia + shadcn/ui)                       │
+└──────────────────────────────────────────────────────────┘
 ```
 
-Select **Vue with Inertia** for full Laravilt compatibility.
+The default matches your starter kit (detected from `package.json`). Pass `--stack=vue` or `--stack=react` to skip this question.
+
+> React support requires Laravilt v1.1 or later.
+
+## 2. Panel identifier
 
 ```
- ┌ Which authentication features would you like? ────────────────┐
- │ ◼ Email Verification                                          │
- │ ◼ Profile Management                                          │
- │ ◼ Password Reset                                              │
- └───────────────────────────────────────────────────────────────┘
+┌ What is the panel identifier? ───────────────────────────┐
+│ admin                                                    │
+└──────────────────────────────────────────────────────────┘
 ```
 
-Select all authentication features.
+Used as the URL path (`/admin`) and the class name (`AdminPanelProvider`). This and the next questions are skipped with `--skip-panel`.
+
+## 3. Panel features
 
 ```
- ┌ Which testing framework do you prefer? ───────────────────────┐
- │ › ● Pest (recommended)                                        │
- │   ○ PHPUnit                                                   │
- └───────────────────────────────────────────────────────────────┘
+┌ Which features would you like to enable? ────────────────┐
+│ ◼ Login page                                             │
+│ ◻ User registration                                      │
+│ ◼ Password reset                                         │
+│ ◻ Email verification                                     │
+│ ◻ OTP authentication                                     │
+│ ◻ Magic link login                                       │
+│ ◻ Two-factor authentication (2FA)                        │
+│ ◻ Passkey authentication (WebAuthn)                      │
+│ ◻ Session management                                     │
+│ ◼ User profile management                                │
+│ ◻ Social login (OAuth)                                   │
+│ ◻ Connected accounts                                     │
+│ ◻ API tokens                                             │
+│ ◼ Database notifications                                 │
+│ ◻ Locale & timezone settings                             │
+│ ◻ Global search                                          │
+│ ◻ AI assistant                                           │
+└──────────────────────────────────────────────────────────┘
 ```
 
-## Laravilt Install Prompts
+Some features ask a follow-up question:
 
-When running `php artisan laravilt:install`:
+- **Two-factor:** TOTP (authenticator app) and/or email code.
+- **Social login:** Google, GitHub, Facebook, Twitter/X, LinkedIn, Discord.
+- **AI assistant:** the OpenAI model (GPT-4o Mini by default).
 
-```
- ┌ Panel Configuration ──────────────────────────────────────────┐
- │ Panel ID: admin                                               │
- │ Panel Path: admin                                             │
- │ Panel Name: Admin Panel                                       │
- └───────────────────────────────────────────────────────────────┘
-```
+Each selected feature becomes a method on the generated panel (`->login()`, `->passkeys()`, `->twoFactor(...)` and so on). See [Auth](../auth/README.md).
+
+## 4. Admin user
 
 ```
- ┌ Select features to install ───────────────────────────────────┐
- │ ◼ Two-Factor Authentication                                   │
- │ ◼ Social Authentication                                       │
- │ ◼ Passkeys                                                    │
- │ ◼ API Tokens                                                  │
- │ ◼ Session Management                                          │
- └───────────────────────────────────────────────────────────────┘
+┌ Would you like to create an admin user after installation? ┐
+│ Yes                                                        │
+└────────────────────────────────────────────────────────────┘
 ```
 
-```
- ┌ Database Configuration ───────────────────────────────────────┐
- │ Run migrations now? [yes/no]: yes                             │
- │ Seed database with sample data? [yes/no]: no                  │
- └───────────────────────────────────────────────────────────────┘
-```
+If you answer yes, `laravilt:user` runs at the end and asks for name, email and password. It isn't offered in non-interactive runs.
 
-## User Creation Prompts
-
-When running `php artisan laravilt:user`:
-
-```
- ┌ Create Admin User ────────────────────────────────────────────┐
- │ Name: John Doe                                                │
- │ Email: admin@example.com                                      │
- │ Password: ********                                            │
- │ Confirm Password: ********                                    │
- └───────────────────────────────────────────────────────────────┘
-
- ✓ Admin user created successfully!
-```
-
-## Post-Installation Structure
-
-After installation completes:
+## What gets created
 
 ```
 app/
-├── Laravilt/
-│   └── Admin/
-│       ├── AdminPanelProvider.php
-│       ├── Pages/
-│       │   └── Dashboard.php
-│       └── Resources/
-│           └── UserResource/
-│               ├── UserResource.php
-│               ├── Form/UserForm.php
-│               ├── Table/UserTable.php
-│               └── Pages/
-│                   ├── ListUser.php
-│                   ├── CreateUser.php
-│                   └── EditUser.php
-├── Models/
-│   └── User.php
-└── Providers/
-    └── LaraviltServiceProvider.php
-
-config/
-├── laravilt.php
-├── laravilt-panel.php
-└── laravilt-auth.php
-
-resources/
-├── js/
-│   └── laravilt/
-│       ├── app.ts
-│       └── components/
-└── css/
-    └── laravilt.css
+├── Laravilt/Admin/
+│   ├── Pages/Dashboard.php
+│   ├── Resources/
+│   └── Widgets/
+├── Models/User.php                      # published with Laravilt's traits
+└── Providers/Laravilt/AdminPanelProvider.php
+bootstrap/providers.php                  # AdminPanelProvider registered
+config/                                  # Laravilt package configs
+resources/js/                            # the Vue or React app shell
+.env                                     # LARAVILT_FRONTEND=vue|react
 ```
 
-## Next Steps
-
-- [Configuration](configuration) - Configure your panel
-- [Quick Start](quick-start) - Build your first resource
-- [Troubleshooting](troubleshooting) - Common issues
+Next: [Quick Start](quick-start.md).

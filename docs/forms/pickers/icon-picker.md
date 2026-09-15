@@ -1,71 +1,44 @@
 ---
 title: IconPicker
-description: Icon selection field
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: IconPicker
-vue_component: FormIconPicker
-vue_package: "lucide-vue-next"
+description: Pick Lucide icons from a searchable grid.
+order: 2
 ---
 
 # IconPicker
 
-Icon selection from Lucide library.
+Pick an icon from the [Lucide](https://lucide.dev/icons) library. The stored value is the icon name.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\IconPicker;
 
 IconPicker::make('icon')
-    ->label('Select Icon');
-```
-
-## Searchable
-
-```php
-<?php
-
-use Laravilt\Forms\Components\IconPicker;
-
-IconPicker::make('menu_icon')
+    ->label('Select Icon')
     ->searchable();
 ```
 
-## Custom Icons
+## Restrict the icon set
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\IconPicker;
-
 IconPicker::make('action_icon')
-    ->options([
-        'Edit' => 'Edit',
-        'Trash2' => 'Delete',
-        'Eye' => 'View',
-    ]);
+    ->icons(['Pencil', 'Trash2', 'Eye'])
+    ->gridColumns(6)
+    ->showIconName();
 ```
 
-## Vue Component
+## Multiple icons
 
-Uses Lucide icons:
-
-```vue
-<script setup>
-import * as icons from 'lucide-vue-next'
-</script>
+```php
+IconPicker::make('icons')->multiple()->maxItems(3);
 ```
 
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `searchable()` | Enable search |
-| `options()` | Custom icons |
-| `columns()` | Grid columns |
+| `icons(array\|Closure)` | Limit the available icons |
+| `searchable(bool)` | Search box |
+| `gridColumns(int)` | Columns in the grid |
+| `showIconName(bool)` | Show names under icons |
+| `multiple(bool)` / `minItems()` / `maxItems()` | Multiple icons |

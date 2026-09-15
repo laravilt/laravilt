@@ -1,121 +1,69 @@
 ---
 title: Widgets FAQ
-description: Dashboard widget questions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: faq
+description: Questions about stats and chart widgets on dashboards.
+order: 5
 ---
 
 # Widgets FAQ
 
-Common questions about dashboard widgets.
+Dashboard charts and stats are built in PHP with `laravilt/widgets`. There are no separate frontend chart components to import.
 
-## Stats Widgets
-
-### How do I create a stats widget?
+## How do I create a stats widget?
 
 ```php
-<?php
-
-use Laravilt\Widgets\StatsOverviewWidget;
 use Laravilt\Widgets\Stat;
+use Laravilt\Widgets\StatsOverviewWidget;
 
 StatsOverviewWidget::make()
     ->columns(3)
     ->stats([
-        Stat::make('Users', User::count())
-            ->icon('Users')
-            ->color('primary'),
-        Stat::make('Revenue', '$12,345')
-            ->description('+12%')
-            ->color('success'),
+        Stat::make('Users', User::count())->icon('Users')->color('primary'),
+        Stat::make('Revenue', '$12,345')->description('+12%')->color('success'),
     ]);
 ```
 
-### How do I add a trend indicator?
+## How do I add a trend icon or mini chart to a stat?
 
 ```php
-<?php
-
-use Laravilt\Widgets\Stat;
-
 Stat::make('Sales', '$8,200')
     ->description('+15%')
-    ->descriptionIcon('TrendingUp', 'success');
-```
-
-### How do I add a mini chart?
-
-```php
-<?php
-
-use Laravilt\Widgets\Stat;
-
-Stat::make('Revenue', '$45,231')
+    ->descriptionIcon('TrendingUp', 'success')
     ->chart([65, 59, 80, 81, 56, 55, 70], 'line', 'primary');
 ```
 
-## Chart Widgets
+See [Stats Overview](../widgets/types/stats-overview.md).
 
-### How do I create a line chart?
+## How do I create a line or bar chart?
 
 ```php
-<?php
-
+use Laravilt\Widgets\BarChartWidget;
 use Laravilt\Widgets\LineChartWidget;
 
 LineChartWidget::make(
     labels: ['Jan', 'Feb', 'Mar', 'Apr'],
-    datasets: [
-        [
-            'label' => 'Revenue',
-            'data' => [4500, 5200, 4800, 6100],
-            'borderColor' => 'rgb(34, 197, 94)',
-        ]
-    ]
+    datasets: [['label' => 'Revenue', 'data' => [4500, 5200, 4800, 6100]]],
 )
-->heading('Revenue Trend')
-->curved()
-->fill();
-```
-
-### How do I create a bar chart?
-
-```php
-<?php
-
-use Laravilt\Widgets\BarChartWidget;
+    ->heading('Revenue Trend')
+    ->curved()
+    ->fill();
 
 BarChartWidget::make(
     labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-    datasets: [
-        [
-            'label' => 'Sales',
-            'data' => [150, 200, 180, 250],
-        ]
-    ]
-)
-->stacked();
+    datasets: [['label' => 'Sales', 'data' => [150, 200, 180, 250]]],
+)->stacked();
 ```
 
-## Auto-Refresh
+`PieChartWidget::make(labels: [...], data: [...])` is also available. See [Line Chart](../widgets/types/line-chart.md), [Bar Chart](../widgets/types/bar-chart.md) and [Pie Chart](../widgets/types/pie-chart.md).
 
-### How do I enable auto-refresh?
+## How do I refresh a widget automatically?
 
 ```php
-<?php
-
-use Laravilt\Widgets\StatsOverviewWidget;
-
 StatsOverviewWidget::make()
-    ->polling(30)  // Refresh every 30 seconds
+    ->polling(30) // seconds
     ->stats([...]);
 ```
 
 ## Related
 
-- [Widgets Documentation](../widgets/introduction)
-- [Stats Overview](../widgets/types/stats-overview)
-
+- [Widgets Documentation](../widgets/README.md)
+- [Stats Overview](../widgets/types/stats-overview.md)

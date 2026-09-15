@@ -1,47 +1,50 @@
 ---
 title: Creating Panels
-description: Create and configure admin panels
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+description: Generate a new admin panel with the laravilt:panel command.
+order: 1
 ---
 
 # Creating Panels
 
-## Using Artisan Command
+`php artisan laravilt:install` creates your first panel. To add more panels later, use `laravilt:panel`.
+
+## Using the Artisan Command
 
 ```bash
 php artisan laravilt:panel admin
 ```
 
-This launches an interactive wizard:
-
-```
-┌ What features do you want to enable? ─────────────┐
-│ ◼ Login                                           │
-│ ◼ Registration                                    │
-│ ◻ Two-Factor Authentication                       │
-│ ◻ Social Authentication                           │
-│ ◻ Passkeys (WebAuthn)                            │
-└───────────────────────────────────────────────────┘
-```
+The command asks which features to enable (login, registration, password reset, email verification, OTP, magic links, profile, two-factor, passkeys, social login, connected accounts, session management, API tokens, database notifications, locale & timezone, global search, AI providers). If you pick two-factor or social login, it then asks which providers to use.
 
 ### Command Options
 
 ```bash
-# Specify path
+# Serve the panel at /dashboard instead of /admin
 php artisan laravilt:panel admin --path=dashboard
 
-# Quick creation (skip prompts)
+# Skip the prompts and use the default feature set
 php artisan laravilt:panel admin --quick
 ```
 
-## Manual Creation
+| Argument / option | Description |
+|-------------------|-------------|
+| `id` | Panel identifier (prompted if omitted) |
+| `--path=` | URL path for the panel (defaults to the id) |
+| `--quick` | Non-interactive mode with default features |
+
+## What Gets Created
+
+For `php artisan laravilt:panel admin` the command:
+
+- writes `app/Providers/Laravilt/AdminPanelProvider.php`
+- creates `app/Laravilt/Admin/{Pages,Resources,Widgets}`
+- creates the dashboard page `app/Laravilt/Admin/Pages/Dashboard.php`
+- registers the provider in `bootstrap/providers.php`
+
+The generated provider looks like this (the auth methods depend on the features you selected):
 
 ```php
-namespace App\Laravilt\Admin;
+namespace App\Providers\Laravilt;
 
 use Laravilt\Panel\Panel;
 use Laravilt\Panel\PanelProvider;
@@ -53,42 +56,45 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->id('admin')
             ->path('admin')
+            ->brandName('Admin')
+            ->discoverAutomatically()
             ->login()
-            ->colors(['primary' => '#3b82f6'])
-            ->discoverResources(in: app_path('Laravilt/Admin/Resources'))
-            ->discoverPages(in: app_path('Laravilt/Admin/Pages'));
+            ->registration()
+            ->passwordReset()
+            ->profile();
     }
 }
 ```
 
-Register in `bootstrap/providers.php`:
+## Creating a Panel Manually
+
+Any class extending `Laravilt\Panel\PanelProvider` works. Register it in `bootstrap/providers.php`:
 
 ```php
 return [
     App\Providers\AppServiceProvider::class,
-    App\Laravilt\Admin\AdminPanelProvider::class,
+    App\Providers\Laravilt\AdminPanelProvider::class,
 ];
 ```
 
 ## Basic Settings
 
 ```php
-use Laravilt\Panel\Panel;
-class AdminPanelProvider extends PanelProvider
+public function panel(Panel $panel): Panel
 {
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->id('admin')           // Unique identifier
-            ->path('admin')         // URL path prefix
-            ->middleware(['web', 'auth'])
-            ->maxContentWidth('7xl');
-    }
+    return $panel
+        ->id('admin')                     // Unique identifier
+        ->path('admin')                   // URL prefix
+        ->default()                       // Mark as the default panel
+        ->middleware(['web'])             // Panel middleware (default: ['web'])
+        ->authMiddleware(['panel.auth'])  // Middleware for authenticated routes
+        ->authGuard('web')                // Auth guard
+        ->maxContentWidth('7xl');
 }
 ```
 
 ## Next Steps
 
-- [Branding](branding) - Customize appearance
-- [Panel Auth](panel-auth) - Authentication settings
-- [Discovery](discovery) - Auto-discovery configuration
+- [Panel Provider](panel-provider.md): provider, facade and config
+- [Discovery](discovery.md): register resources, pages and widgets
+- [Panel Authentication](panel-auth.md): auth features

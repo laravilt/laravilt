@@ -1,90 +1,67 @@
 ---
-title: Action Styling
-description: Customize action appearance
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
+title: Styling
+description: Customize action colors, icons, variants, sizes, and tooltips.
+order: 1
 ---
 
-# Action Styling
+# Styling
 
-Customize the appearance of your actions.
-
-## Colors
-
-```php
-use Laravilt\Actions\Action;
-
-Action::make('action')
-    ->color('primary')      // primary, secondary, success, warning, danger
-    ->color('destructive')  // For delete actions
-    ->color('success');     // For approve/activate actions
-```
-
-## Icons
-
-```php
-use Laravilt\Actions\Action;
-
-Action::make('send')
-    ->icon('Send')              // Lucide icon name
-    ->iconPosition('after');    // before or after
-```
-
-## Variants
-
-```php
-use Laravilt\Actions\Action;
-
-Action::make('view')
-    ->button()          // Render as button (default)
-    ->iconButton()      // Icon-only button
-    ->link();           // Text link
-```
-
-## Sizes
-
-```php
-use Laravilt\Actions\Action;
-
-Action::make('action')
-    ->size('sm')        // sm, default, lg
-    ->size('lg');
-```
-
-## Outlined Style
-
-```php
-use Laravilt\Actions\Action;
-
-Action::make('action')
-    ->outlined();       // Outlined button style
-```
-
-## Tooltips
-
-```php
-use Laravilt\Actions\Action;
-
-Action::make('delete')
-    ->icon('Trash2')
-    ->tooltip('Delete this record')
-    ->iconButton();
-```
-
-## Disabled State
+## Label and color
 
 ```php
 use Laravilt\Actions\Action;
 
 Action::make('approve')
-    ->disabled(fn ($record) => $record->is_locked);
+    ->label('Approve')
+    ->color('success'); // e.g. primary, secondary, success, warning, destructive, gray
 ```
 
-## Next Steps
+## Icons
 
-- [Confirmation](confirmation) - Modals and confirmations
-- [Forms](forms) - Modal forms
-- [Authorization](authorization) - Permissions
+Icons use [Lucide](https://lucide.dev/icons) names in PascalCase:
+
+```php
+Action::make('send')
+    ->icon('Send')
+    ->iconPosition('after'); // 'before' (default) or 'after'
+```
+
+## Variants
+
+```php
+Action::make('view')->button();                      // button (default)
+Action::make('delete')->icon('Trash2')->iconButton(); // icon only
+Action::make('details')->link();                      // text link
+Action::make('cancel')->outlined();                   // outlined button
+```
+
+## Size, tooltip, and disabled
+
+```php
+Action::make('archive')
+    ->size('sm')
+    ->tooltip('Archive this record')
+    ->disabled(! auth()->user()->isAdmin());
+```
+
+`disabled()` takes a boolean. To hide an action based on the record, use [`visible()` / `hidden()`](authorization.md#visibility).
+
+## Extra attributes
+
+```php
+Action::make('export')->extraAttributes(['data-testid' => 'export-button']);
+```
+
+## API reference
+
+| Method | Description |
+|--------|-------------|
+| `label()` | Button text |
+| `color()` | Button color |
+| `icon($icon, $position = null)`, `iconPosition()` | Icon and position |
+| `button()`, `iconButton()`, `link()` | Variant |
+| `outlined()` | Outlined style |
+| `size()` | Button size |
+| `tooltip()` | Hover text |
+| `disabled(bool)` | Disable the button |
+| `extraAttributes()` | Extra HTML attributes |

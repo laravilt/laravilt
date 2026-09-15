@@ -1,81 +1,58 @@
 ---
-title: Card Types
-description: Card configurations for grid view
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-concept: display
-vue_component: TableCard
+title: Cards
+description: Configure card layouts for the table grid view.
+order: 3
 ---
 
-# Card Types
+# Cards
 
-Card type configurations for grid view.
+`Laravilt\Tables\Card` describes how each record renders in [grid view](grid-view.md).
 
-## Product Card
+## Presets
 
 ```php
-<?php
-
 use Laravilt\Tables\Card;
 
+// Image, title, price, description, and a status badge
 Card::product(
     imageField: 'image',
     titleField: 'name',
     priceField: 'price',
-    descriptionField: 'short_description',
-    badgeField: 'stock_status'
+    descriptionField: 'description',
+    badgeField: 'status',
 );
+
+// Title and description, no image
+Card::simple(titleField: 'name', descriptionField: 'description');
+
+// Background image with overlay text (16/9)
+Card::media(imageField: 'cover', titleField: 'title', descriptionField: 'excerpt');
 ```
 
-## Simple Card
+## Custom cards
 
 ```php
-<?php
-
-use Laravilt\Tables\Card;
-
-Card::simple(
-    titleField: 'name',
-    descriptionField: 'description'
-);
+Card::make()
+    ->imageField('photo')
+    ->title('name')
+    ->subtitle('role')
+    ->badge('status', fn ($state) => $state === 'active' ? 'success' : 'secondary')
+    ->imagePosition('left')      // top, left, right, background
+    ->aspectRatio('1/1')
+    ->padding('lg')              // sm, md, lg, xl
+    ->gap('md')                  // sm, md, lg
+    ->actionsPosition('bottom'); // top-right (default), top-left, bottom, bottom-center, bottom-left, bottom-right
 ```
 
-## Media Card
+## API reference
 
-```php
-<?php
-
-use Laravilt\Tables\Card;
-
-Card::media(
-    imageField: 'cover_image',
-    titleField: 'title',
-    descriptionField: 'excerpt'
-);
-```
-
-## Profile Card
-
-```php
-<?php
-
-use Laravilt\Tables\Card;
-
-Card::profile(
-    avatarField: 'avatar',
-    nameField: 'name',
-    subtitleField: 'role'
-);
-```
-
-## API Reference
-
-| Card Type | Fields |
-|-----------|--------|
-| `product()` | image, title, price, description, badge |
-| `simple()` | title, description |
-| `media()` | image, title, description |
-| `profile()` | avatar, name, subtitle |
+| Method | Description |
+|--------|-------------|
+| `product()`, `simple()`, `media()` | Presets |
+| `imageField()`, `titleField()` / `title()`, `subtitle()`, `descriptionField()`, `priceField()` | Record fields to display |
+| `badge($field, $colorCallback)` / `badgeField()` | Badge field and color |
+| `metadata(array)` | Extra fields |
+| `showImage()`, `imagePosition()`, `aspectRatio()` | Image layout |
+| `padding()`, `gap()`, `hoverable()`, `style()` | Appearance |
+| `actionsPosition()` | Where row actions appear |
+| `schema()`, `columns()`, `header()`, `footer()` | Advanced content |

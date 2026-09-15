@@ -1,74 +1,52 @@
 ---
 title: RichEditor
-description: WYSIWYG HTML editor
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: RichEditor
-vue_component: FormRichEditor
-vue_package: "@tiptap/vue-3"
+description: WYSIWYG HTML editor built on Tiptap.
+order: 2
 ---
 
 # RichEditor
 
-WYSIWYG HTML editor with Tiptap.
+A WYSIWYG HTML editor built on Tiptap.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\RichEditor;
 
 RichEditor::make('content')
     ->label('Content');
 ```
 
-## Toolbar Configuration
+## Toolbar and size
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\RichEditor;
-
 RichEditor::make('body')
-    ->toolbarButtons([
-        'bold', 'italic', 'underline',
-        'link', 'orderedList', 'bulletList',
-        'h2', 'h3', 'blockquote',
-    ]);
+    ->toolbarButtons(['bold', 'italic', 'underline', 'link', 'bulletList', 'orderedList', 'blockquote'])
+    ->minHeight(200)
+    ->maxHeight(500)
+    ->showWordCount();
 ```
 
-## Height Configuration
+## Attachments
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\RichEditor;
-
 RichEditor::make('article')
-    ->minHeight(200)
-    ->maxHeight(500);
+    ->fileAttachmentsDisk('public')
+    ->fileAttachmentsDirectory('articles')
+    ->fileAttachmentsAcceptedFileTypes(['image/png', 'image/jpeg'])
+    ->fileAttachmentsMaxSize(2048);
 ```
 
-## Vue Component
-
-Uses Tiptap editor:
-
-```vue
-<script setup>
-import { useEditor, EditorContent } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-</script>
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `toolbarButtons()` | Set toolbar buttons |
-| `minHeight()` | Minimum height |
-| `maxHeight()` | Maximum height |
-| `fileAttachmentsDisk()` | Attachments disk |
+| `toolbarButtons(array)` | Visible toolbar buttons |
+| `minHeight(?int)` / `maxHeight(?int)` | Editor height |
+| `json(bool)` | Store Tiptap JSON instead of HTML |
+| `textColors(array)` / `customTextColors(array)` | Text color palette |
+| `floatingToolbars(array)` | Context toolbars |
+| `fileAttachmentsDisk()` / `fileAttachmentsDirectory()` / `fileAttachmentsVisibility()` | Attachment storage |
+| `fileAttachmentsAcceptedFileTypes()` / `fileAttachmentsMaxSize()` | Attachment limits |
+| `customBlocks(array)` / `mergeTags(array)` | Custom content |
+| `showCharacterCount(bool)` / `showWordCount(bool)` | Counters |

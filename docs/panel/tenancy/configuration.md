@@ -1,11 +1,7 @@
 ---
 title: Tenancy Configuration
-description: Configure multi-tenancy settings
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+description: Panel tenancy methods, the laravilt-tenancy config file and environment variables.
+order: 3
 ---
 
 # Tenancy Configuration
@@ -13,56 +9,83 @@ category: panel
 ## Panel Configuration
 
 ```php
-use Laravilt\Panel\Panel;
 use Laravilt\Panel\Models\Tenant;
 
-class AdminPanelProvider extends PanelProvider
+public function panel(Panel $panel): Panel
 {
-    public function panel(Panel $panel): Panel
-    {
-        $panel
-            ->multiDatabaseTenancy(Tenant::class, 'myapp.com')
-            ->tenantModels([
-                \App\Models\Customer::class,
-                \App\Models\Product::class,
-            ])
-            ->centralModels([
-                \App\Models\User::class,
-                \App\Models\Plan::class,
-            ])
-            ->tenantRegistration()
-            ->tenantProfile()
-            ->tenantMenu();
-    }
+    return $panel
+        ->multiDatabaseTenancy(Tenant::class, 'myapp.com')
+        ->tenantModels([
+            \App\Models\Customer::class,
+            \App\Models\Product::class,
+        ])
+        ->centralModels([
+            \App\Models\User::class,
+            \App\Models\Plan::class,
+        ])
+        ->tenantRegistration()
+        ->tenantProfile()
+        ->tenantMenu();
 }
 ```
 
+## Panel Methods
+
+| Method | Description |
+|--------|-------------|
+| `tenant(Model, ?relationship, ?slugAttribute)` | Enable single-database tenancy |
+| `tenancy(?Model)` | Enable tenancy without extra options |
+| `tenantOwnershipRelationship()` | Relationship linking records to the tenant |
+| `tenantSlugAttribute()` | Attribute used in the tenant URL segment |
+| `tenantRoutePrefix()` | Prefix before the tenant segment |
+| `multiDatabaseTenancy(Model, domain)` | Enable multi-database tenancy on a base domain |
+| `tenancyMode()`, `tenantDomain()` | Set the mode or domain explicitly |
+| `tenantModels(array)` | Models stored in the tenant database |
+| `centralModels(array)` | Models stored in the central database |
+| `tenantRegistration()` | Enable tenant sign-up |
+| `tenantProfile()` | Enable tenant settings |
+| `tenantMenu()`, `tenantMenuItems()` | Tenant switcher and its extra items |
+| `tenantBillingProvider()` | Billing integration |
+
 ## Configuration File
 
-`config/laravilt-tenancy.php`:
+Publish with `php artisan vendor:publish --tag=laravilt-tenancy-config` to `config/laravilt-tenancy.php`:
 
 ```php
 return [
-    'mode' => env('TENANCY_MODE', 'single'),
+    'mode' => env('TENANCY_MODE', 'single'),   // single | multi
 
     'central' => [
         'connection' => env('DB_CONNECTION', 'mysql'),
-        'domains' => ['localhost', env('APP_CENTRAL_DOMAIN')],
+        'domains' => ['localhost', '127.0.0.1', env('APP_CENTRAL_DOMAIN', 'localhost'), env('APP_DOMAIN', 'localhost')],
     ],
 
     'tenant' => [
         'database_prefix' => env('TENANT_DB_PREFIX', 'tenant_'),
+        'database_suffix' => env('TENANT_DB_SUFFIX', ''),
         'migrations_path' => database_path('migrations/tenant'),
+        'connection_template' => env('TENANT_DB_CONNECTION', env('DB_CONNECTION', 'mysql')),
+    ],
+
+    'models' => [
+        'tenant' => \Laravilt\Panel\Models\Tenant::class,
+        'domain' => \Laravilt\Panel\Models\Domain::class,
+        'central' => [],
+        'tenant' => [],
+    ],
+
+    'provisioning' => [
+        'auto_create_database' => true,
+        'auto_migrate' => true,
+        'auto_seed' => false,
+        'seeder' => null,
+        'queue' => false,
+        'queue_name' => 'default',
     ],
 
     'subdomain' => [
         'domain' => env('APP_DOMAIN', 'localhost'),
-        'reserved' => ['www', 'api', 'admin', 'app', 'mail'],
-    ],
-
-    'cache' => [
-        'enabled' => true,
-        'ttl' => 3600,
+        'reserved' => ['www', 'api', 'admin', 'app', /* ... */],
     ],
 ];
 ```
@@ -72,24 +95,13 @@ return [
 ```env
 TENANCY_MODE=multi
 APP_DOMAIN=myapp.com
+APP_CENTRAL_DOMAIN=myapp.com
 TENANT_DB_PREFIX=tenant_
+TENANT_DB_SUFFIX=
 TENANT_DB_CONNECTION=mysql
 ```
 
-## Panel Methods
-
-| Method | Description |
-|--------|-------------|
-| `tenant(Model, ?relationship, ?slug)` | Single-database tenancy |
-| `multiDatabaseTenancy(Model, domain)` | Multi-database tenancy |
-| `tenantModels(array)` | Models using tenant database |
-| `centralModels(array)` | Models using central database |
-| `tenantRegistration()` | Enable tenant signup |
-| `tenantProfile()` | Enable team settings |
-| `tenantMenu()` | Show tenant switcher |
-
 ## Next Steps
 
-- [Models](models) - Tenant and Domain models
-- [Middleware](middleware) - Tenancy middleware
-- [Best Practices](best-practices) - Tips and troubleshooting
+- [Tenant Models](models.md)
+- [Middleware & Routing](middleware.md)

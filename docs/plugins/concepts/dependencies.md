@@ -1,93 +1,57 @@
 ---
 title: Dependencies
-description: Plugin dependency management
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: plugins
-concept: dependencies
+description: Depend on other packages and react to optional plugins.
+order: 4
 ---
 
 # Dependencies
 
-Manage plugin dependencies.
+## Composer dependencies
 
-## Composer Dependencies
-
-Define in composer.json:
+Declare hard dependencies in the plugin's `composer.json`:
 
 ```json
 {
     "require": {
-        "laravilt/comments": "^1.0",
-        "laravilt/media": "^2.0"
+        "php": "^8.3",
+        "laravilt/laravilt": "^1.0"
     }
 }
 ```
 
-## Check Plugin Existence
+## Optional plugins
+
+Use the `LaraviltPlugins` facade to check whether another plugin is registered with the plugin manager:
 
 ```php
-<?php
-
+use Laravilt\Panel\Panel;
 use Laravilt\Plugins\Facades\LaraviltPlugins;
+use Laravilt\Plugins\PluginProvider;
 
-// Check if plugin exists
-if (LaraviltPlugins::has('comments-system')) {
-    // Safe to use
-}
-
-// Get plugin
-$plugin = LaraviltPlugins::get('comments-system');
-```
-
-## Conditional Features
-
-```php
-<?php
-
-use Laravilt\Plugins\Facades\LaraviltPlugins;
-
-class BlogPlugin extends PluginProvider
+class BlogManagerPlugin extends PluginProvider
 {
+    protected static string $id = 'blog-manager';
+
     public function register(Panel $panel): void
     {
         $panel->resources([
-            Resources\PostResource::class,
+            Resources\Posts\PostResource::class,
         ]);
 
-        // Optional: Add comments if available
-        if (LaraviltPlugins::has('comments-system')) {
+        if (LaraviltPlugins::has('comments')) {
             $panel->resources([
-                Resources\CommentResource::class,
+                Resources\Comments\CommentResource::class,
             ]);
         }
     }
 }
 ```
 
-## Service Container
+`LaraviltPlugins::get('comments')` returns the plugin instance.
 
-```php
-<?php
-
-use Laravilt\Plugins\Facades\LaraviltPlugins;
-
-class BlogPlugin extends PluginProvider
-{
-    public function boot(Panel $panel): void
-    {
-        if (LaraviltPlugins::has('media-library')) {
-            $mediaPlugin = LaraviltPlugins::get('media-library');
-            // Use media plugin features
-        }
-    }
-}
-```
+To check what is registered on a specific panel instead, use `$panel->getPlugin('comments')` or `$panel->getPlugins()`.
 
 ## Related
 
-- [Plugin Classes](plugin-classes) - Base class
-- [Registration](../manager/registration) - Register plugins
-
+- [Plugin classes](plugin-classes.md)
+- [Registration](../manager/registration.md)

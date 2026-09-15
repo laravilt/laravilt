@@ -1,77 +1,56 @@
 ---
 title: TernaryFilter
-description: Three-state boolean filter
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-component: TernaryFilter
-vue_component: TableTernaryFilter
-vue_package: "radix-vue (ToggleGroup)"
+description: Three-state Yes / No / All filter for boolean or nullable columns.
+order: 2
 ---
 
 # TernaryFilter
 
-True/False/All boolean filter.
-
-## Basic Usage
-
 ```php
-<?php
-
 use Laravilt\Tables\Filters\TernaryFilter;
 
 TernaryFilter::make('is_active')
-    ->label('Active Status');
+    ->label('Active');
 ```
 
-## Custom Labels
+"Yes" applies `where(is_active, true)`, "No" applies `where(is_active, false)`, and the blank state applies no constraint.
+
+## Labels
 
 ```php
-<?php
-
-use Laravilt\Tables\Filters\TernaryFilter;
-
 TernaryFilter::make('is_featured')
-    ->trueLabel('Featured Only')
-    ->falseLabel('Not Featured')
-    ->placeholder('All Items');
+    ->trueLabel('Featured only')
+    ->falseLabel('Not featured')
+    ->placeholderLabel('All items');
 ```
 
-## Nullable Mode
+## Nullable columns
+
+With `nullable()`, "Yes" means `whereNotNull` and "No" means `whereNull`:
 
 ```php
-<?php
-
-use Laravilt\Tables\Filters\TernaryFilter;
-
-TernaryFilter::make('verified_at')
-    ->nullable()
-    ->trueLabel('Verified')
-    ->falseLabel('Unverified');
+TernaryFilter::make('email_verified_at')
+    ->label('Verified')
+    ->nullable();
 ```
 
-## Custom Queries
+## Custom queries
 
 ```php
-<?php
-
-use Laravilt\Tables\Filters\TernaryFilter;
-
 TernaryFilter::make('has_orders')
     ->queries(
         true: fn ($query) => $query->has('orders'),
         false: fn ($query) => $query->doesntHave('orders'),
+        blank: fn ($query) => $query,
     );
 ```
 
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `trueLabel()` | True label |
-| `falseLabel()` | False label |
-| `placeholder()` | All label |
-| `nullable()` | NULL mode |
-| `queries()` | Custom queries |
+| `trueLabel()`, `falseLabel()` | Option labels (default "Yes" / "No") |
+| `placeholderLabel()` | Label for the blank (all) state |
+| `nullable()` | Use `whereNotNull` / `whereNull` |
+| `queries()` | Custom `true`, `false`, and `blank` queries |
+| `attribute()` | Column name if different from the filter name |

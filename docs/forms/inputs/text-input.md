@@ -1,35 +1,16 @@
 ---
 title: TextInput
-description: Single-line text input with multiple variants
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-concept: inputs
-vue_component: Input
-vue_package: "@/components/ui/input"
+description: Single-line text input with types, affixes, masks and a character counter.
+order: 1
 ---
 
 # TextInput
 
-Single-line text input supporting text, email, password, tel, url, and search types.
+A single-line text input. It supports the text, email, password, tel, url and search types.
 
-## Vue Component
-
-Uses `Input` from **shadcn/ui** (Radix Vue based).
-
-```vue
-<script setup>
-import { Input } from '@/components/ui/input'
-</script>
-```
-
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\TextInput;
 
 TextInput::make('name')
@@ -37,7 +18,7 @@ TextInput::make('name')
     ->required();
 ```
 
-## Input Types
+## Input types
 
 ```php
 TextInput::make('email')->email();
@@ -45,21 +26,26 @@ TextInput::make('password')->password()->revealable();
 TextInput::make('phone')->tel();
 TextInput::make('website')->url();
 TextInput::make('search')->search();
+TextInput::make('color')->type('color');
 ```
 
-## Prefix & Suffix
+`email()` and `url()` also add the matching validation rule.
+
+## Prefix and suffix
 
 ```php
 TextInput::make('price')
     ->prefix('$')
-    ->suffix('.00');
+    ->suffix('USD');
 
 TextInput::make('email')
     ->prefixIcon('Mail')
     ->suffixIcon('Check');
 ```
 
-## Character Limits
+Icons are [Lucide](https://lucide.dev/icons) icon names.
+
+## Length and counter
 
 ```php
 TextInput::make('username')
@@ -68,39 +54,30 @@ TextInput::make('username')
     ->characterCount();
 ```
 
-## Input Masking
+## Masks and patterns
 
 ```php
-TextInput::make('phone')
-    ->mask('(999) 999-9999');
+TextInput::make('phone')->mask('(999) 999-9999');
 
-TextInput::make('credit_card')
-    ->mask('9999 9999 9999 9999');
+TextInput::make('code')->pattern('[A-Z]{3}');
 ```
 
-## Copyable
-
-```php
-TextInput::make('api_key')
-    ->copyable()
-    ->copyMessage('Copied!');
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `email()` | Email type with validation |
-| `password()` | Password with optional reveal |
-| `tel()` | Telephone input |
-| `url()` | URL input |
-| `mask()` | Input mask pattern |
-| `prefix()` / `suffix()` | Text decorations |
-| `prefixIcon()` / `suffixIcon()` | Icon decorations |
-| `copyable()` | Copy button |
-| `characterCount()` | Show counter |
+| `type(string)` | Set the HTML input type |
+| `email()` / `password()` / `tel()` / `url()` / `search()` | Type shortcuts |
+| `revealable(bool)` | Show or hide toggle for passwords |
+| `prefix(string)` / `suffix(string)` | Text affixes |
+| `prefixIcon(string)` / `suffixIcon(string)` | Icon affixes |
+| `minLength(int)` / `maxLength(int)` | Length limits (also validated) |
+| `characterCount(bool)` | Show a character counter |
+| `mask(string)` | Input mask |
+| `pattern(string)` | HTML pattern attribute |
+| `step(int\|float)` | Step for numeric types |
 
 ## Related
 
-- [Textarea](textarea) - Multi-line text
-- [NumberField](number-field) - Numeric input
+- [Textarea](textarea.md)
+- [NumberField](number-field.md)

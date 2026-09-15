@@ -1,94 +1,89 @@
 ---
 title: Component
-description: Base component class
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: support
-vue_component: Component
-vue_package: "@laravilt/support"
+description: The abstract base class for Laravilt UI components.
+order: 1
 ---
 
 # Component
 
-Base class for all Laravilt UI components.
+`Laravilt\Support\Component` is the abstract base class for Laravilt UI components. It uses every trait in [Concerns](concerns/README.md) and implements `Arrayable`, `Jsonable`, `Buildable` and `Serializable`.
 
-## Creating Components
+## Creating a component
+
+Generate a component class and its Blade view:
+
+```bash
+php artisan laravilt:component RatingInput
+```
+
+This creates `app/Components/RatingInput.php` and `resources/views/components/rating-input.blade.php`. Add `--force` to overwrite existing files.
 
 ```php
 <?php
 
+namespace App\Components;
+
 use Laravilt\Support\Component;
 
-class TextInput extends Component
+class RatingInput extends Component
 {
-    protected string $view = 'laravilt::text-input';
+    protected string $view = 'components.rating-input';
 
     protected function setUp(): void
     {
-        $this->placeholder('Enter text...');
+        $this->placeholder('Rate from 1 to 5');
     }
 }
 
 // Usage
-TextInput::make('email')
-    ->label('Email Address')
+RatingInput::make('rating')
+    ->label('Your rating')
     ->required();
 ```
 
+`make(string $name)` resolves the class from the container, sets the name and calls `setUp()`.
+
 ## Methods
 
-| Method | Return | Description |
-|--------|--------|-------------|
-| `make(string $name)` | `static` | Create instance |
-| `getName()` | `string` | Get component name |
-| `meta(array $meta)` | `static` | Set metadata |
-| `getMeta()` | `array` | Get metadata |
-| `render()` | `string` | Render to HTML |
-| `toArray()` | `array` | Convert to array |
-| `toJson(int $options)` | `string` | Convert to JSON |
+| Method | Returns | Description |
+|--------|---------|-------------|
+| `make(string $name)` | `static` | Create an instance (static) |
+| `getName()` | `string` | Component name |
+| `meta(array $meta)` | `static` | Merge extra metadata |
+| `getMeta()` | `array` | Metadata |
+| `render()` | `string` | Render `$view` to HTML (empty when hidden) |
+| `toLaraviltProps()` | `array` | Props for the Inertia frontend |
+| `toApiProps()` | `array` | Props for REST APIs |
+| `toFlutterProps()` | `array` | Props for Flutter clients |
+| `toArray()` / `toJson()` | `array` / `string` | Serialize |
 
-## Serialization
+## Serialized props
 
-```php
-<?php
-
-use Laravilt\Support\Component;
-
-$component = TextInput::make('email');
-
-// For Vue.js/Inertia
-$props = $component->toLaraviltProps();
-
-// For REST API
-$props = $component->toApiProps();
-
-// For Flutter
-$props = $component->toFlutterProps();
-```
-
-## Laravilt Props Output
+`toLaraviltProps()` returns:
 
 ```php
-<?php
-
 [
-    'component' => 'text_input',
-    'id' => 'email',
-    'name' => 'email',
-    'label' => 'Email',
-    'placeholder' => 'Enter text...',
+    'component' => 'rating_input',   // snake_case class name
+    'id' => 'rating',
+    'name' => 'rating',
+    'state' => null,
+    'label' => 'Your rating',
+    'placeholder' => 'Rate from 1 to 5',
+    'helperText' => null,
     'hidden' => false,
     'disabled' => false,
+    'readonly' => false,
     'required' => true,
+    'columnSpan' => null,
+    'columnStart' => null,
     'rtl' => false,
     'theme' => 'light',
+    'locale' => 'en',
+    'meta' => [],
 ]
 ```
 
 ## Related
 
-- [Concerns](concerns/introduction) - Traits
-- [Forms](../forms/introduction) - Form components
-
+- [Concerns](concerns/README.md)
+- [Forms](../forms/README.md)

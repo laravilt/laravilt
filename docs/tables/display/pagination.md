@@ -1,85 +1,53 @@
 ---
 title: Pagination
-description: Pagination and infinite scroll
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-concept: display
-vue_component: TablePagination
+description: Configure page size, page size options, and infinite scroll.
+order: 1
 ---
 
 # Pagination
 
-Pagination and infinite scroll options.
-
-## Basic Pagination
+Tables are paginated by default with 12 records per page.
 
 ```php
-<?php
-
-use Laravilt\Tables\Table;
-
 $table
-    ->paginated()
     ->perPage(25)
     ->paginationPageOptions([10, 25, 50, 100]);
 ```
 
-## Infinite Scroll
+Passing an array to `paginated()` sets the options and uses the first one as the page size:
 
 ```php
-<?php
+$table->paginated([25, 50, 100]);
+```
 
-use Laravilt\Tables\Table;
+## First and last page links
 
+```php
+$table->extremePaginationLinks();
+```
+
+## Infinite scroll
+
+```php
 $table
     ->infiniteScroll()
     ->perPage(20);
 ```
 
-## Simple Pagination
+Infinite scroll turns off while [grouping](../features/grouping.md) is active.
+
+## Disable pagination
 
 ```php
-<?php
-
-use Laravilt\Tables\Table;
-
-$table
-    ->simplePagination()
-    ->perPage(15);
-```
-
-## Without Pagination
-
-```php
-<?php
-
-use Laravilt\Tables\Table;
-
 $table->paginated(false);
 ```
 
-## Default Per Page
-
-```php
-<?php
-
-use Laravilt\Tables\Table;
-
-$table
-    ->defaultPerPage(50)
-    ->paginationPageOptions([25, 50, 100, 200]);
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `paginated()` | Enable pagination |
-| `perPage()` | Items per page |
-| `paginationPageOptions()` | Per page options |
-| `infiniteScroll()` | Enable infinite scroll |
-| `simplePagination()` | Simple prev/next |
-| `defaultPerPage()` | Default per page |
+| `paginated(bool\|array)` | Enable/disable, or set page size options |
+| `perPage(int)` | Records per page (default 12) |
+| `paginationPageOptions(array)` | Page size selector options |
+| `extremePaginationLinks()` | Show first/last page buttons |
+| `infiniteScroll()` | Load more on scroll |

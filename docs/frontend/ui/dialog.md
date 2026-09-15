@@ -1,167 +1,93 @@
 ---
 title: Dialog
-description: Modal dialog component
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: frontend
-vue_component: Dialog
-vue_package: "@laravilt/support"
+description: The Dialog primitive for modal windows.
+order: 6
 ---
 
 # Dialog
 
-Modal dialog for confirmations and forms.
+For confirmations and forms that run server-side logic, prefer a PHP [action](../../actions/README.md) with `->requiresConfirmation()` or a modal form. Use this primitive for purely client-side modals in your own pages.
 
 ## Import
 
 ```typescript
 import {
     Dialog,
+    DialogClose,
     DialogContent,
     DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
     DialogTrigger,
-    DialogClose,
-} from '@laravilt/support'
+} from '@/components/ui/dialog'
 ```
 
-## Basic Usage
+## Usage
 
 ```vue
+<script setup lang="ts">
+import { Button } from '@/components/ui/button'
+import {
+    Dialog, DialogClose, DialogContent, DialogDescription,
+    DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
+} from '@/components/ui/dialog'
+</script>
+
 <template>
     <Dialog>
         <DialogTrigger as-child>
-            <Button>Open Dialog</Button>
+            <Button variant="outline">Open</Button>
         </DialogTrigger>
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Dialog Title</DialogTitle>
-                <DialogDescription>
-                    Dialog description goes here.
-                </DialogDescription>
-            </DialogHeader>
-            <p>Dialog content...</p>
-            <DialogFooter>
-                <DialogClose as-child>
-                    <Button variant="outline">Cancel</Button>
-                </DialogClose>
-                <Button>Confirm</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-</template>
-```
-
-## Controlled Dialog
-
-```vue
-<script setup>
-import { ref } from 'vue'
-
-const open = ref(false)
-</script>
-
-<template>
-    <Button @click="open = true">Open</Button>
-
-    <Dialog v-model:open="open">
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Controlled Dialog</DialogTitle>
-            </DialogHeader>
-            <p>This dialog is controlled externally.</p>
-            <DialogFooter>
-                <Button @click="open = false">Close</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-</template>
-```
-
-## Confirmation Dialog
-
-```vue
-<script setup>
-import { ref } from 'vue'
-
-const showConfirm = ref(false)
-
-const handleDelete = () => {
-    // Delete logic
-    showConfirm.value = false
-}
-</script>
-
-<template>
-    <Dialog v-model:open="showConfirm">
-        <DialogTrigger as-child>
-            <Button variant="destructive">Delete</Button>
-        </DialogTrigger>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Delete Item</DialogTitle>
-                <DialogDescription>
-                    Are you sure? This action cannot be undone.
-                </DialogDescription>
+                <DialogTitle>Confirm action</DialogTitle>
+                <DialogDescription>Are you sure you want to proceed?</DialogDescription>
             </DialogHeader>
             <DialogFooter>
                 <DialogClose as-child>
                     <Button variant="outline">Cancel</Button>
                 </DialogClose>
-                <Button variant="destructive" @click="handleDelete">
-                    Delete
-                </Button>
+                <Button @click="confirm">Confirm</Button>
             </DialogFooter>
         </DialogContent>
     </Dialog>
 </template>
 ```
 
-## With Form
-
-```vue
-<template>
-    <Dialog>
-        <DialogTrigger as-child>
-            <Button>Create User</Button>
-        </DialogTrigger>
-        <DialogContent class="sm:max-w-[425px]">
-            <DialogHeader>
-                <DialogTitle>Create User</DialogTitle>
-            </DialogHeader>
-            <form @submit.prevent="submit">
-                <div class="grid gap-4 py-4">
-                    <Input v-model="name" placeholder="Name" />
-                    <Input v-model="email" type="email" placeholder="Email" />
-                </div>
-                <DialogFooter>
-                    <Button type="submit">Create</Button>
-                </DialogFooter>
-            </form>
-        </DialogContent>
-    </Dialog>
-</template>
+```tsx
+<Dialog>
+    <DialogTrigger asChild>
+        <Button variant="outline">Open</Button>
+    </DialogTrigger>
+    <DialogContent>
+        <DialogHeader>
+            <DialogTitle>Confirm action</DialogTitle>
+            <DialogDescription>Are you sure you want to proceed?</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+            <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={confirm}>Confirm</Button>
+        </DialogFooter>
+    </DialogContent>
+</Dialog>
 ```
 
-## Components
+## Controlled
 
-| Component | Description |
-|-----------|-------------|
-| `Dialog` | Root container |
-| `DialogTrigger` | Trigger button |
-| `DialogContent` | Dialog content |
-| `DialogHeader` | Header section |
-| `DialogTitle` | Title text |
-| `DialogDescription` | Description text |
-| `DialogFooter` | Footer actions |
-| `DialogClose` | Close button |
+```vue
+<Dialog v-model:open="open">...</Dialog>
+```
+
+```tsx
+<Dialog open={open} onOpenChange={setOpen}>...</Dialog>
+```
+
+Vue also exports `DialogScrollContent` for long content that scrolls with the overlay.
 
 ## Related
 
-- [Sheet](sheet) - Slide-out panel
-- [Button](button) - Trigger buttons
-
+- [Sheet](sheet.md)
+- [Button](button.md)

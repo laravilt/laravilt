@@ -1,34 +1,25 @@
 ---
 title: Quick Start
-description: Build your first resource in 5 minutes
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: getting-started
+description: Generate a full CRUD resource from a database table in five minutes.
+order: 4
 ---
 
 # Quick Start
 
-Build a complete CRUD resource in 5 minutes.
+This guide assumes you finished [Installation](installation.md) and can log in to `/admin`.
 
-## Prerequisites
+## 1. Create a table
 
-Complete the [installation](installation) first.
-
-## Step 1: Create Model
+`laravilt:resource` builds a resource from an existing database table, so start with a migration:
 
 ```bash
-php artisan make:model Product -m
+php artisan make:migration create_products_table
 ```
-
-Edit the migration:
 
 ```php
 Schema::create('products', function (Blueprint $table) {
     $table->id();
     $table->string('name');
-    $table->string('slug')->unique();
     $table->text('description')->nullable();
     $table->decimal('price', 10, 2);
     $table->integer('stock')->default(0);
@@ -37,78 +28,65 @@ Schema::create('products', function (Blueprint $table) {
 });
 ```
 
-Run migration:
-
 ```bash
 php artisan migrate
 ```
 
-## Step 2: Generate Resource
+## 2. Generate the resource
 
 ```bash
-php artisan laravilt:resource admin --model=Product
+php artisan laravilt:resource admin --table=products
 ```
 
-This creates:
+The generator reads the table's columns and asks a few questions: simple (single page with modal CRUD) or full pages, API endpoints, AI assistant configuration, and table features. It creates the `Product` model if it doesn't exist (pass `--model=` to choose the name), then writes:
 
 ```
 app/Laravilt/Admin/Resources/Product/
 ├── ProductResource.php
 ├── Form/ProductForm.php
 ├── Table/ProductTable.php
-├── Pages/
-│   ├── ListProduct.php
-│   ├── CreateProduct.php
-│   └── EditProduct.php
+├── InfoList/ProductInfoList.php
+└── Pages/
+    ├── ListProduct.php
+    ├── CreateProduct.php
+    ├── EditProduct.php
+    └── ViewProduct.php
 ```
 
-## Step 3: Build Assets
+Resources are discovered automatically (`->discoverAutomatically()` in the panel provider), so nothing else needs registering.
 
-```bash
-npm run build
-```
+## 3. Open it
 
-## Step 4: View Resource
+Visit `/admin/products`. You get a searchable, sortable list with filters, and create, edit and view pages, plus delete and bulk delete, all built from the columns.
 
-Visit `http://localhost:8000/admin/products`
+## 4. Tweak it
 
-You now have:
-- List page with search and filters
-- Create form with validation
-- Edit functionality
-- Delete with confirmation
-
-## Customize Form
-
-Edit `Form/ProductForm.php`:
+Fields live in `Form/ProductForm.php`:
 
 ```php
-return $form->schema([
-    Section::make('Product Details')
-        ->schema([
-            TextInput::make('name')->required(),
-            TextInput::make('price')->numeric()->prefix('$'),
+public static function configure(Schema $form): Schema
+{
+    return $form->schema([
+        Section::make('Product')->columns(2)->schema([
+            TextInput::make('name')->required()->maxLength(255),
+            TextInput::make('price')->numeric()->prefix('$')->required(),
             Toggle::make('is_active')->default(true),
         ]),
-]);
+    ]);
+}
 ```
 
-## Customize Table
-
-Edit `Table/ProductTable.php`:
+Columns live in `Table/ProductTable.php`:
 
 ```php
-return $table->columns([
-    TextColumn::make('name')->searchable(),
-    TextColumn::make('price')->money('USD'),
-    ToggleColumn::make('is_active'),
-]);
+TextColumn::make('name')->searchable()->sortable(),
+TextColumn::make('price')->money('USD')->sortable(),
+ToggleColumn::make('is_active'),
 ```
 
-## Next Steps
+Changes to PHP are picked up on the next request. You only need `npm run build` (or `npm run dev`) when you change frontend files.
 
-- [First Resource](first-resource) - Complete resource tutorial
-- [Resource Table](resource-table) - Table configuration
-- [Forms](../forms/introduction) - All form components
-- [Tables](../tables/introduction) - Table features
-- [Troubleshooting](troubleshooting) - Common issues
+## Next
+
+- [Your First Resource](first-resource.md): every generated file, explained.
+- [Forms](../forms/README.md) and [Tables](../tables/README.md): all components.

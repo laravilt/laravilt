@@ -1,84 +1,56 @@
 ---
 title: FileUpload
-description: Advanced file upload with image editing
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-concept: media
-vue_component: FilePond
-vue_package: "vue-filepond"
+description: File and image uploads with restrictions, image editing, storage options and Spatie Media Library.
+order: 1
 ---
 
 # FileUpload
 
-Advanced file upload with image editing, multiple files, and Spatie Media Library.
+File and image uploads, powered by FilePond.
 
-## Vue Component
-
-Uses **FilePond** for file uploads.
-
-```vue
-<script setup>
-import vueFilePond from 'vue-filepond'
-import FilePondPluginImagePreview from 'filepond-plugin-image-preview'
-import FilePondPluginImageCrop from 'filepond-plugin-image-crop'
-
-const FilePond = vueFilePond(
-  FilePondPluginImagePreview,
-  FilePondPluginImageCrop
-)
-</script>
-```
-
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\FileUpload;
 
 FileUpload::make('attachment')
     ->label('Attachment');
 ```
 
-## File Restrictions
+## Restrictions
 
 ```php
 FileUpload::make('document')
     ->acceptedFileTypes(['application/pdf', '.docx'])
-    ->maxSize(5120) // 5MB
+    ->maxSize(5120) // KB
     ->minSize(100);
 ```
 
-## Multiple Files
+## Multiple files
 
 ```php
 FileUpload::make('attachments')
     ->multiple()
     ->minFiles(1)
     ->maxFiles(5)
-    ->reorderable();
+    ->reorderable()
+    ->downloadable()
+    ->openable();
 ```
 
-## Image Upload
+## Images
 
 ```php
 FileUpload::make('photo')
     ->image()
-    ->imagePreviewHeight(250)
-    ->imageResizeTargetWidth(800)
-    ->imageResizeTargetHeight(600);
-```
+    ->imagePreviewHeight('250')
+    ->imageResizeTargetWidth('800')
+    ->imageResizeTargetHeight('600');
 
-## Image Cropping
-
-```php
 FileUpload::make('avatar')
-    ->image()
-    ->imageCropAspectRatio('1:1')
+    ->avatar()
     ->imageEditor()
+    ->imageCropAspectRatio('1:1')
     ->circleCropper();
 ```
 
@@ -94,24 +66,32 @@ FileUpload::make('file')
 
 ## Spatie Media Library
 
+Install `spatie/laravel-medialibrary`, then name the collection:
+
 ```php
 FileUpload::make('images')
     ->collection('gallery')
-    ->conversion('thumb');
+    ->multiple();
 ```
 
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `image()` | Restrict to images |
-| `multiple()` | Allow multiple |
-| `maxSize()` | Max size in KB |
-| `imageEditor()` | Enable editor |
-| `collection()` | Spatie collection |
-| `disk()` | Storage disk |
+| `acceptedFileTypes(array)` | Allowed MIME types or extensions |
+| `maxSize()` / `minSize()` | Size limits in KB |
+| `multiple(bool)` / `minFiles()` / `maxFiles()` | Multiple files |
+| `image(bool)` | Images only |
+| `avatar()` | Circular avatar layout |
+| `imageEditor(bool)` / `imageEditorAspectRatios(array)` | Built-in image editor |
+| `imageCropAspectRatio()` / `circleCropper()` | Cropping |
+| `imageResizeTargetWidth()` / `imageResizeTargetHeight()` / `imageResizeMode()` | Resizing |
+| `disk()` / `directory()` / `visibility()` | Storage |
+| `preserveFilenames(bool)` / `storeFileNamesIn()` | File names |
+| `reorderable()` / `downloadable()` / `openable()` / `deletable()` / `previewable()` | UI actions |
+| `collection(?string)` | Spatie Media Library collection |
+| `maxParallelUploads(int)` | Upload concurrency |
 
 ## Related
 
-- [RichEditor](rich-editor) - HTML editor
-- [Custom Fields](../custom/introduction) - Custom uploads
+- [RichEditor](rich-editor.md)

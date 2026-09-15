@@ -1,114 +1,58 @@
 ---
 title: AI Columns
-description: Column definitions for AI agents
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-component: AIColumn
+description: Describe resource columns so the model understands your data.
+order: 2
 ---
 
 # AI Columns
 
-Define columns for AI agent understanding.
-
-## Basic Column
+`Laravilt\AI\AIColumn` describes a column to the agent: its label, type, and whether it can be searched, filtered or sorted.
 
 ```php
-<?php
-
 use Laravilt\AI\AIColumn;
 
 AIColumn::make('name')
     ->label('Product Name')
+    ->description('Public product title')
     ->searchable()
     ->sortable();
 ```
 
-## Column Types
+New columns are searchable by default. Filterable and sortable are off until you enable them.
+
+## Types
+
+`type()` accepts any string. Use the types your model understands:
 
 ```php
-<?php
-
-use Laravilt\AI\AIColumn;
-
-// String (default)
-AIColumn::make('name')->type('string');
-
-// Numeric
 AIColumn::make('price')->type('decimal');
 AIColumn::make('quantity')->type('integer');
-
-// Boolean
 AIColumn::make('is_active')->type('boolean');
-
-// Date/Time
-AIColumn::make('created_at')->type('datetime');
-AIColumn::make('published_at')->type('date');
+AIColumn::make('published_at')->type('datetime');
 ```
 
-## Searchable & Filterable
+## Options and relationships
 
 ```php
-<?php
-
-use Laravilt\AI\AIColumn;
-
-AIColumn::make('name')
-    ->searchable()
-    ->filterable()
-    ->sortable();
-
 AIColumn::make('status')
     ->filterable()
-    ->options(['active', 'pending', 'inactive']);
-```
-
-## Relationships
-
-```php
-<?php
-
-use Laravilt\AI\AIColumn;
+    ->options(['active' => 'Active', 'pending' => 'Pending']);
 
 AIColumn::make('category_id')
-    ->type('integer')
-    ->filterable()
-    ->relationship('category');
-
-AIColumn::make('category')
-    ->relationship('category', 'name')
+    ->relationship('category', 'name') // title column defaults to 'name'
     ->filterable();
 ```
 
-## Complete Example
-
-```php
-<?php
-
-use Laravilt\AI\AIColumn;
-
-$columns = [
-    AIColumn::make('id')->type('integer')->sortable(),
-    AIColumn::make('name')->label('Product Name')->searchable()->sortable(),
-    AIColumn::make('sku')->searchable(),
-    AIColumn::make('price')->type('decimal')->filterable()->sortable(),
-    AIColumn::make('stock')->type('integer')->filterable(),
-    AIColumn::make('is_active')->type('boolean')->filterable(),
-    AIColumn::make('category_id')->relationship('category')->filterable(),
-    AIColumn::make('created_at')->type('datetime')->sortable(),
-];
-```
-
-## API Reference
+## Methods
 
 | Method | Description |
 |--------|-------------|
-| `type()` | Data type |
-| `label()` | Display label |
-| `searchable()` | Enable search |
-| `filterable()` | Enable filter |
-| `sortable()` | Enable sort |
-| `relationship()` | Define relation |
-| `options()` | Allowed values |
+| `make(string $name)` | Create a column |
+| `label(string)` | Display label (defaults to the title-cased name with underscores as spaces) |
+| `description(string)` | Extra context |
+| `type(string)` | Data type |
+| `searchable(bool)` | Searchable (default `true`) |
+| `filterable(bool)` | Filterable |
+| `sortable(bool)` | Sortable |
+| `options(array)` | Allowed values |
+| `relationship(string, string $titleColumn = 'name')` | Related model |

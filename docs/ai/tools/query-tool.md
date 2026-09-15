@@ -1,25 +1,16 @@
 ---
 title: Query Tool
-description: Search and filter records
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-component: QueryTool
+description: Let the model search and sort Eloquent records.
+order: 1
 ---
 
 # Query Tool
 
-Search and filter database records.
-
-## Basic Usage
+`Laravilt\AI\Tools\QueryTool` runs a `LIKE` search over the columns you choose and returns the records as arrays.
 
 ```php
-<?php
-
-use Laravilt\AI\Tools\QueryTool;
 use App\Models\Product;
+use Laravilt\AI\Tools\QueryTool;
 
 $tool = QueryTool::make('search_products')
     ->description('Search and filter products')
@@ -28,61 +19,31 @@ $tool = QueryTool::make('search_products')
     ->limit(10);
 ```
 
-## AI Calls
+## Parameters
 
-The AI can call this tool with:
+Calling `model()` adds these parameters to the tool definition:
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `search` | string | Search term matched against the searchable columns |
+| `limit` | integer | Maximum results (defaults to `limit()`, 10 if not set) |
+| `orderBy` | string | Column to sort by |
+| `orderDirection` | string | `asc` or `desc` |
+
+Example call from the model:
 
 ```json
-{
-  "search": "laptop",
-  "limit": 5,
-  "orderBy": "price",
-  "orderDirection": "asc"
-}
+{ "search": "laptop", "limit": 5, "orderBy": "price", "orderDirection": "asc" }
 ```
 
-## Searchable Columns
+> The search is only applied when `searchableColumns()` is set.
 
-```php
-<?php
-
-use Laravilt\AI\Tools\QueryTool;
-
-$tool = QueryTool::make('search_products')
-    ->model(Product::class)
-    ->searchableColumns(['name', 'sku', 'description'])
-    ->limit(20);
-```
-
-## Auto Parameters
-
-When you call `model()`, these parameters are auto-added:
-- `search` - Search query string
-- `limit` - Max results
-- `orderBy` - Sort column
-- `orderDirection` - asc/desc
-
-## With Resource Agent
-
-```php
-<?php
-
-use Laravilt\AI\ResourceAgent;
-use App\Models\Product;
-
-$agent = ResourceAgent::make('product_agent')
-    ->model(Product::class)
-    ->autoGenerateTools();
-
-// Auto-creates QueryTool, CreateTool, UpdateTool, DeleteTool
-```
-
-## API Reference
+## Methods
 
 | Method | Description |
 |--------|-------------|
-| `make()` | Create tool |
-| `description()` | Tool description |
-| `model()` | Set Eloquent model |
-| `searchableColumns()` | Searchable columns |
-| `limit()` | Default result limit |
+| `make(string $name)` | Create the tool |
+| `description(string)` | Description sent to the model |
+| `model(string $class)` | Eloquent model to query |
+| `searchableColumns(array)` | Columns used for `search` |
+| `limit(int)` | Default result limit |

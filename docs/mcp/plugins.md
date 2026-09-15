@@ -1,151 +1,62 @@
 ---
-title: Plugins MCP Server
-description: MCP server for plugin management
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: mcp
+title: Plugins MCP
+description: Local MCP server that lists, inspects and generates plugins.
+order: 6
 ---
 
 # Plugins MCP Server
 
-MCP server for plugin discovery, generation, and management.
+`Laravilt\Plugins\Mcp\LaraviltPluginsServer` lets an AI agent discover, inspect and generate plugins and their components.
 
-## Installation
+## Install
 
 ```bash
+composer require laravel/mcp
 php artisan laravilt:install-mcp
 ```
 
-Registers in `routes/ai.php`:
+`laravilt:install-mcp` is only available when `laravel/mcp` is installed. It:
 
-```php
-<?php
+1. Publishes `routes/ai.php` (tag `ai-routes`) if it doesn't exist
+2. Adds `Mcp::local('laravilt-plugins', LaraviltPluginsServer::class);` to it
+3. Adds a `laravilt-plugins` entry (`php artisan mcp:start laravilt-plugins`) to `.mcp.json`
 
-use Laravel\Mcp\Facades\Mcp;
-use Laravilt\Plugins\Mcp\LaraviltPluginsServer;
+Restart your MCP client afterwards.
 
-Mcp::local('laravilt-plugins', LaraviltPluginsServer::class);
-```
+## Tools
 
-## Available Tools
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `list-plugins-tool` | none | Plugins in the `packages` directory |
+| `plugin-info-tool` | `plugin` | Structure, features and configuration of a plugin |
+| `plugin-structure-tool` | `plugin` | Full directory tree of a plugin |
+| `generate-plugin-tool` | see below | Generate a new plugin |
+| `generate-component-tool` | `plugin`, `type`, `name` | Generate a component inside a plugin |
+| `list-component-types-tool` | none | Component types that can be generated |
+| `search-docs-tool` | `query` | Search the plugins documentation |
 
-### list-plugins
+### generate-plugin-tool
 
-List all installed Laravilt plugins.
+| Argument | Type | Description |
+|----------|------|-------------|
+| `name` | string (required) | Plugin name (StudlyCase) |
+| `description` | string | Plugin description |
+| `migrations`, `views`, `webRoutes`, `apiRoutes` | boolean | Include these features |
+| `css`, `js`, `arts`, `github`, `phpstan` | boolean | Include assets, arts, GitHub files and PHPStan |
 
-**Usage:**
+### generate-component-tool
 
-```
-list-plugins
-```
+`type` is one of `migration`, `model`, `controller`, `command`, `job`, `event`, `listener`, `notification`, `seeder`, `factory`, `test`, `lang`, `route`. To generate a panel resource, run `php artisan laravilt:make {plugin} resource {Name}`.
 
-### plugin-info
-
-Get detailed plugin information.
-
-**Arguments:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `plugin` | string | Yes | Plugin name (kebab-case) |
-
-**Usage:**
-
-```
-plugin-info(plugin="blog-extensions")
-```
-
-### generate-plugin
-
-Generate a new plugin with features.
-
-**Arguments:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `name` | string | Yes | Plugin name (StudlyCase) |
-| `description` | string | No | Plugin description |
-| `migrations` | boolean | No | Include migrations |
-| `views` | boolean | No | Include views |
-| `webRoutes` | boolean | No | Include web routes |
-| `apiRoutes` | boolean | No | Include API routes |
-
-**Usage:**
+## Example prompts
 
 ```
-generate-plugin(
-  name="BlogExtensions",
-  description="Blog extensions",
-  migrations=true,
-  views=true
-)
-```
-
-### generate-component
-
-Generate a component within a plugin.
-
-**Arguments:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `plugin` | string | Yes | Plugin name (kebab-case) |
-| `type` | string | Yes | Component type |
-| `name` | string | Yes | Component name |
-
-**Component Types:**
-
-- `migration` - Database migration
-- `model` - Eloquent model
-- `controller` - HTTP controller
-- `command` - Artisan command
-- `job` - Queueable job
-- `event` - Event class
-- `listener` - Event listener
-- `notification` - Notification
-- `seeder` - Database seeder
-- `factory` - Model factory
-- `test` - Feature test
-
-**Usage:**
-
-```
-generate-component(
-  plugin="blog-extensions",
-  type="model",
-  name="Post"
-)
-```
-
-### list-component-types
-
-List available component types.
-
-### plugin-structure
-
-Get plugin directory structure.
-
-### search-docs
-
-Search plugin documentation.
-
-## AI Agent Examples
-
-```
-You: "List all plugins"
-Claude: [calls list-plugins]
-
-You: "Create a BlogExtensions plugin with migrations"
-Claude: [calls generate-plugin]
-
-You: "Add a Post model to blog-extensions"
-Claude: [calls generate-component]
+"List all plugins."
+"Create a BlogExtensions plugin with migrations and views."
+"Add a Post model to blog-extensions."
 ```
 
 ## Related
 
-- [Plugins Introduction](../plugins/introduction) - Plugins overview
-- [MCP Introduction](introduction) - MCP overview
-
+- [Plugins](../plugins/README.md)
+- [Plugin components](../plugins/components/README.md)

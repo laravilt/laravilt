@@ -1,105 +1,48 @@
 ---
 title: Models
-description: Generate plugin models
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: plugins
-concept: models
+description: Generate Eloquent models, migrations and factories inside a plugin.
+order: 2
 ---
 
 # Models
 
-Generate Eloquent models for plugins.
-
-## Generate Model
-
 ```bash
 php artisan laravilt:make blog-manager model Post
+php artisan laravilt:make blog-manager migration Post
+php artisan laravilt:make blog-manager factory PostFactory
 ```
 
-## Generated Model
+The model is created in `src/Models/` under the plugin namespace. Add fillable fields, casts and relations as you would in any Laravel app:
 
 ```php
-<?php
+namespace Laravilt\BlogManager\Models;
 
-namespace MyCompany\BlogManager\Models;
-
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Post extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'title',
-        'content',
-        'published_at',
-    ];
+    protected $fillable = ['title', 'content', 'category_id', 'published_at'];
 
-    protected $casts = [
-        'published_at' => 'datetime',
-    ];
-}
-```
-
-## With Relationships
-
-```php
-<?php
-
-namespace MyCompany\BlogManager\Models;
-
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-
-class Post extends Model
-{
-    protected $fillable = [
-        'title',
-        'content',
-        'category_id',
-    ];
+    protected function casts(): array
+    {
+        return ['published_at' => 'datetime'];
+    }
 
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
     }
-
-    public function comments(): HasMany
-    {
-        return $this->hasMany(Comment::class);
-    }
 }
 ```
 
-## Model Factory
+`migration Post` creates `database/migrations/{timestamp}_create_posts_table.php`. `factory PostFactory` creates `database/factories/PostFactory.php` in the `{Namespace}\Database\Factories` namespace, linked to `{Namespace}\Models\Post`.
 
-```bash
-php artisan laravilt:make blog-manager factory PostFactory
-```
+Make sure the plugin's service provider loads its migrations (the generator adds this when you select the migrations feature):
 
 ```php
-<?php
-
-namespace MyCompany\BlogManager\Database\Factories;
-
-use Illuminate\Database\Eloquent\Factories\Factory;
-use MyCompany\BlogManager\Models\Post;
-
-class PostFactory extends Factory
-{
-    protected $model = Post::class;
-
-    public function definition(): array
-    {
-        return [
-            'title' => fake()->sentence(),
-            'content' => fake()->paragraphs(3, true),
-        ];
-    }
-}
+$this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 ```

@@ -1,104 +1,49 @@
 ---
 title: Connected Accounts
-description: Manage OAuth social account connections
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
-concept: profile
+description: Let users link and unlink social login providers.
+order: 5
 ---
 
 # Connected Accounts
 
-Manage OAuth social accounts connected to the user profile.
-
-## List Connected Accounts
+`->connectedAccounts()` adds a **Connected accounts** page (`Laravilt\Auth\Pages\Profile\ConnectedAccounts`). It lists every enabled social provider, shows which ones the user has linked (with the linked name, email and avatar), and lets the user connect or disconnect them.
 
 ```php
-<?php
-
-// Get user's social accounts
-$accounts = $user->socialAccounts()
-    ->get()
-    ->map(fn ($account) => [
-        'id' => $account->id,
-        'provider' => $account->provider,
-        'name' => $account->name,
-        'email' => $account->email,
-        'avatar' => $account->avatar,
-        'connected_at' => $account->created_at,
-    ]);
-```
-
-## Disconnect Account
-
-```php
-<?php
-
-namespace App\Http\Controllers\Profile;
-
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-
-class ConnectedAccountController extends Controller
-{
-    // Route: DELETE /admin/profile/connected-accounts/{id}
-    public function disconnect(Request $request, $accountId)
-    {
-        // Ensure user has another login method
-        $user = $request->user();
-
-        if (!$user->password && $user->socialAccounts()->count() <= 1) {
-            return back()->withErrors([
-                'account' => 'Cannot disconnect your only login method.',
-            ]);
-        }
-
-        $user->socialAccounts()
-            ->where('id', $accountId)
-            ->delete();
-
-        return back()->with('status', 'account-disconnected');
-    }
-}
-```
-
-## Connect New Account
-
-Users can connect additional social accounts by clicking the provider button:
-
-```php
-<?php
-
-namespace App\Laravilt\Admin;
-
-use Laravilt\Panel\PanelProvider;
-use Laravilt\Panel\Panel;
 use Laravilt\Auth\Builders\SocialProviderBuilder;
-use Laravel\Socialite\Two\GoogleProvider;
-use Laravel\Socialite\Two\GitHubProvider;
-use Laravel\Socialite\Two\FacebookProvider;
+use Laravilt\Auth\Drivers\SocialProviders\GitHubProvider;
+use Laravilt\Auth\Drivers\SocialProviders\GoogleProvider;
 
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->id('admin')
-            ->path('admin')
-            ->connectedAccounts()
-            ->socialLogin(function (SocialProviderBuilder $builder) {
-                $builder
-                    ->provider(GoogleProvider::class)
-                    ->provider(GitHubProvider::class)
-                    ->provider(FacebookProvider::class);
-            });
-    }
-}
+$panel
+    ->connectedAccounts()
+    ->socialLogin(function (SocialProviderBuilder $builder) {
+        $builder
+            ->provider(GoogleProvider::class)
+            ->provider(GitHubProvider::class);
+    });
+```
+
+The page only shows providers you registered with `socialLogin()`. See [Social Login](../methods/social-auth.md) for credentials.
+
+## Routes
+
+```
+GET     /{panel}/profile/connected-accounts             List providers
+DELETE  /{panel}/profile/connected-accounts/{provider}  Disconnect a provider
+```
+
+Connecting goes through the normal `/{panel}/auth/{provider}/redirect` flow.
+
+## In code
+
+Linked accounts are `Laravilt\Auth\Models\SocialAccount` rows in `social_accounts`:
+
+```php
+$user->socialAccounts;                 // or $user->connectedAccounts
+$user->hasSocialAccount('github');     // bool
+$user->getSocialAccount('github');     // ?SocialAccount
 ```
 
 ## Related
 
-- [Social Authentication](../methods/social-auth) - OAuth setup
-- [Delete Account](delete-account) - Account deletion
+- [Social Login](../methods/social-auth.md)
+- [Locale & Timezone](preferences.md)

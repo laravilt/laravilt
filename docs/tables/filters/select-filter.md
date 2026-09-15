@@ -1,25 +1,12 @@
 ---
 title: SelectFilter
-description: Dropdown filter
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-component: SelectFilter
-vue_component: TableSelectFilter
-vue_package: "radix-vue (Select)"
+description: Filter records by one or more values from a list or relationship.
+order: 1
 ---
 
 # SelectFilter
 
-Dropdown filter for table records.
-
-## Basic Usage
-
 ```php
-<?php
-
 use Laravilt\Tables\Filters\SelectFilter;
 
 SelectFilter::make('status')
@@ -29,53 +16,49 @@ SelectFilter::make('status')
     ]);
 ```
 
-## Multiple Selection
+By default the filter runs `where(name, value)`, or `whereIn` when `multiple()` is enabled.
+
+## Multiple selection
 
 ```php
-<?php
-
-use Laravilt\Tables\Filters\SelectFilter;
 use App\Models\Category;
 
-SelectFilter::make('categories')
+SelectFilter::make('category_id')
     ->multiple()
-    ->options(Category::pluck('name', 'id'));
+    ->options(fn () => Category::pluck('name', 'id')->all());
 ```
 
-## Relationship Filter
+## Relationship
+
+Options load from the relationship, and the query uses `whereHas`:
 
 ```php
-<?php
-
-use Laravilt\Tables\Filters\SelectFilter;
-
 SelectFilter::make('category')
     ->relationship('category', 'name')
     ->searchable()
     ->preload();
 ```
 
-## Custom Query
+## Custom query
+
+The closure receives the query and the selected value:
 
 ```php
-<?php
-
-use Laravilt\Tables\Filters\SelectFilter;
-
-SelectFilter::make('status')
+SelectFilter::make('state')
     ->options(['active' => 'Active', 'inactive' => 'Inactive'])
-    ->query(fn ($query, $data) =>
-        $query->where('is_active', $data['value'] === 'active')
-    );
+    ->query(fn ($query, $value) => $query->where('is_active', $value === 'active'));
 ```
 
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `options()` | Set options |
-| `multiple()` | Allow multiple |
-| `searchable()` | Enable search |
-| `relationship()` | From relation |
+| `options()` | Array or closure of options |
+| `multiple()` | Allow several values |
+| `searchable()` | Searchable dropdown |
+| `relationship()` | Load options from a relationship |
+| `preload()` | Preload relationship options |
+| `hasEmptyOption()`, `emptyRelationshipOptionLabel()` | "None" option for relationships |
+| `selectablePlaceholder()` | Allow clearing the selection |
 | `query()` | Custom query |
 | `default()` | Default value |

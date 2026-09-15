@@ -1,23 +1,21 @@
 ---
 title: Teams Tenancy
-description: Using teams as tenants
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+description: Use a Team model as the tenant in single-database mode.
+order: 2
 ---
 
 # Teams Tenancy
 
-Use your existing Team model as tenants.
+Use a `Team` model as the tenant.
 
 ## Quick Start
 
+Publish the teams migration, model and trait, then migrate:
+
 ```bash
 php artisan vendor:publish --tag=laravilt-teams-migration
-php artisan vendor:publish --tag=laravilt-teams-model
-php artisan vendor:publish --tag=laravilt-teams-trait
+php artisan vendor:publish --tag=laravilt-teams-model   # app/Models/Team.php
+php artisan vendor:publish --tag=laravilt-teams-trait   # app/Concerns/HasTeams.php
 php artisan migrate
 ```
 
@@ -44,15 +42,20 @@ class User extends Authenticatable implements HasTenants, HasDefaultTenant
 }
 ```
 
+`HasTeams` provides `teams()`, `currentTeam()`, `getTenants()`, `canAccessTenant()`, `getDefaultTenant()`, `ownsTeam()`, `teamRole()`, `hasTeamRole()` and `switchTeam()`.
+
 ## Team Model Setup
+
+The published `Team` model implements the tenant contracts:
 
 ```php
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Laravilt\Panel\Contracts\HasTenantAvatar;
 use Laravilt\Panel\Contracts\HasTenantName;
 
-class Team extends Model implements HasTenantName
+class Team extends Model implements HasTenantName, HasTenantAvatar
 {
     public function getTenantName(): string
     {
@@ -69,29 +72,29 @@ class Team extends Model implements HasTenantName
 ## Panel Configuration
 
 ```php
-use Laravilt\Panel\Panel;
 use App\Models\Team;
 
-class AdminPanelProvider extends PanelProvider
+public function panel(Panel $panel): Panel
 {
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->tenant(Team::class, 'team', 'slug')
-            ->tenantRegistration()
-            ->tenantProfile();
-    }
+    return $panel
+        ->tenant(Team::class, 'team', 'slug')
+        ->tenantRegistration()
+        ->tenantProfile();
 }
 ```
 
+Team owners manage the team name and members under `/{panel}/tenant-settings`.
+
 ## Required Interfaces
 
-- `HasTenants` - provides `getTenants()` and `canAccessTenant()`
-- `HasDefaultTenant` - provides `getDefaultTenant()`
-- `HasTenantName` - provides `getTenantName()`
+| Interface | Methods |
+|-----------|---------|
+| `Laravilt\Panel\Contracts\HasTenants` (user) | `getTenants(Panel $panel)`, `canAccessTenant(Model $tenant)` |
+| `Laravilt\Panel\Contracts\HasDefaultTenant` (user) | `getDefaultTenant(Panel $panel)` |
+| `Laravilt\Panel\Contracts\HasTenantName` (tenant) | `getTenantName()` |
+| `Laravilt\Panel\Contracts\HasTenantAvatar` (tenant) | `getTenantAvatarUrl()` |
 
 ## Next Steps
 
-- [Configuration](configuration) - Detailed configuration
-- [Models](models) - Tenant and Domain models
-- [Best Practices](best-practices) - Tips and troubleshooting
+- [Configuration](configuration.md)
+- [Best Practices](best-practices.md)

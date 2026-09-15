@@ -1,25 +1,12 @@
 ---
 title: SelectColumn
-description: Inline dropdown selection
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-component: SelectColumn
-vue_component: TableSelectCell
-vue_package: "radix-vue (Select)"
+description: Configure a select dropdown for a table column.
+order: 6
 ---
 
 # SelectColumn
 
-Inline dropdown for editable selection.
-
-## Basic Usage
-
 ```php
-<?php
-
 use Laravilt\Tables\Columns\SelectColumn;
 
 SelectColumn::make('status')
@@ -30,42 +17,28 @@ SelectColumn::make('status')
     ]);
 ```
 
-## With State Update
+> The bundled Vue and React tables have no dedicated renderer for `SelectColumn`. It displays with the text renderer, and the panel runs update hooks only for `ToggleColumn`. For inline editing today, use [ToggleColumn](toggle-column.md) or an [action with a form](../../actions/forms.md).
+
+## Options
 
 ```php
-<?php
-
-use Laravilt\Tables\Columns\SelectColumn;
-
-SelectColumn::make('status')
-    ->options([
-        'pending' => 'Pending',
-        'approved' => 'Approved',
-    ])
-    ->afterStateUpdated(function ($record, $state) {
-        $record->update(['status' => $state]);
-    });
-```
-
-## Searchable
-
-```php
-<?php
-
-use Laravilt\Tables\Columns\SelectColumn;
 use App\Models\Category;
 
 SelectColumn::make('category_id')
-    ->options(Category::pluck('name', 'id'))
-    ->searchable();
+    ->options(fn () => Category::pluck('name', 'id')->all())
+    ->optionsSearchable()
+    ->selectablePlaceholder(false)
+    ->disableOptionWhen(fn ($value) => $value === 'archived');
 ```
 
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `options()` | Options array |
-| `searchable()` | Enable search |
-| `multiple()` | Multi-select |
-| `native()` | Native select |
-| `afterStateUpdated()` | Update hook |
+| `options()` | Array or closure of options |
+| `optionsSearchable()` | Searchable options |
+| `native()` | Use a native `<select>` |
+| `selectablePlaceholder()` | Allow selecting the empty placeholder |
+| `disableOptionWhen()` | Disable individual options |
+| `rules()` | Validation rules |
+| `beforeStateUpdated()`, `afterStateUpdated()` | Update hooks |

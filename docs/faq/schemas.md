@@ -1,128 +1,72 @@
 ---
 title: Schemas FAQ
-description: Layout and schema component questions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: faq
+description: Questions about grids, sections, tabs and wizards.
+order: 4
 ---
 
 # Schemas FAQ
 
-Common questions about layouts and schema components.
+Layout components live in `Laravilt\Schemas\Components` and work in forms and infolists.
 
-## Layouts
-
-### How do I create a multi-column layout?
+## How do I create a multi-column layout?
 
 ```php
-<?php
-
-use Laravilt\Schemas\Components\Grid;
 use Laravilt\Forms\Components\TextInput;
+use Laravilt\Schemas\Components\Grid;
 
-Grid::make(2)
-    ->schema([
-        TextInput::make('first_name'),
-        TextInput::make('last_name'),
-    ]);
+Grid::make(2)->schema([
+    TextInput::make('first_name'),
+    TextInput::make('last_name'),
+]);
 ```
 
-### How do I create responsive columns?
+## How do I make columns responsive?
 
 ```php
-<?php
-
-use Laravilt\Schemas\Components\Grid;
-
 Grid::make()
-    ->columns([
-        'default' => 1,
-        'md' => 2,
-        'lg' => 3,
-    ])
+    ->columns(['default' => 1, 'md' => 2, 'lg' => 3])
     ->schema([...]);
 ```
 
-## Sections
-
-### How do I create a section?
+## How do I create a section?
 
 ```php
-<?php
-
 use Laravilt\Schemas\Components\Section;
-use Laravilt\Forms\Components\TextInput;
 
-Section::make('User Information')
+Section::make('user_information')
+    ->heading('User Information')
     ->description('Basic user details')
     ->icon('User')
-    ->schema([
-        TextInput::make('name'),
-        TextInput::make('email'),
-    ]);
-```
-
-### How do I make a section collapsible?
-
-```php
-<?php
-
-use Laravilt\Schemas\Components\Section;
-
-Section::make('Advanced Options')
     ->collapsible()
     ->collapsed()
     ->schema([...]);
 ```
 
-## Tabs
-
-### How do I create tabs?
+## How do I create tabs?
 
 ```php
-<?php
-
-use Laravilt\Schemas\Components\Tabs;
 use Laravilt\Schemas\Components\Tab;
+use Laravilt\Schemas\Components\Tabs;
 
-Tabs::make()
-    ->tabs([
-        Tab::make('general')
-            ->label('General')
-            ->icon('Settings')
-            ->schema([...]),
-        Tab::make('advanced')
-            ->label('Advanced')
-            ->schema([...]),
-    ]);
+Tabs::make('settings')->tabs([
+    Tab::make('general')->label('General')->icon('Settings')->schema([...]),
+    Tab::make('advanced')->label('Advanced')->schema([...]),
+]);
 ```
 
-## Wizard
-
-### How do I create a multi-step form?
+## How do I create a multi-step form?
 
 ```php
-<?php
-
-use Laravilt\Schemas\Components\Wizard;
 use Laravilt\Schemas\Components\Step;
+use Laravilt\Schemas\Components\Wizard;
 
-Wizard::make()
-    ->steps([
-        Step::make('account')
-            ->label('Account')
-            ->schema([...]),
-        Step::make('profile')
-            ->label('Profile')
-            ->schema([...]),
-    ]);
+Wizard::make('onboarding')->steps([
+    Step::make('account')->label('Account')->schema([...]),
+    Step::make('profile')->label('Profile')->schema([...]),
+]);
 ```
 
 ## Related
 
-- [Schemas Documentation](../schemas/introduction)
-- [Grid](../schemas/components/grid)
-- [Tabs](../schemas/components/tabs)
-
+- [Schemas Documentation](../schemas/README.md)
+- [Forms FAQ](forms.md)

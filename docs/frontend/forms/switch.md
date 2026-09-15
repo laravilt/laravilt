@@ -1,144 +1,62 @@
 ---
 title: Switch
-description: Toggle switch component
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: frontend
-vue_component: Switch
-vue_package: "@laravilt/support"
+description: The Switch primitive for on/off settings.
+order: 4
 ---
 
 # Switch
 
-Toggle switch component.
-
 ## Import
 
 ```typescript
-import { Switch } from '@laravilt/support'
+import { Switch } from '@/components/ui/switch'
 ```
 
-## Basic Usage
+## Usage
+
+As with the checkbox, the Vue switch binds with plain `v-model`. The React switch uses `checked` and `onCheckedChange`.
 
 ```vue
-<script setup>
+<script setup lang="ts">
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { ref } from 'vue'
-import { Switch } from '@laravilt/support'
 
-const enabled = ref(false)
+const notifications = ref(true)
 </script>
 
 <template>
-    <Switch v-model:checked="enabled" />
-</template>
-```
-
-## With Label
-
-```vue
-<script setup>
-import { Switch, Label } from '@laravilt/support'
-</script>
-
-<template>
-    <div class="flex items-center gap-2">
-        <Switch id="notifications" v-model:checked="notifications" />
-        <Label for="notifications">Enable notifications</Label>
-    </div>
-</template>
-```
-
-## Settings List
-
-```vue
-<template>
-    <div class="space-y-4">
-        <div class="flex items-center justify-between">
-            <div>
-                <Label>Email Notifications</Label>
-                <p class="text-sm text-muted-foreground">
-                    Receive email updates
-                </p>
-            </div>
-            <Switch v-model:checked="emailNotifications" />
+    <div class="flex items-center justify-between">
+        <div>
+            <Label for="notifications">Email notifications</Label>
+            <p class="text-sm text-muted-foreground">Receive email updates</p>
         </div>
-
-        <div class="flex items-center justify-between">
-            <div>
-                <Label>Push Notifications</Label>
-                <p class="text-sm text-muted-foreground">
-                    Receive push updates
-                </p>
-            </div>
-            <Switch v-model:checked="pushNotifications" />
-        </div>
-
-        <div class="flex items-center justify-between">
-            <div>
-                <Label>Marketing Emails</Label>
-                <p class="text-sm text-muted-foreground">
-                    Receive marketing content
-                </p>
-            </div>
-            <Switch v-model:checked="marketingEmails" />
-        </div>
+        <Switch id="notifications" v-model="notifications" />
     </div>
 </template>
 ```
 
-## Disabled
+```tsx
+const [notifications, setNotifications] = useState(true);
 
-```vue
-<template>
-    <div class="flex items-center gap-2">
-        <Switch disabled />
-        <Label class="text-muted-foreground">Disabled</Label>
-    </div>
-
-    <div class="flex items-center gap-2">
-        <Switch disabled checked />
-        <Label class="text-muted-foreground">Disabled (on)</Label>
-    </div>
-</template>
-```
-
-## In Card
-
-```vue
-<template>
-    <Card>
-        <CardHeader>
-            <CardTitle>Notifications</CardTitle>
-            <CardDescription>
-                Manage your notification preferences
-            </CardDescription>
-        </CardHeader>
-        <CardContent class="space-y-4">
-            <div class="flex items-center justify-between">
-                <Label>All notifications</Label>
-                <Switch v-model:checked="allNotifications" />
-            </div>
-            <div class="flex items-center justify-between">
-                <Label>Email digest</Label>
-                <Switch v-model:checked="emailDigest" />
-            </div>
-        </CardContent>
-    </Card>
-</template>
+<div className="flex items-center justify-between">
+    <Label htmlFor="notifications">Email notifications</Label>
+    <Switch id="notifications" checked={notifications} onCheckedChange={setNotifications} />
+</div>;
 ```
 
 ## Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `checked` | `boolean` | `false` | Checked state |
-| `disabled` | `boolean` | `false` | Disabled state |
-| `id` | `string` | - | Element ID |
+| Vue | React | Description |
+|-----|-------|-------------|
+| `v-model` / `modelValue` | `checked` | On/off state |
+| `@update:model-value` | `onCheckedChange` | Change handler |
+| `default-value` | `defaultChecked` | Initial state when uncontrolled |
+| `disabled` | `disabled` | Disabled state |
+
+For a toggle field in a resource form, use the PHP `Toggle` field. See [Form Inputs (PHP)](../../forms/inputs/README.md).
 
 ## Related
 
-- [Checkbox](checkbox) - Checkbox input
-- [Card](../ui/card) - Content cards
-
+- [Checkbox](checkbox.md)
+- [Card](../ui/card.md)

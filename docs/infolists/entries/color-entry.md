@@ -1,66 +1,26 @@
 ---
 title: ColorEntry
-description: Color swatch display
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: infolists
-component: ColorEntry
-vue_component: InfolistColorEntry
+description: Color swatches with an optional label and copy button.
+order: 5
 ---
 
 # ColorEntry
 
-Color swatches with copy functionality.
-
-## Basic Usage
+Displays a color swatch.
 
 ```php
-<?php
-
 use Laravilt\Infolists\Entries\ColorEntry;
 
-ColorEntry::make('brand_color');
-```
-
-## Show Label
-
-```php
-<?php
-
-use Laravilt\Infolists\Entries\ColorEntry;
-
-ColorEntry::make('color')
-    ->showLabel();
-```
-
-## Copyable
-
-```php
-<?php
-
-use Laravilt\Infolists\Entries\ColorEntry;
-
-ColorEntry::make('hex')
+ColorEntry::make('brand_color')
+    ->showLabel()   // show the color value
+    ->size('lg')    // xs, sm, md, lg, xl
     ->copyable();
 ```
 
-## Size Options
-
-```php
-<?php
-
-use Laravilt\Infolists\Entries\ColorEntry;
-
-ColorEntry::make('color')
-    ->size('lg'); // xs, sm, md, lg, xl
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `showLabel()` | Show hex value |
-| `copyable()` | Enable copy |
-| `size()` | Swatch size |
+| `showLabel(bool)` | Show the color value |
+| `size(string)` | Swatch size |
+| `copyable(bool)` | Copy button |

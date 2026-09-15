@@ -1,107 +1,65 @@
 ---
 title: ExportAction
-description: Export records to various file formats
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
-component: ExportAction
+description: Export records to XLSX or CSV with Laravel Excel.
+order: 8
 ---
 
 # ExportAction
 
-Export table records to Excel, CSV using Laravel Excel.
-
-## Basic Usage
+`ExportAction` uses [Laravel Excel](https://docs.laravel-excel.com) (`maatwebsite/excel`).
 
 ```php
-use Laravilt\Actions\ExportAction;
-
-ExportAction::make();
-```
-
-## Default Configuration
-
-- **Icon**: Download
-- **Color**: gray
-- Integrates with Laravel Excel (Maatwebsite)
-
-## Export as XLSX
-
-```php
-use Laravilt\Actions\ExportAction;
-
-ExportAction::make()
-    ->xlsx()
-    ->fileName('products-export');
-```
-
-## Export as CSV
-
-```php
-use Laravilt\Actions\ExportAction;
-
-ExportAction::make()
-    ->csv()
-    ->fileName('orders');
-```
-
-## Custom Exporter Class
-
-```php
-use Laravilt\Actions\ExportAction;
 use App\Exports\ProductExporter;
+use Laravilt\Actions\ExportAction;
 
 ExportAction::make()
     ->exporter(ProductExporter::class)
     ->fileName('products');
 ```
 
-## Specify Columns
+Defaults: name `export`, label "Export", icon `download`, color `gray`, XLSX format.
 
-```php
-use Laravilt\Actions\ExportAction;
+## Generate an exporter
 
-ExportAction::make()
-    ->columns(['id', 'name', 'email', 'created_at'])
-    ->headings(['ID', 'Full Name', 'Email Address', 'Registration Date']);
+```bash
+php artisan laravilt:exporter ProductExporter --model=Product
 ```
 
-## Modify Query
+This creates `app/Exports/ProductExporter.php`, a Laravel Excel export class (`FromQuery`, `WithHeadings`, `WithMapping`). Edit `query()`, `headings()`, and `map()` to shape the file.
+
+## Format
 
 ```php
-use Laravilt\Actions\ExportAction;
-
-ExportAction::make()
-    ->modifyQueryUsing(function ($query) {
-        return $query->where('is_active', true)
-            ->orderBy('created_at', 'desc');
-    });
+ExportAction::make()->exporter(ProductExporter::class)->csv();
+ExportAction::make()->exporter(ProductExporter::class)->xlsx();
 ```
 
-## Queue Large Exports
+## Without an exporter class
+
+Without an exporter, the action exports the collection or query it receives, using the headings you give it:
 
 ```php
-use Laravilt\Actions\ExportAction;
-
 ExportAction::make()
+    ->headings(['ID', 'Name', 'Email'])
+    ->modifyQueryUsing(fn ($query) => $query->where('is_active', true));
+```
+
+## Queued exports
+
+```php
+ExportAction::make()
+    ->exporter(ProductExporter::class)
     ->queue()
-    ->disk('exports')
-    ->filePath('exports/products');
+    ->disk('s3');
 ```
 
-## API Reference
+## API reference
 
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `make()` | `?string $name` | Create action |
-| `exporter()` | `string` | Exporter class |
-| `fileName()` | `string` | Output filename |
-| `xlsx()` | — | Export as XLSX |
-| `csv()` | — | Export as CSV |
-| `columns()` | `array` | Columns to export |
-| `headings()` | `array` | Column headings |
-| `modifyQueryUsing()` | `Closure` | Modify query |
-| `queue()` | — | Queue export |
-| `disk()` | `string` | Storage disk |
+| Method | Description |
+|--------|-------------|
+| `exporter(string)` | Laravel Excel export class |
+| `fileName(string)` | Output file name |
+| `xlsx()`, `csv()`, `writerType(string)` | Output format |
+| `headings(array)`, `columns(array)` | Columns for class-less exports |
+| `modifyQueryUsing(Closure)` | Adjust the query before exporting |
+| `queue()`, `disk()`, `filePath()` | Queued exports |

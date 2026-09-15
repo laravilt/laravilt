@@ -1,100 +1,41 @@
 ---
 title: Split
-description: Two-pane layout component
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: schemas
-vue_component: Split
-vue_package: "@laravilt/schemas"
+description: Two-pane layout with start and end content.
+order: 5
 ---
 
 # Split
 
-Two-pane layout for content and sidebar.
-
-## Basic Usage
+A two-pane layout, for example main content with a sidebar.
 
 ```php
-<?php
-
-use Laravilt\Schemas\Components\Split;
+use Laravilt\Forms\Components\Textarea;
 use Laravilt\Forms\Components\TextInput;
+use Laravilt\Schemas\Components\Split;
 
-Split::make()
+Split::make('main')
+    ->fromBreakpoint('lg')            // stacked below lg
+    ->startColumnSpan('md:col-span-8')
+    ->endColumnSpan('md:col-span-4')
     ->startSchema([
         TextInput::make('title'),
-        TextInput::make('content'),
+        Textarea::make('content'),
     ])
     ->endSchema([
         TextInput::make('status'),
     ]);
 ```
 
-## Left/Right Aliases
+`leftSchema()` and `rightSchema()` are aliases for `startSchema()` and `endSchema()`.
 
-```php
-<?php
+The panel's schema renderer maps `split` on both stacks, so a Split works inside resource forms. Both panes render their schema like any other content. The standalone `InfoList` component only lays out Section, Grid and Tabs, so use those for infolist layouts.
 
-Split::make()
-    ->leftSchema([
-        TextInput::make('title'),
-    ])
-    ->rightSchema([
-        TextInput::make('sidebar'),
-    ]);
-```
-
-## Responsive Breakpoint
-
-```php
-<?php
-
-Split::make()
-    ->fromBreakpoint('md')  // Stack below md
-    ->startSchema([...])
-    ->endSchema([...]);
-```
-
-## Custom Column Spans
-
-```php
-<?php
-
-Split::make()
-    ->fromBreakpoint('lg')
-    ->startColumnSpan('md:col-span-8')
-    ->endColumnSpan('md:col-span-4')
-    ->startSchema([...])
-    ->endSchema([...]);
-```
-
-## Methods
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `make(string)` | Create split |
-| `fromBreakpoint(string)` | Stack breakpoint |
-| `startSchema(array)` | Left content |
-| `endSchema(array)` | Right content |
-| `leftSchema(array)` | Alias for start |
-| `rightSchema(array)` | Alias for end |
-| `startColumnSpan(string\|int)` | Left width |
-| `endColumnSpan(string\|int)` | Right width |
-
-## Getters
-
-| Method | Return |
-|--------|--------|
-| `getFromBreakpoint()` | `string` |
-| `getStartSchema()` | `array` |
-| `getEndSchema()` | `array` |
-| `getLeftSchema()` | `array` |
-| `getRightSchema()` | `array` |
-
-## Related
-
-- [Section](section) - Grouped content
-- [Grid](grid) - Multi-column layout
-
+| `make(string)` | Create (name required) |
+| `fromBreakpoint(string)` | Breakpoint where the panes sit side by side (default `md`) |
+| `startSchema(array)` / `endSchema(array)` | Pane content |
+| `leftSchema(array)` / `rightSchema(array)` | Aliases |
+| `startColumnSpan(string\|int)` / `endColumnSpan(string\|int)` | Pane widths (default `md:col-span-6`) |

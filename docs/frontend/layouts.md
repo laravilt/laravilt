@@ -1,42 +1,98 @@
 ---
 title: Layouts
-description: Page layouts and structure for Laravilt admin panels.
+description: The app and auth layouts published into your application and how to customize them.
+order: 1
 ---
 
 # Layouts
 
-Laravilt provides several layouts for different page types.
+The installer publishes the layouts into `resources/js/layouts/`. They are ordinary app files, so you can edit them.
 
-## Available Layouts
+| Vue | React | Purpose |
+|-----|-------|---------|
+| `AppLayout.vue` | `app-layout.tsx` | Authenticated app shell (wraps the sidebar layout) |
+| `app/AppSidebarLayout.vue` | `app/app-sidebar-layout.tsx` | Sidebar + header + content (default) |
+| `app/AppHeaderLayout.vue` | `app/app-header-layout.tsx` | Top navigation variant |
+| `AuthLayout.vue` | `auth-layout.tsx` | Auth pages (wraps the simple auth layout) |
+| `auth/AuthSimpleLayout.vue` | `auth/auth-simple-layout.tsx` | Centered form |
+| `auth/AuthCardLayout.vue` | `auth/auth-card-layout.tsx` | Form in a card |
+| `auth/AuthSplitLayout.vue` | `auth/auth-split-layout.tsx` | Split screen |
+| `settings/Layout.vue` | (none) | Settings pages (Vue only) |
 
-### AppLayout (Default)
+> React support requires Laravilt v1.1 or later.
 
-The main admin panel layout with sidebar, header, and content area:
+Laravilt resource pages (list, create, edit, view) use the panel's own layout from `vendor/laravilt/panel`. The published layouts are for your own Inertia pages and for the app shell.
+
+## AppLayout
+
+`AppLayout` takes an optional `breadcrumbs` prop (`{ title, href }[]`) and renders the page in its default slot or children.
 
 ```vue
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue'
+import type { BreadcrumbItem } from '@/types'
+import { Head } from '@inertiajs/vue3'
+
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/admin' },
+    { title: 'Reports', href: '/admin/reports' },
+]
 </script>
 
 <template>
-    <AppLayout title="Dashboard">
+    <Head title="Reports" />
+    <AppLayout :breadcrumbs="breadcrumbs">
         <div class="p-6">
-            <h1>Dashboard Content</h1>
+            <h1 class="text-2xl font-semibold">Reports</h1>
         </div>
     </AppLayout>
 </template>
 ```
 
-**Features:**
-- Collapsible sidebar
-- Top header with global search
-- User menu
-- Breadcrumbs support
-- Theme switching
+```tsx
+import AppLayout from '@/layouts/app-layout';
+import type { BreadcrumbItem } from '@/types';
+import { Head } from '@inertiajs/react';
 
-### AuthLayout
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Dashboard', href: '/admin' },
+    { title: 'Reports', href: '/admin/reports' },
+];
 
-Simple centered layout for authentication pages:
+export default function Reports() {
+    return (
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Reports" />
+            <div className="p-6">
+                <h1 className="text-2xl font-semibold">Reports</h1>
+            </div>
+        </AppLayout>
+    );
+}
+```
+
+The sidebar layout composes `AppShell`, `AppSidebar`, `AppContent` and `AppSidebarHeader`, which shows the breadcrumbs. On Vue it also mounts the notification container that displays session notifications. See [App Shell Components](components.md).
+
+## Switching to the Header Layout
+
+To use top navigation instead of a sidebar, point `AppLayout` at the header layout:
+
+```vue
+<!-- resources/js/layouts/AppLayout.vue -->
+<script setup lang="ts">
+import AppLayout from '@/layouts/app/AppHeaderLayout.vue'
+// ...
+</script>
+```
+
+```tsx
+// resources/js/layouts/app-layout.tsx
+import AppLayoutTemplate from '@/layouts/app/app-header-layout';
+```
+
+## AuthLayout
+
+`AuthLayout` accepts `title` and `description` and wraps `AuthSimpleLayout`. To use the card or split variant, change the import in `AuthLayout.vue` / `auth-layout.tsx`.
 
 ```vue
 <script setup lang="ts">
@@ -44,252 +100,26 @@ import AuthLayout from '@/layouts/AuthLayout.vue'
 </script>
 
 <template>
-    <AuthLayout title="Login">
-        <form class="space-y-4">
-            <!-- Login form -->
-        </form>
+    <AuthLayout title="Log in" description="Enter your email and password">
+        <!-- form -->
     </AuthLayout>
 </template>
 ```
 
-**Features:**
-- Centered card
-- Logo display
-- Clean background
+The panel login, registration and password pages come from `laravilt/auth`. See [Auth](../auth/README.md).
 
-### GuestLayout
+## Sidebar Behavior
 
-Public pages layout without authentication:
+The sidebar is the shadcn `Sidebar` primitive (`@/components/ui/sidebar`):
 
-```vue
-<script setup lang="ts">
-import GuestLayout from '@/layouts/GuestLayout.vue'
-</script>
+- **Expanded / collapsed.** In collapsed (icon) mode, navigation groups open as dropdowns.
+- **Mobile.** The sidebar becomes an off-canvas sheet.
+- **State.** Read or toggle it with `useSidebar()` (see [Utilities](utilities.md)).
 
-<template>
-    <GuestLayout>
-        <div class="min-h-screen">
-            <!-- Public page content -->
-        </div>
-    </GuestLayout>
-</template>
-```
+The width is set by the `--sidebar-width` and `--sidebar-width-icon` CSS variables in the sidebar provider component, so edit them there or override them in CSS.
 
-## Layout Structure
+## Related
 
-### AppLayout Anatomy
-
-```
-┌─────────────────────────────────────────────────────────┐
-│ AppHeader (fixed top)                                   │
-│ ┌─────────────────────────────────────────────────────┐ │
-│ │ Logo │ Global Search │ Theme │ User Menu            │ │
-│ └─────────────────────────────────────────────────────┘ │
-├──────────┬──────────────────────────────────────────────┤
-│          │                                              │
-│ AppSide- │ AppContent                                   │
-│ bar      │                                              │
-│          │ ┌──────────────────────────────────────────┐ │
-│ ┌──────┐ │ │ Page Header (title, actions)            │ │
-│ │NavMain│ │ └──────────────────────────────────────────┘ │
-│ └──────┘ │                                              │
-│          │ ┌──────────────────────────────────────────┐ │
-│ ┌──────┐ │ │                                          │ │
-│ │NavFtr │ │ │ Slot Content                            │ │
-│ └──────┘ │ │                                          │ │
-│          │ └──────────────────────────────────────────┘ │
-└──────────┴──────────────────────────────────────────────┘
-```
-
-### Sidebar States
-
-**Expanded:**
-- Full width (256px default)
-- Icon + text navigation items
-- Group labels visible
-- Full user info display
-
-**Collapsed:**
-- Icon-only width (64px)
-- Navigation groups become dropdowns
-- Tooltips on hover
-- Mini user avatar
-
-## Using Layouts
-
-### With Inertia Pages
-
-```vue
-<script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue'
-import { Head } from '@inertiajs/vue3'
-
-defineProps<{
-    title: string
-}>()
-</script>
-
-<template>
-    <AppLayout :title="title">
-        <Head :title="title" />
-
-        <div class="p-6">
-            <slot />
-        </div>
-    </AppLayout>
-</template>
-```
-
-### With Page Actions
-
-```vue
-<template>
-    <AppLayout title="Users">
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold">Users</h1>
-                <Button @click="createUser">
-                    <Plus class="mr-2 h-4 w-4" />
-                    Create User
-                </Button>
-            </div>
-        </template>
-
-        <div class="p-6">
-            <!-- Content -->
-        </div>
-    </AppLayout>
-</template>
-```
-
-### With Breadcrumbs
-
-```vue
-<script setup lang="ts">
-const breadcrumbs = [
-    { title: 'Dashboard', href: '/admin' },
-    { title: 'Users', href: '/admin/users' },
-    { title: 'Edit User' },
-]
-</script>
-
-<template>
-    <AppLayout title="Edit User" :breadcrumbs="breadcrumbs">
-        <!-- Content -->
-    </AppLayout>
-</template>
-```
-
-## Customizing Layouts
-
-### Custom Sidebar Width
-
-```css
-/* In your global CSS */
-:root {
-    --sidebar-width: 280px;
-    --sidebar-collapsed-width: 72px;
-}
-```
-
-### Custom Theme Colors
-
-```css
-:root {
-    --primary: 3.5 100% 56.3%;       /* #FF2D20 */
-    --brand-accent: 266.4 77.3% 62%; /* #9553E9 */
-}
-
-.dark {
-    --primary: 3.5 100% 56.3%;
-    --brand-accent: 266.4 77.3% 62%;
-}
-```
-
-### Adding Layout Slots
-
-Create a custom layout with additional slots:
-
-```vue
-<script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue'
-</script>
-
-<template>
-    <AppLayout v-bind="$attrs">
-        <template #sidebar-header>
-            <slot name="sidebar-header" />
-        </template>
-
-        <template #sidebar-footer>
-            <slot name="sidebar-footer" />
-        </template>
-
-        <slot />
-    </AppLayout>
-</template>
-```
-
-## Responsive Behavior
-
-### Mobile Sidebar
-
-On mobile devices (`< 768px`):
-- Sidebar becomes an overlay sheet
-- Toggle button in header
-- Swipe to close support
-- Dark backdrop when open
-
-### Tablet Mode
-
-On tablets (`768px - 1024px`):
-- Sidebar defaults to collapsed
-- Can be expanded by user
-- Content uses full width
-
-### Desktop Mode
-
-On desktop (`> 1024px`):
-- Sidebar defaults to expanded
-- Collapsible with toggle
-- Content respects sidebar width
-
-## Best Practices
-
-### Use Semantic Structure
-
-```vue
-<template>
-    <AppLayout title="Page Title">
-        <main class="p-6">
-            <header class="mb-6">
-                <h1>Page Heading</h1>
-            </header>
-
-            <section>
-                <!-- Main content -->
-            </section>
-        </main>
-    </AppLayout>
-</template>
-```
-
-### Handle Loading States
-
-```vue
-<template>
-    <AppLayout title="Data">
-        <div v-if="loading" class="flex items-center justify-center p-12">
-            <Spinner />
-        </div>
-
-        <div v-else>
-            <!-- Content -->
-        </div>
-    </AppLayout>
-</template>
-```
-
-### Persist User Preferences
-
-Sidebar state and theme preferences are automatically persisted in localStorage.
+- [App Shell Components](components.md)
+- [Styling & Theming](styling.md)
+- [Panel Layout](../panel/layout.md)

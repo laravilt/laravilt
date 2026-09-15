@@ -1,163 +1,83 @@
 ---
-title: Email & Password Authentication
-description: Traditional email and password login with registration
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
-method: email-password
+title: Email & Password
+description: Login, registration, password reset, email verification, OTP and magic links.
+order: 1
 ---
 
 # Email & Password Authentication
 
-Traditional authentication using email and password credentials.
+These are the classic sign-in flows, plus two passwordless options (one-time codes and magic links).
 
-## Enable in Panel
+## Enable in the panel
 
 ```php
-<?php
-
-namespace App\Laravilt\Admin;
-
-use Laravilt\Panel\PanelProvider;
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
+public function panel(Panel $panel): Panel
 {
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->id('admin')
-            ->path('admin')
-            ->login()
-            ->registration()
-            ->passwordReset()
-            ->emailVerification();
-    }
+    return $panel
+        ->id('admin')
+        ->path('admin')
+        ->login()
+        ->registration()
+        ->passwordReset()
+        ->emailVerification()
+        ->otp()
+        ->magicLinks();
 }
 ```
 
-## Login Page
+| Method | Default path | Page class |
+|--------|--------------|------------|
+| `login()` | `/admin/login` | `Laravilt\Auth\Pages\Login` |
+| `registration()` | `/admin/register` | `Laravilt\Auth\Pages\Register` |
+| `passwordReset()` | `/admin/forgot-password`, `/admin/reset-password/{token}` | `ForgotPassword`, `ResetPassword` |
+| `emailVerification()` | `/admin/verify-email` | `EmailVerification` |
+| `otp()` | `/admin/otp` | `OTP` |
+| `magicLinks()` | `/admin/magic-link` | `MagicLink` |
 
-Enable the login page:
-
-```php
-$panel->login();
-
-// Custom login route
-$panel->login('/auth/login');
-```
-
-## Registration
-
-Enable user registration:
+Every method accepts `?string $page = null, ?string $path = null`:
 
 ```php
-$panel->register();
-
-// Custom registration route
-$panel->register('/auth/register');
+$panel
+    ->login(path: 'sign-in')
+    ->registration(\App\Laravilt\Admin\Pages\Auth\Register::class);
 ```
 
-## Password Reset
+A custom page should extend the package page it replaces.
 
-Enable password reset flow:
+## Password reset and email verification
+
+Both flows use Laravel's password broker and signed URLs, so make sure mail is configured (`MAIL_MAILER` and related settings). The verification link is `/{panel}/email/verify/{id}/{hash}`, which is signed and throttled to 6 requests per minute.
+
+Password rules follow Laravel's `Password::defaults()`. Set your own rules in a service provider:
 
 ```php
-$panel->passwordReset();
+use Illuminate\Validation\Rules\Password;
+
+Password::defaults(fn () => Password::min(12)->mixedCase()->numbers());
 ```
 
-## Email Verification
+## One-time codes (OTP)
 
-Require email verification:
+`otp()` adds a code-entry page used to verify a user by a 6-digit code sent to them, for example after registration. Codes are stored in the `otp_codes` table. The length and expiry come from `config/laravilt-auth.php`:
 
 ```php
-$panel->emailVerification();
+'otp' => [
+    'length' => 6,
+    'expiry' => 5, // minutes
+],
 ```
 
-## Configuration
+The flow dispatches `OtpSent`, `OtpVerified` and `OtpFailed`.
 
-```php
-// config/laravilt-auth.php
+## Magic links
 
-return [
-    'features' => [
-        'login' => true,
-        'register' => true,
-        'password_reset' => true,
-        'email_verification' => true,
-    ],
+`magicLinks()` adds a "Email me a login link" page. The user receives a link to `/{panel}/magic-link/verify/{token}` and is logged in when they open it. The flow dispatches `MagicLinkSent` and `MagicLinkVerified`.
 
-    'login' => [
-        'rate_limit' => 5,  // Max attempts per minute
-        'lockout_duration' => 60,  // Seconds
-    ],
+## Events
 
-    'password' => [
-        'min_length' => 8,
-        'require_uppercase' => true,
-        'require_lowercase' => true,
-        'require_numbers' => true,
-        'require_symbols' => false,
-    ],
-];
-```
+`LoginAttempt`, `LoginFailed`, `LoginSuccessful`, `RegistrationAttempt`, `RegistrationCompleted`, `PasswordResetRequested` and `PasswordReset`. See [Events](../events.md).
 
-## Customizing Login
+## Related
 
-### Custom Fields
-
-```php
-// app/Laravilt/Admin/Pages/Login.php
-
-use Laravilt\Auth\Pages\Login as BaseLogin;
-
-class Login extends BaseLogin
-{
-    protected function getFormSchema(): array
-    {
-        return [
-            TextInput::make('email')
-                ->email()
-                ->required()
-                ->autocomplete('email'),
-
-            TextInput::make('password')
-                ->password()
-                ->required()
-                ->autocomplete('current-password'),
-
-            Toggle::make('remember')
-                ->label('Remember me'),
-        ];
-    }
-}
-```
-
-### Custom Authentication Logic
-
-```php
-protected function authenticate(array $data): void
-{
-    if (!Auth::attempt([
-        'email' => $data['email'],
-        'password' => $data['password'],
-    ], $data['remember'] ?? false)) {
-        throw ValidationException::withMessages([
-            'email' => __('auth.failed'),
-        ]);
-    }
-}
-```
-
-## API Reference
-
-### Panel Methods
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `login()` | `?string $path` | Enable login page |
-| `register()` | `?string $path` | Enable registration |
-| `passwordReset()` | — | Enable password reset |
-| `emailVerification()` | — | Require email verification |
+- [Two-Factor Authentication](two-factor.md)
+- [Configuration](../configuration.md)

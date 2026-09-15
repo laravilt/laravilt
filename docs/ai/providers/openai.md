@@ -1,42 +1,42 @@
 ---
-title: OpenAI Provider
-description: GPT models integration
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-provider: openai
+title: OpenAI
+description: Use OpenAI GPT and o1 models with Laravilt AI.
+order: 1
 ---
 
 # OpenAI Provider
 
-Integration with OpenAI GPT models.
-
-## Supported Models
-
-| Model | Description |
-|-------|-------------|
-| gpt-4o | Latest multimodal |
-| gpt-4o-mini | Fast and affordable |
-| gpt-4-turbo | High capability |
-| gpt-4 | Original GPT-4 |
-| gpt-3.5-turbo | Fast responses |
-| o1-preview | Reasoning model |
-| o1-mini | Compact reasoning |
+`Laravilt\AI\Providers\OpenAIProvider` talks to the OpenAI Chat Completions API.
 
 ## Configuration
 
 ```env
 OPENAI_API_KEY=sk-...
 OPENAI_MODEL=gpt-4o-mini
+# Optional
+OPENAI_BASE_URL=
+OPENAI_TEMPERATURE=0.7
+OPENAI_MAX_TOKENS=2048
 ```
+
+## Models
+
+`Laravilt\AI\Enums\OpenAIModel`:
+
+| Case | Value |
+|------|-------|
+| `GPT_4O` | `gpt-4o` |
+| `GPT_4O_MINI` | `gpt-4o-mini` (default) |
+| `GPT_4_TURBO` | `gpt-4-turbo` |
+| `GPT_4` | `gpt-4` |
+| `GPT_35_TURBO` | `gpt-3.5-turbo` |
+| `O1` | `o1` |
+| `O1_MINI` | `o1-mini` |
+| `O1_PREVIEW` | `o1-preview` |
 
 ## Usage
 
 ```php
-<?php
-
 use Laravilt\AI\AIManager;
 
 $ai = app(AIManager::class);
@@ -44,39 +44,23 @@ $ai = app(AIManager::class);
 $response = $ai->provider('openai')->chat([
     ['role' => 'system', 'content' => 'You are a helpful assistant.'],
     ['role' => 'user', 'content' => 'Hello!'],
+], [
+    'model' => 'gpt-4o',
+    'temperature' => 0.2,
+    'max_tokens' => 1024,
 ]);
 
 echo $response['content'];
-print_r($response['usage']);
-```
-
-## Advanced Options
-
-```php
-<?php
-
-use Laravilt\AI\AIManager;
-
-$response = $ai->provider('openai')->chat($messages, [
-    'temperature' => 0.8,
-    'top_p' => 0.9,
-    'presence_penalty' => 0.6,
-    'frequency_penalty' => 0.5,
-    'max_tokens' => 2048,
-]);
+print_r($response['usage']); // prompt_tokens, completion_tokens, total_tokens
 ```
 
 ## Streaming
 
 ```php
-<?php
-
-use Laravilt\AI\AIManager;
-
-$ai = app(AIManager::class);
-
-foreach ($ai->provider('openai')->streamChat($messages) as $chunk) {
+$ai->provider('openai')->streamChatRealtime($messages, function (string $chunk) {
     echo $chunk;
     flush();
-}
+});
 ```
+
+See [Streaming](../chat/streaming.md) for details.

@@ -1,82 +1,49 @@
 ---
 title: Bulk Actions
-description: Multiple records actions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-concept: actions
-vue_component: TableBulkActions
+description: Run actions on the selected rows of a table.
+order: 2
 ---
 
 # Bulk Actions
 
-Actions for multiple selected records.
-
-## Built-in Bulk Actions
+Selecting rows reveals bulk actions. Register them with `bulkActions()`, or with `toolbarActions()` wrapped in a `BulkActionGroup`, which is what the resource generator produces.
 
 ```php
-<?php
-
+use Laravilt\Actions\BulkActionGroup;
 use Laravilt\Actions\DeleteBulkAction;
-use Laravilt\Actions\RestoreBulkAction;
 use Laravilt\Actions\ForceDeleteBulkAction;
+use Laravilt\Actions\RestoreBulkAction;
 
-->bulkActions([
-    DeleteBulkAction::make(),
-    RestoreBulkAction::make(),
-    ForceDeleteBulkAction::make(),
-])
+$table->toolbarActions([
+    BulkActionGroup::make([
+        DeleteBulkAction::make(),
+        RestoreBulkAction::make(),
+        ForceDeleteBulkAction::make(),
+    ]),
+]);
 ```
 
-## Custom Bulk Action
+## Custom bulk action
+
+Name the first closure parameter `$records` to receive the selected models as a collection, or `$ids` to receive only their keys. A `$data` parameter receives the modal form values.
 
 ```php
-<?php
-
-use Laravilt\Actions\BulkAction;
-use Laravilt\Notifications\Notification;
-
-->bulkActions([
-    BulkAction::make('activate')
-        ->label('Activate Selected')
-        ->icon('CheckCircle')
-        ->action(function ($records) {
-            $records->each->activate();
-
-            Notification::make()
-                ->title("{$records->count()} activated")
-                ->success()
-                ->send();
-        }),
-])
-```
-
-## With Form
-
-```php
-<?php
-
 use Laravilt\Actions\BulkAction;
 use Laravilt\Forms\Components\Select;
 
-BulkAction::make('assignCategory')
-    ->form([
-        Select::make('category_id')
-            ->options(Category::pluck('name', 'id'))
-            ->required(),
-    ])
-    ->action(function ($records, array $data) {
-        $records->each->update(['category_id' => $data['category_id']]);
-    });
+$table->bulkActions([
+    BulkAction::make('assignCategory')
+        ->icon('Tag')
+        ->form([
+            Select::make('category_id')
+                ->options(fn () => Category::pluck('name', 'id')->all())
+                ->required(),
+        ])
+        ->deselectRecordsAfterCompletion()
+        ->action(function ($records, array $data) {
+            $records->each->update(['category_id' => $data['category_id']]);
+        }),
+]);
 ```
 
-## API Reference
-
-| Method | Description |
-|--------|-------------|
-| `action()` | Action callback |
-| `form()` | Action form |
-| `requiresConfirmation()` | Show modal |
-| `deselectRecordsAfterCompletion()` | Deselect after |
+Bulk actions require confirmation by default. See [BulkAction](../../actions/bulk/bulk-action.md) and the other [bulk action types](../../actions/bulk/README.md).

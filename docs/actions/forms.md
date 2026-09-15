@@ -1,18 +1,14 @@
 ---
-title: Action Forms
-description: Modal forms for actions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
+title: Forms
+description: Collect input or show record details in an action modal.
+order: 3
 ---
 
-# Action Forms
+# Forms
 
-Add interactive forms to action modals.
+## Modal form
 
-## Form Input
+`schema()` (or its aliases `form()` and `modalFormSchema()`) adds [form fields](../forms/README.md) to the modal. The submitted values arrive in `$data`.
 
 ```php
 use Laravilt\Actions\Action;
@@ -20,10 +16,9 @@ use Laravilt\Forms\Components\Select;
 use Laravilt\Forms\Components\Textarea;
 
 Action::make('changeStatus')
-    ->modalHeading('Change Status')
+    ->modalHeading('Change status')
     ->schema([
         Select::make('status')
-            ->label('New Status')
             ->options([
                 'draft' => 'Draft',
                 'published' => 'Published',
@@ -31,51 +26,51 @@ Action::make('changeStatus')
             ])
             ->required(),
 
-        Textarea::make('reason')
-            ->label('Reason')
-            ->rows(3),
+        Textarea::make('reason')->rows(3),
     ])
     ->action(function ($record, array $data) {
-        $record->update([
-            'status' => $data['status'],
-            'reason' => $data['reason'],
-        ]);
+        $record->update($data);
     });
 ```
 
-## View-Only Modal (Infolist)
+## Prefill the form
 
 ```php
-use Laravilt\Actions\Action;
-use Laravilt\Infolists\Entries\TextEntry;
-
-Action::make('viewDetails')
-    ->modalHeading('User Details')
-    ->schema([
-        TextEntry::make('name'),
-        TextEntry::make('email'),
-        TextEntry::make('created_at')->dateTime(),
-    ])
-    ->isViewOnly();     // No submit button
-```
-
-## With Form Data
-
-```php
-use Laravilt\Actions\Action;
 use Laravilt\Forms\Components\TextInput;
 
 Action::make('updatePrice')
     ->schema([
         TextInput::make('price')->numeric()->required(),
     ])
-    ->action(function ($record, array $data) {
-        $record->update(['price' => $data['price']]);
-    });
+    ->fillForm(fn ($record) => ['price' => $record->price])
+    ->action(fn ($record, array $data) => $record->update($data));
 ```
 
-## Next Steps
+Use `defaultFormData([...])` for defaults that don't depend on a record.
 
-- [Confirmation](confirmation) - Confirmation modals
-- [Groups](groups) - Action groups
-- [Authorization](authorization) - Permissions
+## View-only modal
+
+Show [infolist entries](../infolists/README.md) without a submit button:
+
+```php
+use Laravilt\Infolists\Entries\TextEntry;
+
+Action::make('details')
+    ->modalHeading('User details')
+    ->modalInfolistSchema([
+        TextEntry::make('name'),
+        TextEntry::make('email'),
+        TextEntry::make('created_at')->dateTime(),
+    ])
+    ->isViewOnly();
+```
+
+## API reference
+
+| Method | Description |
+|--------|-------------|
+| `schema()` / `form()` / `modalFormSchema()` | Form fields in the modal |
+| `fillForm(Closure)` | Initial values from the record |
+| `defaultFormData(array)` | Initial values without a record |
+| `modalInfolistSchema()` | Read-only entries |
+| `isViewOnly()` | Hide the submit button |

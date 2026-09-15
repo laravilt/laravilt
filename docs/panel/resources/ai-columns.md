@@ -1,17 +1,12 @@
 ---
 title: AI Columns
-description: Define columns for AI-powered resource operations
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: resources
+description: Describe the columns an AI agent can search, filter, sort and write.
+order: 9
 ---
 
 # AI Columns
 
-Define columns that AI can understand and use for querying, filtering, and CRUD operations.
+`AIColumn` describes a model attribute to the AI agent so it can query, filter and manage records.
 
 ## Basic Column
 
@@ -19,14 +14,13 @@ Define columns that AI can understand and use for querying, filtering, and CRUD 
 use Laravilt\AI\AIColumn;
 
 AIColumn::make('name')
-    ->label('Product Name');
+    ->label('Product Name')
+    ->description('The public product name');
 ```
 
 ## Column Types
 
 ```php
-use Laravilt\AI\AIColumn;
-
 AIColumn::make('name')->type('string');
 AIColumn::make('price')->type('decimal');
 AIColumn::make('stock')->type('integer');
@@ -34,81 +28,40 @@ AIColumn::make('is_active')->type('boolean');
 AIColumn::make('created_at')->type('datetime');
 ```
 
-## Searchable Columns
+## Capabilities
 
 ```php
-use Laravilt\AI\AIColumn;
-
-AIColumn::make('name')
-    ->label('Product Name')
-    ->searchable();
-```
-
-## Filterable Columns
-
-```php
-use Laravilt\AI\AIColumn;
-
-AIColumn::make('status')
-    ->label('Status')
-    ->filterable();
-```
-
-## Sortable Columns
-
-```php
-use Laravilt\AI\AIColumn;
-
-AIColumn::make('price')
-    ->label('Price')
-    ->sortable();
+AIColumn::make('name')->searchable();
+AIColumn::make('status')->filterable()->options([
+    'draft' => 'Draft',
+    'published' => 'Published',
+]);
+AIColumn::make('price')->sortable();
 ```
 
 ## Relationship Columns
 
 ```php
-use Laravilt\AI\AIColumn;
-
 AIColumn::make('category')
-    ->relationship('category', 'name')
+    ->relationship('category', 'name')   // relationship, title column (default: name)
     ->filterable();
 ```
 
 ## Complete Example
 
 ```php
-<?php
-
-namespace App\Laravilt\Admin\Resources\Product;
-
-use Laravilt\Panel\Resources\Resource;
 use Laravilt\AI\AIAgent;
 use Laravilt\AI\AIColumn;
 
-class ProductResource extends Resource
+public static function ai(AIAgent $agent): AIAgent
 {
-    public static function ai(AIAgent $agent): AIAgent
-    {
-        return $agent->columns([
-            AIColumn::make('id')
-                ->type('integer'),
-            AIColumn::make('name')
-                ->label('Product Name')
-                ->searchable()
-                ->sortable(),
-            AIColumn::make('price')
-                ->type('decimal')
-                ->filterable()
-                ->sortable(),
-            AIColumn::make('is_active')
-                ->type('boolean')
-                ->filterable(),
-            AIColumn::make('category.name')
-                ->label('Category')
-                ->relationship('category', 'name')
-                ->filterable(),
-        ]);
-    }
+    return $agent->columns([
+        AIColumn::make('id')->type('integer'),
+        AIColumn::make('name')->label('Product Name')->searchable()->sortable(),
+        AIColumn::make('price')->type('decimal')->filterable()->sortable(),
+        AIColumn::make('is_active')->type('boolean')->filterable(),
+        AIColumn::make('category')->relationship('category', 'name')->filterable(),
+    ]);
 }
 ```
 
@@ -118,8 +71,10 @@ class ProductResource extends Resource
 |--------|-----------|-------------|
 | `make()` | `string $name` | Create column |
 | `label()` | `string` | Display label |
+| `description()` | `string` | Hint for the AI |
 | `type()` | `string` | Data type |
-| `searchable()` | `bool` | Enable search |
-| `filterable()` | `bool` | Enable filter |
-| `sortable()` | `bool` | Enable sort |
-| `relationship()` | `string, string` | Define relationship |
+| `options()` | `array` | Allowed values |
+| `searchable()` | `bool = true` | Enable search |
+| `filterable()` | `bool = true` | Enable filtering |
+| `sortable()` | `bool = true` | Enable sorting |
+| `relationship()` | `string, string = 'name'` | Relationship and title column |

@@ -1,71 +1,80 @@
 ---
 title: Installation
-description: Create and install plugins
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: plugins
-concept: installation
+description: Generate a new plugin or install an existing one.
+order: 1
 ---
 
 # Installation
 
-Create and install Laravilt plugins.
-
-## Create Plugin
+## Generate a plugin
 
 ```bash
-# Interactive mode
+# Interactive
 php artisan laravilt:plugin
 
-# Quick create
-php artisan laravilt:plugin BlogManager
-
-# With vendor
-php artisan laravilt:plugin BlogManager --vendor=mycompany
+# With a name and vendor
+php artisan laravilt:plugin BlogManager --vendor=laravilt
 ```
 
-## Feature Selection
+| Argument / option | Description |
+|-------------------|-------------|
+| `name` | Plugin name (asked for if omitted) |
+| `--vendor=` | Vendor name (asked for if omitted) |
+| `--path=` | Base path. Defaults to `packages/{vendor}/{kebab-name}` |
+| `--no-plugin` | Plain Laravel package without a plugin class |
+| `--no-assets` | Skip asset scaffolding |
 
-Select features during creation:
+The command asks which features to include:
 
-- Laravilt plugin (Filament integration)
+- Laravilt plugin class (panel integration)
 - Database migrations
 - Blade views
-- Web routes
-- API routes
-- CSS assets (Tailwind v4)
-- JavaScript assets (Vue.js + Vite)
+- Web routes and API routes
+- CSS assets (Tailwind CSS v4)
+- JavaScript assets (Vite)
+- `arts/` folder with a cover image
 - Language files
-- GitHub workflows
-- PHPStan configuration
+- GitHub workflows and issue templates
+- PHPStan
+- Custom Composer details (author, email, license)
+- Initialize a Git repository, run `composer install`, run tests
 
-## Post-Generation
-
-After generation:
-- Initialize Git repository
-- Run composer install
-- Run tests
-
-## Install Existing Plugin
+Defaults for vendor, author, email, license and GitHub sponsor come from `config/laravilt-plugins.php` (`LARAVILT_PLUGINS_DEFAULT_*` env keys). Publish it with:
 
 ```bash
-# Install via Composer
-composer require vendor/plugin-name
-
-# Run migrations
-php artisan migrate
-
-# Run install command (if available)
-php artisan plugin-name:install
+php artisan vendor:publish --tag=laravilt-plugins-config
 ```
 
-## Register in Panel
+> `laravilt:make` looks for plugins in `packages/laravilt/{name}`. Use `--vendor=laravilt` if you want to generate components with it.
+
+## Load the plugin in your app
+
+Add the local package to your application's `composer.json` and require it:
+
+```json
+{
+    "repositories": [
+        { "type": "path", "url": "packages/laravilt/blog-manager" }
+    ]
+}
+```
+
+```bash
+composer require laravilt/blog-manager:@dev
+```
+
+## Install an existing plugin
+
+```bash
+composer require vendor/plugin-name
+php artisan migrate
+```
+
+Many plugins ship an install command, for example `php artisan laravilt:users:install`.
+
+## Register it on a panel
 
 ```php
-<?php
-
 use Vendor\PluginName\PluginNamePlugin;
 
 $panel->plugins([
@@ -75,5 +84,5 @@ $panel->plugins([
 
 ## Related
 
-- [Structure](structure) - Plugin structure
-- [Creating Plugin](../tutorials/creating-a-plugin) - Full guide
+- [Structure](structure.md)
+- [Creating a plugin](../tutorials/creating-a-plugin.md)

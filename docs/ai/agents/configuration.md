@@ -1,100 +1,54 @@
 ---
-title: Agent Configuration
-description: Configure AI agents
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-concept: configuration
+title: Configuration
+description: Choose providers, models and safe defaults for agents.
+order: 3
 ---
 
 # Agent Configuration
 
-Configure AI agents for optimal performance.
-
-## Environment Variables
+Agents use the providers from `config/laravilt-ai.php` and the panel's `aiProviders()`. See [Providers](../providers/README.md) for the full config file.
 
 ```env
-# Default provider
 LARAVILT_AI_PROVIDER=openai
 
-# OpenAI
 OPENAI_API_KEY=your-api-key
 OPENAI_MODEL=gpt-4o-mini
 
-# Anthropic
 ANTHROPIC_API_KEY=your-api-key
 ANTHROPIC_MODEL=claude-sonnet-4-20250514
 
-# Google Gemini
 GOOGLE_AI_API_KEY=your-api-key
 GOOGLE_AI_MODEL=gemini-2.0-flash-exp
 ```
 
-## Config File
+## Model selection
 
 ```php
-<?php
-
-// config/laravilt-ai.php
-return [
-    'default' => env('LARAVILT_AI_PROVIDER', 'openai'),
-
-    'providers' => [
-        'openai' => [
-            'api_key' => env('OPENAI_API_KEY'),
-            'model' => env('OPENAI_MODEL', 'gpt-4o-mini'),
-            'temperature' => 0.7,
-            'max_tokens' => 2048,
-        ],
-        'anthropic' => [
-            'api_key' => env('ANTHROPIC_API_KEY'),
-            'model' => env('ANTHROPIC_MODEL', 'claude-sonnet-4-20250514'),
-        ],
-    ],
-];
-```
-
-## Model Selection
-
-```php
-<?php
-
-use Laravilt\AI\Enums\OpenAIModel;
 use Laravilt\AI\Enums\AnthropicModel;
+use Laravilt\AI\Enums\OpenAIModel;
 
-// Set provider and model on agent
-$agent
-    ->provider('openai')
-    ->aiModel(OpenAIModel::GPT_4O_MINI);
+$agent->provider('openai')->aiModel(OpenAIModel::GPT_4O_MINI);
 
-// Or use string
-$agent
-    ->provider('anthropic')
-    ->aiModel('claude-sonnet-4-20250514');
+$agent->provider('anthropic')->aiModel(AnthropicModel::CLAUDE_SONNET_4);
+
+// A plain string also works
+$agent->aiModel('claude-sonnet-4-20250514');
 ```
 
-## Provider Settings
+`getAiModelValue()` returns the string value whether you passed an enum or a string.
 
-Temperature and tokens are set in config file:
+## Temperature and tokens
+
+Set these per provider with env keys (`OPENAI_TEMPERATURE`, `OPENAI_MAX_TOKENS`, and so on) or in code:
 
 ```php
-<?php
+use Laravilt\AI\Providers\OpenAIProvider;
 
-// config/laravilt-ai.php
-'providers' => [
-    'openai' => [
-        'temperature' => 0.7, // 0.0-1.0
-        'max_tokens' => 2048,
-    ],
-],
+$ai->provider(OpenAIProvider::class, fn (OpenAIProvider $p) => $p->temperature(0.3)->maxTokens(4096));
 ```
 
-## Best Practices
+## Recommendations
 
-- Use `gpt-4o-mini` for simple queries
-- Use `gpt-4o` for complex reasoning
-- Set `canDelete(false)` by default
-- Define clear system prompts
-- Configure temperature in config file
+- Use a small model (`gpt-4o-mini`, `claude-3-5-haiku`) for lookups and a larger one for reasoning.
+- Every permission defaults to `true`, so turn off `canDelete()` (and others) unless you need them.
+- Write a clear `systemPrompt()` per resource.

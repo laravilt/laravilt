@@ -1,82 +1,66 @@
 ---
-title: Auth Routes
-description: Generated authentication routes reference
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
+title: Routes
+description: Routes registered by each auth feature, relative to the panel path.
+order: 6
 ---
 
 # Auth Routes
 
-The auth package generates these routes (prefixed with panel path).
+Routes are registered only for the features you enable, and each one is prefixed with the panel path (for example `/admin`). The paths below are the defaults. You can change most of them with the `$path` argument of the panel method.
 
-## Authentication Routes
-
-```
-GET|POST  /{panel}/login              Login page
-GET|POST  /{panel}/register           Registration page
-POST      /{panel}/logout             Logout
-GET|POST  /{panel}/password/forgot    Forgot password
-GET|POST  /{panel}/password/reset     Reset password
-GET       /{panel}/email/verify/{id}  Verify email
-```
-
-## Two-Factor Routes
+## Guest routes
 
 ```
-GET|POST  /{panel}/two-factor/challenge    2FA challenge
-POST      /{panel}/two-factor/verify       Verify code
+GET|POST  login                      Login                  ->login()
+GET|POST  register                   Registration           ->registration()
+GET|POST  forgot-password            Request reset link     ->passwordReset()
+GET       reset-password/{token}     Reset form
+POST      reset-password             Reset password
+GET|POST  otp                        Verify one-time code   ->otp()
+POST      otp/resend                 Resend code
+GET|POST  magic-link                 Request magic link     ->magicLinks()
+GET       magic-link/verify/{token}  Log in via link
+GET       auth/{provider}/redirect   Redirect to provider   ->socialLogin()
+GET       auth/{provider}/callback   Provider callback
+GET|POST  two-factor/challenge       2FA challenge          ->twoFactor()
+POST      two-factor/resend          Resend email code
+GET|POST  two-factor/recovery        Use a recovery code
+GET       passkey/login-options      Passkey options        ->passkeys()
+POST      passkey/login              Log in with passkey
 ```
 
-## Social Auth Routes
+## Authenticated routes
 
 ```
-GET   /{panel}/auth/{provider}/redirect   Redirect to provider
-GET   /{panel}/auth/{provider}/callback   Handle callback
+POST        logout                                 Logout
+POST        locale                                 Quick locale switch
+GET         verify-email                           Verification notice
+GET         email/verify/{id}/{hash}               Verify email (signed)
+POST        email/verification-notification        Resend verification email
+GET|PATCH   profile                                Profile page
+PUT         password                               Change password
+GET         profile/two-factor/status              2FA status
+POST        profile/two-factor/enable              Start 2FA setup
+POST        profile/two-factor/confirm             Confirm 2FA
+DELETE      profile/two-factor/disable             Disable 2FA
+POST        profile/two-factor/recovery-codes      Regenerate recovery codes
+GET         profile/sessions                       Sessions
+DELETE      profile/sessions/{sessionId}           Log out a session
+DELETE      profile/sessions/others                Log out other sessions
+GET|POST    profile/api-tokens                     API tokens
+PUT|DELETE  profile/api-tokens/{tokenId}           Update or delete a token
+GET         profile/passkeys/register-options      Passkey registration options
+POST        profile/passkeys/register              Register a passkey
+DELETE      profile/passkeys/{credentialId}        Delete a passkey
+GET         profile/connected-accounts             Connected accounts
+DELETE      profile/connected-accounts/{provider}  Disconnect a provider
 ```
 
-## Profile Routes
+The profile pages belong to the `Settings` cluster (slug `settings`), so they are served under `/{panel}/settings/...`, for example `/admin/settings/profile` and `/admin/settings/two-factor`. `/{panel}/profile` redirects there.
 
-```
-GET       /{panel}/profile                     Profile page
-PATCH     /{panel}/profile                     Update profile
-PUT       /{panel}/profile/password            Update password
-DELETE    /{panel}/profile                     Delete account
-```
-
-## Two-Factor Profile Routes
-
-```
-POST      /{panel}/profile/two-factor/enable   Enable 2FA
-POST      /{panel}/profile/two-factor/confirm  Confirm 2FA
-DELETE    /{panel}/profile/two-factor          Disable 2FA
-POST      /{panel}/profile/two-factor/recovery Regenerate codes
-```
-
-## API Token Routes
-
-```
-GET|POST  /{panel}/profile/api-tokens          API tokens
-DELETE    /{panel}/profile/api-tokens/{id}     Delete token
-```
-
-## Passkey Routes
-
-```
-GET|POST  /{panel}/profile/passkeys            Passkeys
-DELETE    /{panel}/profile/passkeys/{id}       Delete passkey
-```
-
-## Session Routes
-
-```
-DELETE    /{panel}/profile/sessions/{id}       Logout session
-DELETE    /{panel}/profile/sessions            Logout all
-```
+Run `php artisan route:list --path=admin` to see the exact routes and route names for your panel.
 
 ## Related
 
-- [Configuration](configuration) - Auth configuration
-- [Events](events) - Auth events
+- [Configuration](configuration.md)
+- [Events](events.md)

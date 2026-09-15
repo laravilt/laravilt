@@ -1,19 +1,10 @@
 ---
 title: ReplicateAction
-description: Duplicate records with customization options
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
-component: ReplicateAction
+description: Duplicate a record with Eloquent's replicate().
+order: 7
 ---
 
 # ReplicateAction
-
-Duplicate records using Laravel's replicate() method.
-
-## Basic Usage
 
 ```php
 use Laravilt\Actions\ReplicateAction;
@@ -21,76 +12,44 @@ use Laravilt\Actions\ReplicateAction;
 ReplicateAction::make();
 ```
 
-## Default Configuration
+Defaults: label "Replicate", icon `Copy`, color `gray`, confirmation required. Hidden when the user lacks replicate permission.
 
-- **Icon**: Copy
-- **Color**: gray
-- **Requires Confirmation**: Yes
-
-## Exclude Attributes
+## Exclude attributes
 
 ```php
-use Laravilt\Actions\ReplicateAction;
-
 ReplicateAction::make()
     ->excludeAttributes(['slug', 'published_at', 'views_count']);
 ```
 
-## Before Save Callback
+## Hooks
+
+Both callbacks receive the replica and the original record:
 
 ```php
-use Laravilt\Actions\ReplicateAction;
 use Illuminate\Support\Str;
 
 ReplicateAction::make()
-    ->beforeReplicaSaved(function ($replica) {
-        $replica->title = $replica->title . ' (Copy)';
-        $replica->is_published = false;
+    ->beforeReplicaSaved(function ($replica, $original) {
+        $replica->title = $original->title.' (Copy)';
         $replica->slug = Str::slug($replica->title);
-    });
-```
-
-## After Save Callback
-
-```php
-use Laravilt\Actions\ReplicateAction;
-
-ReplicateAction::make()
+    })
     ->afterReplicaSaved(function ($replica, $original) {
-        // Copy relationships
-        foreach ($original->tags as $tag) {
-            $replica->tags()->attach($tag);
-        }
+        $replica->tags()->sync($original->tags->pluck('id'));
     });
 ```
 
-## Success Redirect
+## Redirect
 
 ```php
-use Laravilt\Actions\ReplicateAction;
-
 ReplicateAction::make()
     ->successRedirectUrl(fn ($record) => route('posts.edit', $record));
 ```
 
-## Custom Confirmation
+## API reference
 
-```php
-use Laravilt\Actions\ReplicateAction;
-
-ReplicateAction::make()
-    ->modalHeading('Duplicate Record')
-    ->modalDescription('This will create a copy of this record.')
-    ->modalSubmitActionLabel('Create Copy');
-```
-
-## API Reference
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `make()` | `?string $name` | Create action |
-| `excludeAttributes()` | `array` | Attributes to exclude |
-| `beforeReplicaSaved()` | `Closure` | Modify before save |
-| `afterReplicaSaved()` | `Closure` | Run after save |
-| `successRedirectUrl()` | `string\|Closure` | Redirect URL |
-| `modalHeading()` | `string` | Modal title |
+| Method | Description |
+|--------|-------------|
+| `excludeAttributes(array)` | Attributes not copied |
+| `beforeReplicaSaved(Closure)` | Modify the replica before saving |
+| `afterReplicaSaved(Closure)` | Run after saving |
+| `successRedirectUrl(Closure)` | URL to open afterwards |

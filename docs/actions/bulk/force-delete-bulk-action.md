@@ -1,19 +1,10 @@
 ---
 title: ForceDeleteBulkAction
-description: Permanently delete multiple records
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
-component: ForceDeleteBulkAction
+description: Permanently delete all selected records.
+order: 5
 ---
 
 # ForceDeleteBulkAction
-
-Permanently delete multiple selected records that cannot be recovered.
-
-## Basic Usage
 
 ```php
 use Laravilt\Actions\ForceDeleteBulkAction;
@@ -21,56 +12,25 @@ use Laravilt\Actions\ForceDeleteBulkAction;
 ForceDeleteBulkAction::make();
 ```
 
-## Default Configuration
+Defaults: label "Force delete", icon `Trash2`, color `destructive`, confirmation required, clears the selection afterwards. It calls `forceDelete()` on the selected records, including trashed ones. This can't be undone. The model must use `SoftDeletes`.
 
-- **Icon**: Trash2
-- **Color**: destructive
-- **Requires Confirmation**: Yes
-- Auto-deselects records after completion
-- Permanently removes records (forceDelete)
-
-## Specify Model
+## Customizing
 
 ```php
-use Laravilt\Actions\ForceDeleteBulkAction;
 use App\Models\Post;
 
 ForceDeleteBulkAction::make()
-    ->model(Post::class);
+    ->model(Post::class)
+    ->modalHeading('Permanently delete selected')
+    ->modalDescription('This action cannot be undone.')
+    ->modalSubmitActionLabel('Delete permanently');
 ```
 
-## Custom Confirmation
+## API reference
 
-```php
-use Laravilt\Actions\ForceDeleteBulkAction;
-
-ForceDeleteBulkAction::make()
-    ->modalHeading('Permanently Delete Selected')
-    ->modalDescription('This action cannot be undone. All selected records will be permanently removed.')
-    ->modalSubmitActionLabel('Delete Permanently');
-```
-
-## Requirements
-
-Your model must use the `SoftDeletes` trait:
-
-```php
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
-class Post extends Model
-{
-    use SoftDeletes;
-}
-```
-
-## API Reference
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `make()` | `?string $name` | Create action |
-| `model()` | `string` | Set model class |
-| `resource()` | `string` | Set resource class |
-| `deselectRecordsAfterCompletion()` | `bool` | Auto-deselect |
-| `modalHeading()` | `string` | Modal title |
-| `modalDescription()` | `string` | Modal message |
+| Method | Description |
+|--------|-------------|
+| `model(string)` | Model class |
+| `resource(string)` | Resource class (for permission checks) |
+| `deselectRecordsAfterCompletion(bool)` | Clear the selection (default `true`) |
+| `modalHeading()`, `modalDescription()` | Confirmation text |

@@ -1,107 +1,50 @@
 ---
 title: Profile Information
-description: Update user profile information and avatar
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
-concept: profile
+description: Let users update their name and email address.
+order: 1
 ---
 
 # Profile Information
 
-Update user profile information including name, email, and avatar.
+`->profile()` adds the **Profile** page (`Laravilt\Auth\Pages\Profile`) to the Settings cluster at `/{panel}/settings/profile`. `/{panel}/profile` redirects there.
 
-## Update Profile
+```php
+$panel->profile();
+
+// Custom page class or path
+$panel->profile(\App\Laravilt\Admin\Pages\Profile::class, 'account');
+```
+
+The page validates and saves:
+
+| Field | Rules |
+|-------|-------|
+| `name` | `required`, `string`, `max:255` |
+| `email` | `required`, `email`, `max:255`, unique in `users` (ignoring the current user) |
+
+## Customizing
+
+Extend the page and pass your class to `profile()`:
 
 ```php
 <?php
 
-namespace App\Http\Controllers\Profile;
+namespace App\Laravilt\Admin\Pages;
 
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
+use Laravilt\Auth\Pages\Profile as BaseProfile;
 
-class ProfileController extends Controller
+class Profile extends BaseProfile
 {
-    // Route: PATCH /admin/profile
-    public function update(Request $request)
+    public function getSubheading(): ?string
     {
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email,' . $request->user()->id],
-        ]);
-
-        $request->user()->update($validated);
-
-        return back()->with('status', 'profile-updated');
+        return 'Keep your contact details up to date.';
     }
 }
 ```
 
-## Profile Form Schema
-
-```php
-<?php
-
-use Laravilt\Schemas\Components\TextInput;
-
-public function getProfileSchema(): array
-{
-    return [
-        TextInput::make('name')
-            ->required()
-            ->maxLength(255),
-
-        TextInput::make('email')
-            ->email()
-            ->required()
-            ->unique(ignoreRecord: true),
-    ];
-}
-```
-
-## Avatar Upload
-
-Enable avatar uploads in your panel:
-
-```php
-<?php
-
-namespace App\Laravilt\Admin;
-
-use Laravilt\Panel\PanelProvider;
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->id('admin')
-            ->path('admin')
-            ->profile()
-            ->avatar();
-    }
-}
-```
-
-In your profile form:
-
-```php
-<?php
-
-use Laravilt\Schemas\Components\FileUpload;
-
-FileUpload::make('avatar')
-    ->image()
-    ->avatar()
-    ->directory('avatars')
-    ->maxSize(1024), // 1MB
-```
+For avatar uploads, the `laravilt/users` package provides a `HasAvatar` trait. When it's present, `LaraviltUser` uses it for avatar URLs.
 
 ## Related
 
-- [Password](password) - Change password
-- [Preferences](preferences) - Locale and timezone
+- [Password](password.md)
+- [Locale & Timezone](preferences.md)

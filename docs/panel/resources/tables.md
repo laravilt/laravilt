@@ -1,17 +1,12 @@
 ---
 title: Resource Tables
-description: Configure tables for resource listing pages
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: resources
+description: Configure the table shown on a resource's list page.
+order: 2
 ---
 
 # Resource Tables
 
-Configure tables for resource listing pages.
+A resource's `table()` defines the columns, filters and actions on its list page.
 
 ## Basic Table
 
@@ -21,18 +16,19 @@ Configure tables for resource listing pages.
 namespace App\Laravilt\Admin\Resources\User;
 
 use App\Models\User;
-use Laravilt\Panel\Resources\Resource;
-use Laravilt\Tables\Table;
-use Laravilt\Tables\Columns\TextColumn;
-use Laravilt\Tables\Filters\SelectFilter;
-use Laravilt\Actions\ViewAction;
-use Laravilt\Actions\EditAction;
+use Laravilt\Actions\BulkActionGroup;
 use Laravilt\Actions\DeleteAction;
 use Laravilt\Actions\DeleteBulkAction;
+use Laravilt\Actions\EditAction;
+use Laravilt\Actions\ViewAction;
+use Laravilt\Panel\Resources\Resource;
+use Laravilt\Tables\Columns\TextColumn;
+use Laravilt\Tables\Filters\SelectFilter;
+use Laravilt\Tables\Table;
 
 class UserResource extends Resource
 {
-    protected static ?string $model = User::class;
+    protected static string $model = User::class;
 
     public static function table(Table $table): Table
     {
@@ -60,31 +56,31 @@ class UserResource extends Resource
                 DeleteAction::make(),
             ])
             ->toolbarActions([
-                DeleteBulkAction::make(),
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
             ]);
     }
 }
 ```
 
-## Navigation Badge
+The generator puts the table in `Table/UserTable.php` and the resource delegates to it. If the database table has a `deleted_at` column, the generator also adds soft-delete support (trashed filter and restore actions).
+
+## Scoping the Query
+
+The list page reads records from the resource's `getEloquentQuery()`, which also applies tenant scoping. Override it to change the base query:
 
 ```php
-<?php
+use Illuminate\Database\Eloquent\Builder;
 
-namespace App\Laravilt\Admin\Resources\Order;
-
-use Laravilt\Panel\Resources\Resource;
-
-class OrderResource extends Resource
+public static function getEloquentQuery(): Builder
 {
-    public static function getNavigationBadge(): ?string
-    {
-        return static::getModel()::count();
-    }
-
-    public static function getNavigationBadgeColor(): ?string
-    {
-        return static::getModel()::count() > 10 ? 'warning' : 'success';
-    }
+    return parent::getEloquentQuery()->where('is_active', true);
 }
 ```
+
+## Related
+
+- [Tables](../../tables/README.md): columns, filters and table features
+- [Actions](../../actions/README.md): record and bulk actions
+- [Navigation Badges](../navigation/badges.md): show record counts in the sidebar

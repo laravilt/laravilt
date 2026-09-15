@@ -1,129 +1,46 @@
 ---
 title: Badge
-description: Status badge component
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: frontend
-vue_component: Badge
-vue_package: "@laravilt/support"
+description: The Badge primitive for status labels and counts.
+order: 3
 ---
 
 # Badge
 
-Status indicator badges.
-
 ## Import
 
 ```typescript
-import { Badge } from '@laravilt/support'
+import { Badge } from '@/components/ui/badge'
 ```
 
-## Basic Usage
+## Usage
 
 ```vue
 <template>
-    <Badge>Default</Badge>
+    <Badge>New</Badge>
+    <Badge variant="secondary">Draft</Badge>
+    <Badge variant="success">Active</Badge>
+    <Badge variant="danger">Banned</Badge>
 </template>
+```
+
+```tsx
+<Badge>New</Badge>
+<Badge variant="secondary">Draft</Badge>
+<Badge variant="destructive">Banned</Badge>
 ```
 
 ## Variants
 
-```vue
-<template>
-    <Badge variant="default">Default</Badge>
-    <Badge variant="primary">Primary</Badge>
-    <Badge variant="secondary">Secondary</Badge>
-    <Badge variant="success">Success</Badge>
-    <Badge variant="warning">Warning</Badge>
-    <Badge variant="danger">Danger</Badge>
-    <Badge variant="info">Info</Badge>
-    <Badge variant="outline">Outline</Badge>
-</template>
-```
+| `variant` | Vue | React |
+|-----------|-----|-------|
+| `default`, `secondary`, `destructive`, `outline` | Yes | Yes |
+| `primary`, `success`, `danger`, `warning`, `info`, `gray` | Yes | No (add them to `badgeVariants` in `ui/badge.tsx` if needed) |
 
-## With Icon
+The Vue semantic variants are the ones `NavMain` uses for navigation badges (`badgeColor`).
 
-```vue
-<script setup>
-import { Badge } from '@laravilt/support'
-import { Check, X, Clock } from 'lucide-vue-next'
-</script>
-
-<template>
-    <Badge variant="success">
-        <Check class="mr-1 h-3 w-3" />
-        Approved
-    </Badge>
-
-    <Badge variant="danger">
-        <X class="mr-1 h-3 w-3" />
-        Rejected
-    </Badge>
-
-    <Badge variant="warning">
-        <Clock class="mr-1 h-3 w-3" />
-        Pending
-    </Badge>
-</template>
-```
-
-## In Table
-
-```vue
-<template>
-    <table>
-        <tr v-for="user in users" :key="user.id">
-            <td>{{ user.name }}</td>
-            <td>
-                <Badge :variant="user.active ? 'success' : 'secondary'">
-                    {{ user.active ? 'Active' : 'Inactive' }}
-                </Badge>
-            </td>
-        </tr>
-    </table>
-</template>
-```
-
-## Notification Count
-
-```vue
-<template>
-    <Button variant="ghost" class="relative">
-        <Bell class="h-5 w-5" />
-        <Badge
-            v-if="count > 0"
-            variant="danger"
-            class="absolute -right-1 -top-1 h-5 w-5 p-0"
-        >
-            {{ count }}
-        </Badge>
-    </Button>
-</template>
-```
-
-## Props
-
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `variant` | `string` | `default` | Badge style |
-
-## Variants
-
-| Value | Description |
-|-------|-------------|
-| `default` | Default gray |
-| `primary` | Primary blue |
-| `secondary` | Secondary gray |
-| `success` | Success green |
-| `warning` | Warning yellow |
-| `danger` | Danger red |
-| `info` | Info sky |
-| `outline` | Bordered |
+Table badge columns and navigation badges are configured in PHP, so you only need this component in your own pages.
 
 ## Related
 
-- [Button](button) - With badges
-- [Card](card) - In cards
-
+- [Card](card.md)
+- [App Shell Components](../components.md)

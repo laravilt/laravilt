@@ -1,57 +1,42 @@
 ---
 title: ColorColumn
-description: Color swatch display
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-component: ColorColumn
-vue_component: TableColorCell
+description: Display color swatches with optional copy to clipboard.
+order: 4
 ---
 
 # ColorColumn
 
-Display color swatches with copy.
-
-## Basic Usage
-
 ```php
-<?php
-
 use Laravilt\Tables\Columns\ColorColumn;
 
 ColorColumn::make('color')
-    ->label('Brand Color');
+    ->label('Brand color');
 ```
 
 ## Copyable
 
 ```php
-<?php
-
-use Laravilt\Tables\Columns\ColorColumn;
-
 ColorColumn::make('hex_color')
     ->copyable()
-    ->copyMessage('Color copied!');
+    ->copyMessage('Color copied!')
+    ->copyMessageDuration(1500);
 ```
 
-## Multiple Colors
+## Multiple colors
+
+For attributes holding several colors:
 
 ```php
-<?php
-
-use Laravilt\Tables\Columns\ColorColumn;
-
 ColorColumn::make('palette')
-    ->wrap();
+    ->wrap()
+    ->maxVisible(5);
 ```
 
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `copyable()` | Enable copy |
-| `copyMessage()` | Copy message |
-| `wrap()` | Wrap colors |
+| `copyable()` | Copy the value on click |
+| `copyMessage()`, `copyMessageDuration()` | Copy feedback |
+| `wrap()` | Wrap multiple swatches |
+| `maxVisible()` | Maximum swatches shown |

@@ -1,93 +1,48 @@
 ---
 title: Row Actions
-description: Single record actions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-concept: actions
-vue_component: TableRowActions
+description: Add per-record actions to each table row.
+order: 1
 ---
 
 # Row Actions
 
-Actions for individual table records.
-
-## Built-in Actions
+Row actions are passed to `recordActions()`. Closures receive the row's `$record`.
 
 ```php
-<?php
-
-use Laravilt\Actions\ViewAction;
-use Laravilt\Actions\EditAction;
 use Laravilt\Actions\DeleteAction;
+use Laravilt\Actions\EditAction;
+use Laravilt\Actions\ViewAction;
 
-->actions([
+$table->recordActions([
     ViewAction::make(),
     EditAction::make(),
     DeleteAction::make(),
-])
+]);
 ```
 
-## Custom Action
+In a resource, View and Edit resolve their URLs automatically, and a row click opens the first action's URL. Change that with `$table->recordUrl(fn ($record) => ...)` or `$table->disableRecordUrlFromFirstAction()`.
+
+## Custom row action
 
 ```php
-<?php
-
 use Laravilt\Actions\Action;
 use Laravilt\Notifications\Notification;
 
-->actions([
-    Action::make('publish')
-        ->label('Publish')
-        ->icon('Send')
-        ->color('success')
-        ->action(function ($record) {
-            $record->update(['status' => 'published']);
-
-            Notification::make()
-                ->title('Published!')
-                ->success()
-                ->send();
-        }),
-])
-```
-
-## With Confirmation
-
-```php
-<?php
-
-use Laravilt\Actions\Action;
-
-Action::make('archive')
-    ->icon('Archive')
+Action::make('publish')
+    ->icon('Send')
+    ->color('success')
     ->requiresConfirmation()
-    ->modalHeading('Archive Post')
-    ->action(fn ($record) => $record->archive());
+    ->visible(fn ($record) => $record->status !== 'published')
+    ->action(function ($record) {
+        $record->update(['status' => 'published']);
+
+        Notification::success()->title('Published')->send();
+    });
 ```
 
-## Action Group
+Name the closure parameter `$record` for visibility checks that need the row.
 
-```php
-<?php
+## Next
 
-use Laravilt\Actions\ActionGroup;
-
-ActionGroup::make([
-    \Laravilt\Actions\ViewAction::make(),
-    \Laravilt\Actions\EditAction::make(),
-    \Laravilt\Actions\DeleteAction::make(),
-])->dropdown();
-```
-
-## API Reference
-
-| Method | Description |
-|--------|-------------|
-| `action()` | Action callback |
-| `requiresConfirmation()` | Show modal |
-| `icon()` | Action icon |
-| `color()` | Button color |
-| `visible()` | Visibility condition |
+- [Action types](../../actions/types/README.md): View, Edit, Delete, Replicate, and more
+- [Confirmation](../../actions/confirmation.md) and [Forms](../../actions/forms.md)

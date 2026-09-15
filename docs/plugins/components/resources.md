@@ -1,92 +1,101 @@
 ---
 title: Resources
-description: Generate plugin resources
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: plugins
-concept: resources
+description: Generate panel resources inside a plugin.
+order: 1
 ---
 
 # Resources
 
-Generate Filament resources for plugins.
-
-## Generate Resource
-
 ```bash
-php artisan laravilt:make blog-manager resource PostResource
+php artisan laravilt:make blog-manager resource Post
 ```
 
-## Generated Resource
+This creates a full resource under `src/Resources/Posts/`:
+
+```
+src/Resources/Posts/
+├── PostResource.php
+├── Pages/
+│   ├── ListPosts.php
+│   ├── CreatePost.php
+│   ├── EditPost.php
+│   └── ViewPost.php
+├── Schemas/
+│   ├── PostForm.php
+│   └── PostInfolist.php
+└── Tables/
+    └── PostsTable.php
+```
+
+## Generated resource
 
 ```php
-<?php
+namespace Laravilt\BlogManager\Resources\Posts;
 
-namespace MyCompany\BlogManager\Resources;
-
-use Laravilt\Panel\Resource;
+use Laravilt\BlogManager\Resources\Posts\Pages\CreatePost;
+use Laravilt\BlogManager\Resources\Posts\Pages\EditPost;
+use Laravilt\BlogManager\Resources\Posts\Pages\ListPosts;
+use Laravilt\BlogManager\Resources\Posts\Pages\ViewPost;
+use Laravilt\BlogManager\Resources\Posts\Schemas\PostForm;
+use Laravilt\BlogManager\Resources\Posts\Schemas\PostInfolist;
+use Laravilt\BlogManager\Resources\Posts\Tables\PostsTable;
+use Laravilt\Panel\Resources\Resource;
 use Laravilt\Schemas\Schema;
 use Laravilt\Tables\Table;
-use Laravilt\Forms\Components\TextInput;
-use Laravilt\Tables\Columns\TextColumn;
 
 class PostResource extends Resource
 {
-    protected static ?string $model = \MyCompany\BlogManager\Models\Post::class;
+    protected static ?string $recordTitleAttribute = 'name';
 
-    protected static ?string $navigationIcon = 'FileText';
+    protected static ?string $navigationIcon = 'layers';
 
-    public static function form(Schema $form): Schema
+    public static function getModel(): string
     {
-        return $form->schema([
-            TextInput::make('title')
-                ->required()
-                ->maxLength(255),
+        return \App\Models\Post::class;
+    }
 
-            TextInput::make('content')
-                ->required(),
-        ]);
+    public static function form(Schema $schema): Schema
+    {
+        return PostForm::make($schema);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return PostInfolist::make($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->columns([
-                TextColumn::make('title')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable(),
-            ])
-            ->searchable()
-            ->paginated();
+        return PostsTable::make($table);
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListPosts::route('/'),
-            'create' => Pages\CreatePost::route('/create'),
-            'edit' => Pages\EditPost::route('/{record}/edit'),
+            'index' => ListPosts::route('/'),
+            'create' => CreatePost::route('/create'),
+            'view' => ViewPost::route('/{record}'),
+            'edit' => EditPost::route('/{record}/edit'),
         ];
     }
 }
 ```
 
-## Register in Plugin
+> `getModel()` points to `App\Models\{Name}`. If the model lives in the plugin (`laravilt:make blog-manager model Post`), change it to the plugin's model class.
+
+The form schema starts with a `Section` containing a `TextInput::make('name')`. Edit `Schemas/PostForm.php`, `Schemas/PostInfolist.php` and `Tables/PostsTable.php` to add your fields and columns.
+
+## Register in the plugin
 
 ```php
-<?php
-
 public function register(Panel $panel): void
 {
     $panel->resources([
-        Resources\PostResource::class,
-        Resources\CategoryResource::class,
+        Resources\Posts\PostResource::class,
     ]);
 }
 ```
+
+## Related
+
+- [Resources in the panel docs](../../panel/resources/README.md)

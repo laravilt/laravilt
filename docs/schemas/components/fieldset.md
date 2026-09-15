@@ -1,51 +1,16 @@
 ---
 title: Fieldset
-description: HTML fieldset grouping with legend
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: schemas
-vue_component: Fieldset
-vue_package: "@laravilt/schemas"
+description: Group components under a legend.
+order: 6
 ---
 
 # Fieldset
 
-Wraps fields in HTML fieldset with legend.
-
-## Basic Usage
+Groups components under a legend.
 
 ```php
-<?php
-
-use Laravilt\Schemas\Components\Fieldset;
 use Laravilt\Forms\Components\TextInput;
-
-Fieldset::make('Contact Information')
-    ->schema([
-        TextInput::make('email'),
-        TextInput::make('phone'),
-    ]);
-```
-
-## With Label
-
-```php
-<?php
-
-Fieldset::make('shipping')
-    ->label('Shipping Address')
-    ->schema([
-        TextInput::make('street'),
-        TextInput::make('city'),
-    ]);
-```
-
-## With Legend
-
-```php
-<?php
+use Laravilt\Schemas\Components\Fieldset;
 
 Fieldset::make('billing')
     ->legend('Billing Information')
@@ -55,32 +20,15 @@ Fieldset::make('billing')
     ]);
 ```
 
-## Without Legend
+The name doesn't become the label. Set it with `label()` or `legend()`, which also sets the label.
 
-```php
-<?php
+> Fieldset has no dedicated frontend component yet, and the panel's schema renderer does not map it. Use [Section](section.md) for grouped content in resource forms.
 
-Fieldset::make()
-    ->schema([
-        TextInput::make('field1'),
-        TextInput::make('field2'),
-    ]);
-```
-
-## Methods
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `make(?string)` | Create fieldset |
-| `label(string\|Closure)` | Set label |
-| `legend(string\|Closure)` | Set legend (alias) |
+| `make(string)` | Create (name required) |
+| `label(string\|Closure)` | Label |
+| `legend(string\|Closure)` | Legend (also sets the label) |
 | `schema(array)` | Child components |
-| `getLabel()` | Get label |
-| `getLegend()` | Get legend |
-| `getSchema()` | Get schema |
-
-## Related
-
-- [Section](section) - Grouped content
-- [Grid](grid) - Multi-column layout
-

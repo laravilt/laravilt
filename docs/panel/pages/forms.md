@@ -1,17 +1,12 @@
 ---
 title: Page Forms
-description: Create pages with forms for settings and data entry
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: pages
+description: Build settings and data-entry pages with a form schema and a save action.
+order: 1
 ---
 
 # Page Forms
 
-Create pages with forms for settings and data entry.
+A custom page renders form fields from `getSchema()`. When an action runs, it receives the submitted form data.
 
 ## Basic Form Page
 
@@ -20,90 +15,79 @@ Create pages with forms for settings and data entry.
 
 namespace App\Laravilt\Admin\Pages;
 
-use Laravilt\Panel\Pages\Page;
+use Laravilt\Actions\Action;
 use Laravilt\Forms\Components\TextInput;
 use Laravilt\Forms\Components\Toggle;
-use Laravilt\Actions\Action;
 use Laravilt\Notifications\Notification;
+use Laravilt\Panel\Pages\Page;
 
 class Settings extends Page
 {
-    public ?array $data = [];
+    protected static ?string $navigationIcon = 'Settings';
 
-    public function mount(): void
-    {
-        $this->form->fill([
-            'site_name' => config('app.name'),
-            'maintenance_mode' => app()->isDownForMaintenance(),
-        ]);
-    }
+    protected static ?string $title = 'Settings';
 
-    protected function getFormSchema(): array
+    protected function getSchema(): array
     {
         return [
             TextInput::make('site_name')
+                ->default(config('app.name'))
                 ->required(),
             Toggle::make('maintenance_mode')
-                ->label('Maintenance Mode'),
+                ->label('Maintenance Mode')
+                ->default(app()->isDownForMaintenance()),
         ];
     }
 
-    public function save(): void
-    {
-        $data = $this->form->getState();
-        // Save settings...
-
-        Notification::make()
-            ->title('Settings saved')
-            ->success()
-            ->send();
-    }
-
-    protected function getFormActions(): array
+    public function getHeaderActions(): array
     {
         return [
             Action::make('save')
                 ->label('Save Changes')
-                ->submit('save'),
+                ->action(function (array $data) {
+                    // Persist $data ...
+
+                    Notification::make()
+                        ->title('Settings saved')
+                        ->success()
+                        ->send();
+                }),
         ];
     }
 }
 ```
 
-## With Sections
+## With Sections and a Settings Layout
 
 ```php
 <?php
 
 namespace App\Laravilt\Admin\Pages;
 
+use Laravilt\Actions\Action;
+use Laravilt\Forms\Components\FileUpload;
+use Laravilt\Forms\Components\TextInput;
+use Laravilt\Forms\Components\Toggle;
+use Laravilt\Panel\Enums\PageLayout;
 use Laravilt\Panel\Pages\Page;
 use Laravilt\Schemas\Components\Section;
-use Laravilt\Forms\Components\TextInput;
-use Laravilt\Forms\Components\FileUpload;
-use Laravilt\Forms\Components\Toggle;
-use Laravilt\Actions\Action;
-use Laravilt\Notifications\Notification;
 
 class GeneralSettings extends Page
 {
     protected static ?string $navigationIcon = 'Settings';
+
     protected static ?string $navigationGroup = 'Settings';
+
     protected static ?string $title = 'General Settings';
+
     protected static ?string $slug = 'settings/general';
 
-    public ?array $data = [];
-
-    public function mount(): void
+    public function getLayout(): string
     {
-        $this->form->fill([
-            'site_name' => setting('site_name'),
-            'logo' => setting('logo'),
-            'maintenance_mode' => setting('maintenance_mode'),
-        ]);
+        return PageLayout::Settings->value;
     }
 
-    protected function getFormSchema(): array
+    protected function getSchema(): array
     {
         return [
             Section::make('Site Information')
@@ -124,32 +108,29 @@ class GeneralSettings extends Page
         ];
     }
 
-    public function save(): void
-    {
-        $data = $this->form->getState();
-
-        foreach ($data as $key => $value) {
-            setting([$key => $value]);
-        }
-
-        Notification::make()
-            ->title('Settings saved successfully')
-            ->success()
-            ->send();
-    }
-
-    protected function getFormActions(): array
+    public function getHeaderActions(): array
     {
         return [
             Action::make('save')
                 ->label('Save Settings')
-                ->submit('save'),
+                ->action(fn (array $data) => $this->save($data)),
         ];
     }
 
-    public static function canAccess(): bool
+    protected function save(array $data): void
     {
-        return auth()->user()->can('manage_settings');
+        // Persist settings ...
+    }
+
+    protected function authorizeAccess(): void
+    {
+        abort_unless(auth()->user()?->can('manage_settings'), 403);
     }
 }
 ```
+
+## Related
+
+- [Forms](../../forms/README.md): all field types
+- [Actions](../../actions/README.md): action options
+- [Notifications](../../notifications/README.md)

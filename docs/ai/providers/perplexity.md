@@ -1,70 +1,60 @@
 ---
-title: Perplexity Provider
-description: Perplexity Sonar models integration
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-provider: perplexity
+title: Perplexity
+description: Use Perplexity Sonar models with built-in web search.
+order: 5
 ---
 
 # Perplexity Provider
 
-Integration with Perplexity Sonar models for real-time web search.
-
-## Supported Models
-
-| Model | Description |
-|-------|-------------|
-| sonar | Real-time web search |
-| sonar-pro | Enhanced search |
-| sonar-reasoning | With reasoning |
+`Laravilt\AI\Providers\PerplexityProvider` uses the Perplexity API (`https://api.perplexity.ai`). Sonar models answer with up-to-date web results.
 
 ## Configuration
 
 ```env
 PERPLEXITY_API_KEY=...
-PERPLEXITY_MODEL=llama-3.1-sonar-small-128k-online
+PERPLEXITY_MODEL=sonar
+# Optional
+PERPLEXITY_BASE_URL=
+PERPLEXITY_TEMPERATURE=0.7
+PERPLEXITY_MAX_TOKENS=2048
 ```
 
-## Usage
+## Models
+
+`Laravilt\AI\Enums\PerplexityModel`:
+
+| Case | Value |
+|------|-------|
+| `SONAR` | `sonar` (default) |
+| `SONAR_PRO` | `sonar-pro` |
+| `SONAR_REASONING` | `sonar-reasoning` |
+| `SONAR_REASONING_PRO` | `sonar-reasoning-pro` |
+
+## Registering the provider
+
+`AIManager` does not build Perplexity from config automatically. Add it to a panel:
 
 ```php
-<?php
+use Laravilt\AI\Builders\AIProviderBuilder;
 
+$panel->aiProviders(function (AIProviderBuilder $ai) {
+    $ai->openai()->perplexity()->default('openai');
+});
+```
+
+Or register it on the manager yourself:
+
+```php
 use Laravilt\AI\AIManager;
+use Laravilt\AI\Providers\PerplexityProvider;
 
-$ai = app(AIManager::class);
+$ai = app(AIManager::class)->addProvider(new PerplexityProvider);
 
 $response = $ai->provider('perplexity')->chat([
-    ['role' => 'user', 'content' => 'What are the latest Laravel 12 features?'],
+    ['role' => 'user', 'content' => 'What changed in the latest Laravel release?'],
 ]);
 
 echo $response['content'];
 ```
 
-## Real-Time Search
-
-Perplexity models have built-in web search:
-
-```php
-<?php
-
-use Laravilt\AI\AIManager;
-
-// Get current information
-$response = $ai->provider('perplexity')->chat([
-    ['role' => 'user', 'content' => 'Current PHP version and release date?'],
-]);
-
-// Response includes up-to-date web data
-echo $response['content'];
-```
-
-## Use Cases
-
-- Current events research
-- Real-time data queries
-- Documentation lookups
-- News and updates
+`new PerplexityProvider` reads its key and model from `laravilt-ai.providers.perplexity`.

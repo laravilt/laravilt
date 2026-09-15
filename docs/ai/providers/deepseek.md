@@ -1,74 +1,47 @@
 ---
-title: DeepSeek Provider
-description: DeepSeek models integration
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-provider: deepseek
+title: DeepSeek
+description: Use DeepSeek chat, coder and reasoner models with Laravilt AI.
+order: 4
 ---
 
 # DeepSeek Provider
 
-Integration with DeepSeek models.
-
-## Supported Models
-
-| Model | Description |
-|-------|-------------|
-| deepseek-chat | General chat |
-| deepseek-coder | Code generation |
-| deepseek-reasoner | R1 reasoning model |
+`Laravilt\AI\Providers\DeepSeekProvider` uses the OpenAI-compatible DeepSeek API (`https://api.deepseek.com/v1`).
 
 ## Configuration
 
 ```env
 DEEPSEEK_API_KEY=...
 DEEPSEEK_MODEL=deepseek-chat
+# Optional
+DEEPSEEK_BASE_URL=
+DEEPSEEK_TEMPERATURE=0.7
+DEEPSEEK_MAX_TOKENS=2048
 ```
+
+## Models
+
+`Laravilt\AI\Enums\DeepSeekModel`:
+
+| Case | Value |
+|------|-------|
+| `DEEPSEEK_CHAT` | `deepseek-chat` (default) |
+| `DEEPSEEK_CODER` | `deepseek-coder` |
+| `DEEPSEEK_REASONER` | `deepseek-reasoner` |
 
 ## Usage
 
 ```php
-<?php
-
 use Laravilt\AI\AIManager;
 
-$ai = app(AIManager::class);
-
-$response = $ai->provider('deepseek')->chat([
-    ['role' => 'user', 'content' => 'Write a Laravel migration'],
+$response = app(AIManager::class)->provider('deepseek')->chat([
+    ['role' => 'system', 'content' => 'You are an expert Laravel developer.'],
+    ['role' => 'user', 'content' => 'Create a Post model with a category relation'],
+], [
+    'model' => 'deepseek-coder',
 ]);
 
 echo $response['content'];
 ```
 
-## Code Generation
-
-```php
-<?php
-
-use Laravilt\AI\AIManager;
-
-$response = $ai->provider('deepseek')->chat([
-    ['role' => 'system', 'content' => 'You are an expert Laravel developer.'],
-    ['role' => 'user', 'content' => 'Create a User model with relationships'],
-], [
-    'model' => 'deepseek-coder',
-]);
-```
-
-## Reasoning Model
-
-```php
-<?php
-
-use Laravilt\AI\AIManager;
-
-$response = $ai->provider('deepseek')->chat([
-    ['role' => 'user', 'content' => 'Solve this complex problem...'],
-], [
-    'model' => 'deepseek-reasoner',
-]);
-```
+Switch to the reasoning model per call with `['model' => 'deepseek-reasoner']`.

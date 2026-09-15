@@ -1,129 +1,82 @@
 ---
-title: Search Configuration
-description: Configure global search
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-concept: search-configuration
+title: Configuration
+description: Configure global search on a panel and register searchable resources.
+order: 1
 ---
 
 # Search Configuration
 
-Configure AI-powered global search.
+## Panel builder
 
-## Panel Configuration
+`$panel->globalSearch()` receives a `Laravilt\AI\Builders\GlobalSearchBuilder`:
 
 ```php
-<?php
+use Laravilt\AI\Builders\GlobalSearchBuilder;
 
-use Laravilt\Panel\Panel;
-
-Panel::make()
-    ->globalSearch()
-    ->globalSearchUseAI()
-    ->globalSearchDebounce(300)
-    ->globalSearchKeyBindings(['ctrl+k', 'cmd+k']);
+$panel->globalSearch(function (GlobalSearchBuilder $search) {
+    $search->enabled()
+        ->withAI()
+        ->limit(5)
+        ->maxResults(25)
+        ->debounce(300)
+        ->shortcut('cmd+k')
+        ->exclude(['logs']);
+});
 ```
 
-## Register Resources
+| Method | Default | Description |
+|--------|---------|-------------|
+| `enabled(bool)` / `disabled()` | enabled | Toggle search |
+| `withAI(bool)` / `withoutAI()` | off | Use AI to understand queries |
+| `limit(int)` | `5` | Results per resource |
+| `maxResults(int)` | `25` | Total results |
+| `debounce(int)` | `300` | Input debounce in milliseconds |
+| `shortcut(string)` | `cmd+k` | Keyboard shortcut |
+| `endpoint(string)` | `{panel}/global-search` | Search endpoint URL |
+| `using(Closure)` | none | Custom search handler |
+| `exclude(array)` | `[]` | Resources to leave out |
+
+## Config defaults
+
+`config/laravilt-ai.php` also has a `global_search` section:
 
 ```php
-<?php
+'global_search' => [
+    'enabled' => true,
+    'limit' => 5,
+    'use_ai' => true,
+],
+```
 
-use Laravilt\AI\GlobalSearch;
+## GlobalSearch service
+
+`Laravilt\AI\GlobalSearch` is the search engine behind the `/laravilt-ai/search` endpoint. You can use it directly:
+
+```php
 use App\Models\Product;
+use Laravilt\AI\GlobalSearch;
 
-app(GlobalSearch::class)
+$results = app(GlobalSearch::class)
     ->registerResource(
         resource: 'products',
         model: Product::class,
         searchable: ['name', 'sku', 'description'],
         label: 'Products',
         icon: 'Package',
-        url: '/admin/products/{id}'
+        url: '/admin/products/{id}',
     )
     ->limit(5)
-    ->useAI(true);
+    ->useAI()
+    ->search('laptops under $1000');
 ```
 
-## Making Resources Searchable
+`search()` returns a collection of groups, each with `resource`, `label`, `icon` and `results`.
 
-```php
-<?php
+## Endpoint
 
-namespace App\Laravilt\Admin\Resources\Product;
-
-use Laravilt\Panel\Resources\Resource;
-
-class ProductResource extends Resource
-{
-    public static function getGloballySearchableAttributes(): array
-    {
-        return ['name', 'description', 'sku'];
-    }
-}
+```
+GET /laravilt-ai/search?query=laptop
+GET /laravilt-ai/search/resources
 ```
 
-## With AI Agent
-
-```php
-<?php
-
-use Laravilt\Panel\Resources\Resource;
-use Laravilt\AI\AIAgent;
-
-class ProductResource extends Resource
-{
-    public static function getGloballySearchableAttributes(): array
-    {
-        return ['name', 'description', 'sku'];
-    }
-
-    public static function ai(AIAgent $agent): AIAgent
-    {
-        return $agent
-            ->searchable(['name', 'description', 'sku'])
-            ->canQuery(true);
-    }
-}
-```
-
-## Custom Result Title
-
-```php
-<?php
-
-use Illuminate\Database\Eloquent\Model;
-
-public static function getGlobalSearchResultTitle(Model $record): string
-{
-    return "{$record->name} ({$record->sku})";
-}
-```
-
-## Custom Result Details
-
-```php
-<?php
-
-use Illuminate\Database\Eloquent\Model;
-
-public static function getGlobalSearchResultDetails(Model $record): array
-{
-    return [
-        'Category' => $record->category?->name,
-        'Price' => '$' . number_format($record->price, 2),
-    ];
-}
-```
-
-## API Reference
-
-| Method | Description |
-|--------|-------------|
-| `registerResource()` | Add searchable resource |
-| `limit()` | Max results per resource |
-| `useAI()` | Enable AI understanding |
-| `search()` | Execute search |
+Both routes use the `web` and `auth` middleware.

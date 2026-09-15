@@ -1,124 +1,64 @@
 ---
 title: Section
-description: Collapsible container with heading
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: schemas
-vue_component: Section
-vue_package: "@laravilt/schemas"
+description: Group components under a heading with description, icon, columns and collapse.
+order: 1
 ---
 
 # Section
 
-Group related fields with heading and icon.
+Groups related components under a heading.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
-use Laravilt\Schemas\Components\Section;
 use Laravilt\Forms\Components\TextInput;
+use Laravilt\Schemas\Components\Section;
 
-Section::make('User Information')
+Section::make('User Information')   // the name becomes the heading
+    ->description('How users can reach you')
+    ->icon('User')
     ->schema([
         TextInput::make('name'),
         TextInput::make('email'),
     ]);
-```
 
-## With Description
-
-```php
-<?php
-
-Section::make('Contact Details')
-    ->description('How users can reach you')
-    ->schema([
-        TextInput::make('phone'),
-        TextInput::make('address'),
-    ]);
-```
-
-## With Icon
-
-```php
-<?php
-
-Section::make('Settings')
-    ->description('Configure preferences')
-    ->icon('Settings')
-    ->schema([...]);
+Section::make()->schema([/* ... */]); // no heading
 ```
 
 ## Collapsible
 
 ```php
-<?php
-
-// Collapsible, starts expanded
 Section::make('Advanced Options')
     ->collapsible()
-    ->schema([...]);
-
-// Collapsible, starts collapsed
-Section::make('Optional Settings')
-    ->collapsible()
-    ->collapsed()
-    ->schema([...]);
+    ->collapsed()      // start collapsed
+    ->schema([/* ... */]);
 ```
 
-## Multi-Column Layout
+## Columns
 
 ```php
-<?php
-
 Section::make('Address')
     ->columns(2)
-    ->schema([
-        TextInput::make('street'),
-        TextInput::make('city'),
-    ]);
+    ->schema([/* ... */]);
 
-// Responsive columns
 Section::make('Details')
-    ->columns([
-        'default' => 1,
-        'sm' => 2,
-        'lg' => 3,
-    ])
-    ->schema([...]);
+    ->columns(['default' => 1, 'sm' => 2, 'lg' => 3])
+    ->schema([/* ... */]);
 ```
 
-## Methods
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `make(?string)` | Create section |
-| `heading(string\|Closure)` | Set heading |
-| `description(string\|Closure)` | Set description |
+| `make(?string)` | Create. The name is used as the heading |
+| `heading(string\|Closure)` | Set the heading |
+| `description(string\|Closure)` | Text under the heading |
 | `icon(string\|Closure)` | Lucide icon |
-| `schema(array)` | Child components |
 | `columns(int\|array)` | Column layout |
-| `collapsible(bool)` | Enable collapse |
-| `collapsed(bool)` | Start collapsed |
-
-## Getters
-
-| Method | Return |
-|--------|--------|
-| `getHeading()` | `?string` |
-| `getDescription()` | `?string` |
-| `getIcon()` | `?string` |
-| `getColumns()` | `int\|array\|null` |
-| `getSchema()` | `array` |
-| `isCollapsible()` | `bool` |
-| `isCollapsed()` | `bool` |
+| `collapsible(bool)` / `collapsed(bool)` | Collapse behaviour |
+| `schema(array)` | Child components |
 
 ## Related
 
-- [Grid](grid) - Multi-column layout
-- [Tabs](tabs) - Tabbed interface
-
+- [Grid](grid.md)
+- [Tabs](tabs.md)

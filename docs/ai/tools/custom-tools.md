@@ -1,115 +1,83 @@
 ---
 title: Custom Tools
-description: Build custom AI tools
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-concept: custom-tools
+description: Write your own tools for AI function calling.
+order: 3
 ---
 
 # Custom Tools
 
-Build custom tools for AI agents.
-
-## Basic Custom Tool
+`Laravilt\AI\Tools\Tool` is abstract. Extend it and implement `handle()`:
 
 ```php
-<?php
-
-use Laravilt\AI\Tools\Tool;
 use Illuminate\Support\Facades\Http;
+use Laravilt\AI\Tools\Tool;
 
 class WeatherTool extends Tool
 {
     protected function handle(array $arguments): mixed
     {
-        $city = $arguments['city'] ?? 'Unknown';
-        $weather = Http::get("https://api.weather.com/{$city}")->json();
+        $weather = Http::get('https://api.example.com/weather', [
+            'city' => $arguments['city'],
+        ])->json();
 
         return [
-            'city' => $city,
-            'temperature' => $weather['temp'],
-            'conditions' => $weather['conditions'],
+            'city' => $arguments['city'],
+            'temperature' => $weather['temp'] ?? null,
         ];
     }
 }
 
 $tool = WeatherTool::make('get_weather')
-    ->description('Get current weather for a city')
+    ->description('Get the current weather for a city')
     ->addParameter('city', 'string', 'The city name', required: true);
 ```
 
-## Using Closures
+## Closure handlers
+
+When `handler()` is set, `execute()` calls the closure instead of `handle()`. You still need a concrete class, for example an anonymous one:
 
 ```php
-<?php
-
-use Laravilt\AI\Tools\Tool;
 use App\Models\Product;
+use Laravilt\AI\Tools\Tool;
 
-$tool = Tool::make('get_product_count')
-    ->description('Get total number of products')
-    ->handler(fn () => ['count' => Product::count()]);
-
-$tool = Tool::make('get_low_stock')
+$tool = (new class('get_low_stock') extends Tool {
+    protected function handle(array $arguments): mixed
+    {
+        return [];
+    }
+})
     ->description('Get products with low stock')
-    ->addParameter('threshold', 'integer', 'Stock threshold', true)
-    ->handler(fn ($args) => Product::where('stock', '<', $args['threshold'])
+    ->addParameter('threshold', 'integer', 'Stock threshold', required: true)
+    ->handler(fn (array $args) => Product::where('stock', '<', $args['threshold'])
         ->get(['id', 'name', 'stock'])
-        ->toArray()
-    );
+        ->toArray());
 ```
 
-## Parameter Types
+## Parameters
 
 ```php
-<?php
-
-use Laravilt\AI\Tools\Tool;
-
 $tool->addParameter('name', 'string', 'Product name', required: true);
 $tool->addParameter('price', 'number', 'Product price');
-$tool->addParameter('quantity', 'integer', 'Stock quantity');
-$tool->addParameter('active', 'boolean', 'Is product active');
-$tool->addParameter('tags', 'array', 'Product tags');
+$tool->addParameter('active', 'boolean', 'Is the product active');
+
+// Or set them all at once
+$tool->parameters([
+    'name' => ['type' => 'string', 'description' => 'Product name', 'required' => true],
+]);
 ```
 
-## JSON Schema
+`toArray()` turns the parameters into a JSON Schema object (`type`, `properties`, `required`) for the provider.
 
-```php
-<?php
+> `schema()` stores a custom schema on the tool, but `toArray()` builds the definition from the parameters. Use `addParameter()` or `parameters()` to shape what the model sees.
 
-use Laravilt\AI\Tools\Tool;
-
-$tool = Tool::make('create_order')
-    ->description('Create a new order')
-    ->schema([
-        'type' => 'object',
-        'properties' => [
-            'customer_id' => ['type' => 'integer'],
-            'items' => [
-                'type' => 'array',
-                'items' => [
-                    'type' => 'object',
-                    'properties' => [
-                        'product_id' => ['type' => 'integer'],
-                        'quantity' => ['type' => 'integer'],
-                    ],
-                ],
-            ],
-        ],
-        'required' => ['customer_id', 'items'],
-    ]);
-```
-
-## API Reference
+## Methods
 
 | Method | Description |
 |--------|-------------|
-| `description()` | Tool description |
-| `addParameter()` | Add parameter |
-| `schema()` | Set JSON schema |
-| `handler()` | Set handler function |
-| `execute()` | Execute the tool |
+| `make(string $name)` | Create the tool |
+| `description(string)` | Description sent to the model |
+| `addParameter($name, $type, $description, $required = false)` | Add one parameter |
+| `parameters(array)` | Replace all parameters |
+| `handler(Closure)` | Use a closure instead of `handle()` |
+| `execute(array $arguments)` | Run the tool |
+| `toArray()` | Export the definition for providers |

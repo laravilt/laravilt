@@ -1,344 +1,82 @@
 ---
-title: Vue Components
-description: Documentation for Laravilt's Vue 3 components.
+title: App Shell Components
+description: The sidebar, header and navigation components published into your app, and the navigation item shape.
+order: 2
 ---
 
-# Vue Components
+# App Shell Components
 
-Laravilt provides a comprehensive set of Vue 3 components for building admin panels.
+These components make up the app shell. The installer publishes them to `resources/js/components/`, so they are yours to edit.
 
-## Navigation Components
+| Vue | React | Role |
+|-----|-------|------|
+| `AppShell.vue` | `app-shell.tsx` | Root wrapper (sidebar provider) |
+| `AppSidebar.vue` | `app-sidebar.tsx` | Sidebar: logo, `NavMain`, `NavFooter`, `NavUser` |
+| `AppSidebarHeader.vue` | `app-sidebar-header.tsx` | Top bar with sidebar trigger and breadcrumbs |
+| `AppHeader.vue` | `app-header.tsx` | Header for the top-navigation layout |
+| `AppContent.vue` | `app-content.tsx` | Main content area |
+| `NavMain.vue` | `nav-main.tsx` | Panel navigation (groups, badges, active state) |
+| `NavFooter.vue` / `NavUser.vue` | `nav-footer.tsx` / `nav-user.tsx` | Footer links and user menu |
+| `Breadcrumbs.vue` | `breadcrumbs.tsx` | Breadcrumb trail |
+| `AppLogo.vue` / `AppLogoIcon.vue` | `app-logo.tsx` / `app-logo-icon.tsx` | Branding |
+| `AppearanceTabs.vue` | `appearance-tabs.tsx` | Light / dark / system switch |
+| `Heading.vue`, `InputError.vue`, `TextLink.vue`, ... | `heading.tsx`, `input-error.tsx`, `text-link.tsx`, ... | Small helpers |
 
-### NavMain.vue
+> React support requires Laravilt v1.1 or later.
 
-The main sidebar navigation component with support for:
+## Navigation
 
-- **Navigation Groups** - Collapsible groups with icons and labels
-- **Badge Support** - Display counts or status badges on items
-- **Active State Detection** - Automatic highlighting based on current URL
-- **Cluster Support** - `activeMatchPrefix` for matching URL prefixes
+Panel navigation is built in PHP (resources, pages, clusters, groups) and shared with the frontend as the panel's `navigation` prop. `NavMain` renders it:
 
-```vue
-<script setup lang="ts">
-import NavMain from '@/components/NavMain.vue'
-import { Home, Users, Settings } from 'lucide-vue-next'
+- **Groups.** Items with `type: 'group'` and nested `items` render as collapsible groups. In icon-collapsed mode they render as dropdowns.
+- **Badges.** `badge` / `badgeCount` with `badgeColor` (`primary`, `success`, `danger`, `warning`, `info`, `gray`, `secondary`).
+- **Active state.** `urlIsActive()` from `@/lib/utils`, plus `activeMatchPrefix` for clusters.
 
-const navItems = [
-    {
-        title: 'Dashboard',
-        url: '/admin',
-        icon: Home,
-    },
-    {
-        type: 'group',
-        title: 'Users',
-        icon: Users,
-        items: [
-            { title: 'All Users', url: '/admin/users' },
-            { title: 'Roles', url: '/admin/roles' },
-        ],
-    },
-]
-</script>
-
-<template>
-    <NavMain :items="navItems" />
-</template>
-```
-
-#### NavItem Interface
+The navigation item shape (React: `resources/js/types/navigation.ts`):
 
 ```typescript
-interface NavItem {
+type NavItem = {
     title: string
+    href: string | { url: string; method: string }
+    icon?: LucideIcon | null
+    isActive?: boolean
+    type?: 'item' | 'group'
     url?: string
-    href?: string
-    icon?: Component
-    type?: 'group'
     items?: NavItem[]
     collapsed?: boolean
-    badge?: string
-    badgeCount?: number
-    badgeColor?: 'primary' | 'success' | 'danger' | 'warning' | 'info' | 'gray'
-    activeMatchPrefix?: string  // For cluster-style URL matching
+    badge?: string | number | null
+    badgeCount?: string | number | null
+    badgeColor?: string | null
+    activeMatchPrefix?: string | null // active for every URL under this prefix (clusters)
 }
 ```
 
-### AppHeader.vue
+To configure navigation itself (labels, icons, groups, sorting, badges), use PHP. See [Navigation](../panel/navigation/README.md). Edit `NavMain` only when you want to change how navigation *looks*.
 
-The top header component featuring:
+To restore the stock `NavMain` after editing it:
 
-- **Global Search** - Searchable navigation and records
-- **Breadcrumbs** - Current location display
-- **User Menu** - Profile, settings, and logout
-- **Theme Toggle** - Light/dark mode switching
-
-### AppSidebar.vue
-
-The main sidebar container with:
-
-- **Collapsible State** - Icon-only mode when collapsed
-- **Dropdown Navigation** - Groups show as dropdowns when collapsed
-- **Persistent State** - Remembers collapsed/expanded state
-
-## UI Components
-
-### Button
-
-Multiple button variants:
-
-```vue
-<script setup>
-import { Button } from '@/components/ui/button'
-</script>
-
-<template>
-    <Button variant="default">Default</Button>
-    <Button variant="destructive">Delete</Button>
-    <Button variant="outline">Outline</Button>
-    <Button variant="ghost">Ghost</Button>
-    <Button variant="link">Link</Button>
-</template>
+```bash
+php artisan vendor:publish --tag=laravilt-panel-components --force
 ```
 
-### Dialog
+## Laravilt Page Components
 
-Modal dialogs for confirmations and forms:
+The components that render resources (the list page with table/grid views, forms, infolists, relation managers, tenant switcher and so on) ship inside the packages (`vendor/laravilt/*/resources/js` or `resources/react`) and are rendered from your PHP schema. You normally don't touch them. If you need to, publish the panel components to `resources/js/components/laravilt`:
 
-```vue
-<script setup>
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog'
-</script>
-
-<template>
-    <Dialog>
-        <DialogTrigger as-child>
-            <Button>Open Dialog</Button>
-        </DialogTrigger>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Confirm Action</DialogTitle>
-                <DialogDescription>
-                    Are you sure you want to proceed?
-                </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-                <Button variant="outline">Cancel</Button>
-                <Button>Confirm</Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-</template>
+```bash
+php artisan vendor:publish --tag=laravilt-panel-assets
 ```
 
-### Badge
+For a new field type, create a custom form component instead of editing package code:
 
-Status badges with color variants:
-
-```vue
-<script setup>
-import { Badge } from '@/components/ui/badge'
-</script>
-
-<template>
-    <Badge variant="default">Default</Badge>
-    <Badge variant="primary">Primary</Badge>
-    <Badge variant="success">Success</Badge>
-    <Badge variant="danger">Danger</Badge>
-    <Badge variant="warning">Warning</Badge>
-    <Badge variant="info">Info</Badge>
-</template>
+```bash
+php artisan make:form-component ColorSwatch --vue    # or --react
 ```
 
-### Card
+See [Forms](../forms/README.md).
 
-Content cards with header, content, and footer:
+## Related
 
-```vue
-<script setup>
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card'
-</script>
-
-<template>
-    <Card>
-        <CardHeader>
-            <CardTitle>Card Title</CardTitle>
-            <CardDescription>Card description</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <p>Card content goes here.</p>
-        </CardContent>
-        <CardFooter>
-            <Button>Action</Button>
-        </CardFooter>
-    </Card>
-</template>
-```
-
-### Sidebar
-
-Collapsible sidebar with groups:
-
-```vue
-<script setup>
-import {
-    Sidebar,
-    SidebarContent,
-    SidebarGroup,
-    SidebarGroupLabel,
-    SidebarMenu,
-    SidebarMenuButton,
-    SidebarMenuItem,
-    SidebarMenuBadge,
-    useSidebar,
-} from '@/components/ui/sidebar'
-</script>
-
-<template>
-    <Sidebar>
-        <SidebarContent>
-            <SidebarGroup>
-                <SidebarGroupLabel>Navigation</SidebarGroupLabel>
-                <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton>
-                            <HomeIcon />
-                            <span>Dashboard</span>
-                        </SidebarMenuButton>
-                        <SidebarMenuBadge>
-                            <Badge>New</Badge>
-                        </SidebarMenuBadge>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-            </SidebarGroup>
-        </SidebarContent>
-    </Sidebar>
-</template>
-```
-
-### Dropdown Menu
-
-Context menus and dropdown actions:
-
-```vue
-<script setup>
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-</script>
-
-<template>
-    <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-            <Button variant="outline">Options</Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Edit</DropdownMenuItem>
-            <DropdownMenuItem>Duplicate</DropdownMenuItem>
-            <DropdownMenuItem class="text-red-500">Delete</DropdownMenuItem>
-        </DropdownMenuContent>
-    </DropdownMenu>
-</template>
-```
-
-## Laravilt Components
-
-Located in `components/laravilt/`:
-
-### Page.vue
-
-The main page component for resource list views with:
-
-- **View Toggle** - Switch between table, grid, and API views
-- **Infinite Scroll** - Load more data as you scroll
-- **Filters** - Advanced filtering interface
-- **Bulk Actions** - Select and act on multiple records
-- **Sorting** - Click column headers to sort
-
-### Form.vue
-
-Dynamic form rendering with:
-
-- **Field Types** - All 30+ field types supported
-- **Validation** - Real-time validation feedback
-- **Conditional Fields** - Show/hide based on conditions
-- **Sections & Tabs** - Organized form layouts
-
-### Table.vue
-
-Data table component with:
-
-- **Sortable Columns** - Click to sort
-- **Searchable** - Global and column search
-- **Selectable Rows** - Checkbox selection
-- **Row Actions** - Edit, view, delete actions
-- **Reorderable** - Drag and drop row ordering
-
-## Best Practices
-
-### Use Composition API
-
-Always use Vue 3 Composition API with `<script setup>`:
-
-```vue
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-
-const count = ref(0)
-const doubled = computed(() => count.value * 2)
-</script>
-```
-
-### Type Your Props
-
-Use TypeScript interfaces for props:
-
-```vue
-<script setup lang="ts">
-interface Props {
-    title: string
-    count?: number
-    items: Array<{ id: number; name: string }>
-}
-
-const props = withDefaults(defineProps<Props>(), {
-    count: 0,
-})
-</script>
-```
-
-### Use Inertia Links
-
-For navigation, use Inertia's `Link` component:
-
-```vue
-<script setup>
-import { Link } from '@inertiajs/vue3'
-</script>
-
-<template>
-    <Link href="/admin/users">View Users</Link>
-</template>
-```
+- [Layouts](layouts.md)
+- [UI Components](ui/README.md)
+- [Utilities](utilities.md)

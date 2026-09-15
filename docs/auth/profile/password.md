@@ -1,95 +1,43 @@
 ---
-title: Password Update
-description: Change user password
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
-concept: profile
+title: Password
+description: Let users change their password from the Settings cluster.
+order: 2
 ---
 
-# Password Update
+# Change Password
 
-Allow users to change their password securely.
+With `->profile()` enabled, the Settings cluster also contains a **Change password** page (`Laravilt\Auth\Pages\Profile\ChangePassword`, slug `change-password`).
 
-## Change Password
+The form has three fields:
 
-```php
-<?php
+| Field | Purpose |
+|-------|---------|
+| `current_password` | Must match the user's current password |
+| `password` | The new password, validated with `Password::defaults()` |
+| `password_confirmation` | Must match `password` |
 
-namespace App\Http\Controllers\Profile;
+## Password rules
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use App\Http\Controllers\Controller;
-
-class PasswordController extends Controller
-{
-    // Route: PUT /admin/profile/password
-    public function update(Request $request)
-    {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ]);
-
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-        ]);
-
-        return back()->with('status', 'password-updated');
-    }
-}
-```
-
-## Password Form Schema
+The page uses Laravel's default password rule, so you configure it in one place (usually `AppServiceProvider::boot()`):
 
 ```php
-<?php
+use Illuminate\Validation\Rules\Password;
 
-use Laravilt\Schemas\Components\TextInput;
-
-public function getPasswordSchema(): array
-{
-    return [
-        TextInput::make('current_password')
-            ->password()
-            ->required()
-            ->currentPassword(),
-
-        TextInput::make('password')
-            ->password()
-            ->required()
-            ->minLength(8)
-            ->confirmed(),
-
-        TextInput::make('password_confirmation')
-            ->password()
-            ->required(),
-    ];
-}
+Password::defaults(function () {
+    return Password::min(12)
+        ->mixedCase()
+        ->numbers()
+        ->uncompromised();
+});
 ```
 
-## Password Requirements
+The same rule applies to registration and password reset.
 
-Configure password requirements in `config/laravilt-auth.php`:
+## Users without a password
 
-```php
-<?php
-
-return [
-    'password' => [
-        'min_length' => 8,
-        'require_uppercase' => true,
-        'require_lowercase' => true,
-        'require_numbers' => true,
-        'require_symbols' => false,
-    ],
-];
-```
+Users created through social login or magic links have a `null` password. When `requirePasswordForSocialLogin()` is on (the default), they are sent to `/{panel}/set-password` to choose one.
 
 ## Related
 
-- [Profile Info](profile-info) - Update profile
-- [Security](security) - Security best practices
+- [Profile Information](profile-info.md)
+- [Sessions](sessions.md)

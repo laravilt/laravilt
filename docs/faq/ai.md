@@ -1,126 +1,99 @@
 ---
 title: AI Features FAQ
-description: AI integration questions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: faq
+description: Questions about AI providers, resource AI agents and global search.
+order: 6
 ---
 
 # AI Features FAQ
 
-Common questions about AI integration.
+## How do I enable AI features?
 
-## Setup
-
-### How do I enable AI features?
-
-Set your API key in `.env`:
+Set a default provider and its API key in `.env`:
 
 ```env
 LARAVILT_AI_PROVIDER=openai
 OPENAI_API_KEY=your-api-key
+OPENAI_MODEL=gpt-4o-mini
 ```
 
-### What providers are supported?
+Settings live in `config/laravilt-ai.php`.
 
-| Provider | Models |
-|----------|--------|
-| OpenAI | GPT-4, GPT-4o, GPT-3.5 |
-| Anthropic | Claude 3.5, Claude 3 |
-| Google | Gemini Pro, Gemini Flash |
-| DeepSeek | DeepSeek Chat |
-| Perplexity | Sonar, Sonar Pro |
+## Which providers are supported?
 
-### How do I switch providers?
+| Provider | Key | API key variable | Default model |
+|----------|-----|------------------|---------------|
+| OpenAI | `openai` | `OPENAI_API_KEY` | `gpt-4o-mini` |
+| Anthropic | `anthropic` | `ANTHROPIC_API_KEY` | `claude-sonnet-4-20250514` |
+| Google Gemini | `gemini` | `GOOGLE_AI_API_KEY` | `gemini-2.0-flash-exp` |
+| DeepSeek | `deepseek` | `DEEPSEEK_API_KEY` | `deepseek-chat` |
+| Perplexity | `perplexity` | `PERPLEXITY_API_KEY` | `sonar` |
+
+Each provider also reads `*_MODEL`, `*_BASE_URL`, `*_TEMPERATURE` and `*_MAX_TOKENS`. See [Providers](../ai/providers/README.md).
+
+## How do I configure providers per panel?
 
 ```php
-<?php
+use Laravilt\AI\Builders\AIProviderBuilder;
 
-use Laravilt\AI\Facades\AI;
-
-AI::provider('anthropic')
-    ->model('claude-3-5-sonnet')
-    ->chat($messages);
+$panel->aiProviders(fn (AIProviderBuilder $ai) => $ai
+    ->openai()
+    ->anthropic()
+    ->default('openai'));
 ```
 
-## Chat
+## How do I make a resource AI-aware?
 
-### How do I create a chat?
+Add an `ai()` method to the resource. `laravilt:resource` can generate an `{Model}Ai` class for you:
 
 ```php
-<?php
+use Laravilt\AI\AIAgent;
+use Laravilt\AI\AIColumn;
+use Laravilt\AI\Enums\OpenAIModel;
+use Laravilt\AI\Providers\OpenAIProvider;
 
-use Laravilt\AI\Facades\AI;
+public static function ai(AIAgent $ai): AIAgent
+{
+    return $ai
+        ->name('product_assistant')
+        ->model(Product::class)
+        ->provider(OpenAIProvider::class)
+        ->aiModel(OpenAIModel::GPT_4O_MINI)
+        ->systemPrompt('You help users manage products.')
+        ->columns([
+            AIColumn::make('name')->searchable(),
+        ])
+        ->canQuery()
+        ->canCreate()
+        ->canUpdate()
+        ->canDelete();
+}
+```
 
-$response = AI::chat([
-    ['role' => 'user', 'content' => 'Hello!'],
+See [Agents](../ai/agents/README.md).
+
+## How do I call a provider from my own code?
+
+Resolve the manager (`Laravilt\AI\AIManager`, also bound as `laravilt-ai`) and use the provider's `chat` methods:
+
+```php
+use Laravilt\AI\AIManager;
+
+$provider = app(AIManager::class)->provider('anthropic');
+
+$response = $provider->chat([
+    ['role' => 'user', 'content' => 'Summarize this order...'],
 ]);
+
+foreach ($provider->streamChat($messages) as $chunk) {
+    // stream chunks
+}
 ```
 
-### How do I stream responses?
+## How do I write a custom tool?
 
-```php
-<?php
-
-use Laravilt\AI\Facades\AI;
-
-AI::chat($messages)
-    ->stream(function ($chunk) {
-        echo $chunk;
-    });
-```
-
-## Tools
-
-### How do I use AI tools?
-
-```php
-<?php
-
-use Laravilt\AI\Facades\AI;
-use Laravilt\AI\Tools\SearchTool;
-
-AI::tools([
-    SearchTool::make(),
-])
-->chat($messages);
-```
-
-### How do I create custom tools?
-
-```php
-<?php
-
-use Laravilt\AI\Tools\Tool;
-
-Tool::make('weather')
-    ->description('Get weather info')
-    ->parameters([
-        'city' => ['type' => 'string', 'required' => true],
-    ])
-    ->execute(fn ($params) => getWeather($params['city']));
-```
-
-## Agents
-
-### How do I create an AI agent?
-
-```php
-<?php
-
-use Laravilt\AI\Agent;
-
-Agent::make('assistant')
-    ->instructions('You are a helpful assistant.')
-    ->tools([...])
-    ->run($input);
-```
+Extend `Laravilt\AI\Tools\Tool` and implement `handle()`. See [Custom Tools](../ai/tools/custom-tools.md).
 
 ## Related
 
-- [AI Documentation](../ai/introduction)
-- [Providers](../ai/providers/introduction)
-- [Tools](../ai/tools/introduction)
-
+- [AI Documentation](../ai/README.md)
+- [Tools](../ai/tools/README.md)

@@ -1,82 +1,29 @@
 ---
 title: Fixed Actions
-description: Sticky actions column
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-concept: features
-vue_component: TableActions
+description: Keep the row actions column pinned while scrolling horizontally.
+order: 6
 ---
 
 # Fixed Actions
 
-Keep actions column visible while scrolling.
-
-## Basic Usage
+On wide tables, `fixActions()` keeps the row actions column pinned while the table scrolls horizontally.
 
 ```php
-<?php
-
-use Laravilt\Tables\Table;
+use Laravilt\Actions\DeleteAction;
+use Laravilt\Actions\EditAction;
+use Laravilt\Actions\ViewAction;
 
 $table
-    ->fixedActions()
-    ->actions([
-        \Laravilt\Actions\ViewAction::make(),
-        \Laravilt\Actions\EditAction::make(),
-        \Laravilt\Actions\DeleteAction::make(),
+    ->fixActions()
+    ->recordActions([
+        ViewAction::make(),
+        EditAction::make(),
+        DeleteAction::make(),
     ]);
 ```
 
-## Actions Position
-
-```php
-<?php
-
-use Laravilt\Tables\Table;
-
-$table
-    ->fixedActions()
-    ->actionsPosition('start'); // 'start' or 'end' (default)
-```
-
-## Column Width
-
-```php
-<?php
-
-use Laravilt\Tables\Table;
-
-$table
-    ->fixedActions()
-    ->actionsColumnWidth('150px');
-```
-
-## With Grouping
-
-```php
-<?php
-
-use Laravilt\Tables\Table;
-use Laravilt\Actions\ActionGroup;
-
-$table
-    ->fixedActions()
-    ->actions([
-        ActionGroup::make([
-            \Laravilt\Actions\ViewAction::make(),
-            \Laravilt\Actions\EditAction::make(),
-            \Laravilt\Actions\DeleteAction::make(),
-        ])->dropdown(),
-    ]);
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `fixedActions()` | Enable sticky actions |
-| `actionsPosition()` | start or end |
-| `actionsColumnWidth()` | Column width |
+| `fixActions(bool $condition = true)` | Pin the actions column |

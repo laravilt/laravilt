@@ -1,116 +1,81 @@
 ---
 title: Forms FAQ
-description: Form fields and validation questions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: faq
+description: Questions about form fields, validation and reactive fields.
+order: 2
 ---
 
 # Forms FAQ
 
-Common questions about forms, fields, and validation.
+## How do I define a resource form?
 
-## Creating Forms
-
-### How do I create a form?
-
-```php
-<?php
-
-use Laravilt\Forms\Form;
-use Laravilt\Forms\Components\TextInput;
-
-Form::make()
-    ->schema([
-        TextInput::make('name')->required(),
-        TextInput::make('email')->email(),
-    ]);
-```
-
-## Validation
-
-### How do I make a field required?
+Resource forms are a `Schema`. The generator creates a `{Model}Form` class:
 
 ```php
 <?php
 
 use Laravilt\Forms\Components\TextInput;
+use Laravilt\Schemas\Schema;
 
-TextInput::make('name')->required();
+class UserForm
+{
+    public static function configure(Schema $form): Schema
+    {
+        return $form->schema([
+            TextInput::make('name')->required(),
+            TextInput::make('email')->email()->required(),
+        ]);
+    }
+}
 ```
 
-### How do I add validation rules?
+## How do I add validation rules?
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\TextInput;
 
 TextInput::make('email')
     ->email()
-    ->unique('users', 'email')
+    ->required()
+    ->unique('users', 'email', ignoreRecord: true)
     ->rules(['max:255']);
 ```
 
-### How do I add custom validation?
+`->rules()` accepts a string, an array, or a closure that returns rules. Any Laravel rule works, including rule objects. See [Validation](../forms/validation/README.md).
+
+## How do I create dependent fields?
+
+Mark the parent `->live()` and read its value with `Get`:
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\TextInput;
-
-TextInput::make('username')
-    ->rules([
-        fn ($attribute, $value, $fail) =>
-            str_contains($value, ' ')
-                ? $fail('No spaces allowed')
-                : null,
-    ]);
-```
-
-## Reactive Fields
-
-### How do I create dependent fields?
-
-```php
-<?php
-
 use Laravilt\Forms\Components\Select;
+use Laravilt\Support\Utilities\Get;
 
 Select::make('country_id')
     ->options(Country::pluck('name', 'id'))
     ->live();
 
 Select::make('state_id')
-    ->options(fn ($get) =>
-        State::where('country_id', $get('country_id'))
-            ->pluck('name', 'id')
-    );
+    ->options(fn (Get $get) => State::where('country_id', $get('country_id'))->pluck('name', 'id'));
 ```
 
-### How do I show/hide fields conditionally?
+See [Reactive Fields](../forms/reactive/README.md).
+
+## How do I show or hide a field conditionally?
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\TextInput;
 use Laravilt\Forms\Components\Toggle;
+use Laravilt\Support\Utilities\Get;
 
 Toggle::make('has_website')->live();
 
 TextInput::make('website_url')
-    ->visible(fn ($get) => $get('has_website'));
+    ->visible(fn (Get $get) => $get('has_website'));
 ```
 
-## File Uploads
-
-### How do I handle file uploads?
+## How do I handle file uploads?
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\FileUpload;
 
 FileUpload::make('avatar')
@@ -119,8 +84,13 @@ FileUpload::make('avatar')
     ->directory('avatars');
 ```
 
+See [Media Fields](../forms/media/README.md).
+
+## Can I build my own field type?
+
+Yes: `php artisan make:form-component ColorSwatch --vue` (or `--react`) scaffolds the PHP field class and its frontend component.
+
 ## Related
 
-- [Forms Documentation](../forms/introduction)
-- [Validation](../forms/validation/introduction)
-
+- [Forms Documentation](../forms/README.md)
+- [Schemas FAQ](schemas.md)

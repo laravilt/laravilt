@@ -1,80 +1,76 @@
 ---
-title: Action Confirmation
-description: Confirmation modals for actions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
+title: Confirmation
+description: Ask for confirmation before an action runs, with modals, slide-overs, or a password prompt.
+order: 2
 ---
 
-# Action Confirmation
-
-Add confirmation dialogs before action execution.
-
-## Basic Confirmation
+# Confirmation
 
 ```php
 use Laravilt\Actions\Action;
 
-Action::make('delete')
+Action::make('archive')
     ->requiresConfirmation()
-    ->modalHeading('Delete Record')
-    ->modalDescription('Are you sure you want to delete this record?')
-    ->modalSubmitActionLabel('Yes, Delete')
+    ->modalHeading('Archive record')
+    ->modalDescription('Are you sure you want to archive this record?')
+    ->modalSubmitActionLabel('Yes, archive')
     ->modalCancelActionLabel('Cancel')
-    ->action(fn ($record) => $record->delete());
+    ->action(fn ($record) => $record->archive());
 ```
 
-## Modal with Icon
+## Icon and width
 
 ```php
-use Laravilt\Actions\Action;
-
 Action::make('delete')
     ->requiresConfirmation()
-    ->modalHeading('Delete Record')
-    ->modalIcon('AlertCircle')
+    ->modalIcon('AlertTriangle')
     ->modalIconColor('destructive')
+    ->modalWidth('lg')
     ->action(fn ($record) => $record->delete());
 ```
 
-## Modal Sizes
+## Slide-over
+
+Opens the modal as a side sheet:
 
 ```php
-use Laravilt\Actions\Action;
-
-Action::make('configure')
-    ->requiresConfirmation()
-    ->modalWidth('4xl')     // sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl
-    ->modalHeading('Configure Settings');
-```
-
-## Slide-Over
-
-```php
-use Laravilt\Actions\Action;
-
 Action::make('settings')
-    ->slideOver()               // Use Sheet component
+    ->slideOver()
     ->modalHeading('Settings')
-    ->modalFormSchema([...]);
+    ->schema([...]);
 ```
 
-## Password Confirmation
+## Password confirmation
 
 ```php
-use Laravilt\Actions\Action;
-
 Action::make('deleteAccount')
     ->requiresPassword()
-    ->modalHeading('Delete Account')
-    ->modalDescription('Enter your password to confirm deletion')
+    ->modalHeading('Delete account')
+    ->modalDescription('Enter your password to confirm.')
     ->action(fn ($record) => $record->delete());
 ```
 
-## Next Steps
+## Custom content
 
-- [Forms](forms) - Modal forms
-- [Styling](styling) - Colors and icons
-- [Authorization](authorization) - Permissions
+```php
+Action::make('terms')
+    ->modal()
+    ->modalHeading('Terms of service')
+    ->content('By continuing you agree to the terms.')
+    ->isViewOnly();
+```
+
+## API reference
+
+| Method | Description |
+|--------|-------------|
+| `requiresConfirmation()` | Show a confirmation modal |
+| `modal()` | Open a modal without confirmation styling |
+| `modalHeading()`, `modalDescription()` | Modal text |
+| `modalSubmitActionLabel()`, `modalCancelActionLabel()` | Button labels |
+| `modalIcon()`, `modalIconColor()` | Modal icon |
+| `modalWidth()` | Modal width |
+| `slideOver()` | Use a slide-over sheet |
+| `requiresPassword()` | Require the user's password |
+| `content()` | Static modal content |
+| `isViewOnly()` | Hide the submit button |

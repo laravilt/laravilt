@@ -1,108 +1,47 @@
 ---
-title: Panel MCP Server
-description: MCP server for admin panel management
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: mcp
+title: Panel MCP
+description: Local MCP server for panel features and resource structure.
+order: 1
 ---
 
 # Panel MCP Server
 
-MCP server for admin panel management, resources, and pages.
+`Laravilt\Panel\Mcp\LaraviltPanelServer` answers questions about panel features, resources and pages.
 
-## Installation
-
-```bash
-php artisan laravilt:install-mcp
-```
-
-Registers in `routes/ai.php`:
+## Register
 
 ```php
-<?php
-
+// routes/ai.php
 use Laravel\Mcp\Facades\Mcp;
 use Laravilt\Panel\Mcp\LaraviltPanelServer;
 
 Mcp::local('laravilt-panel', LaraviltPanelServer::class);
 ```
 
-## Available Tools
-
-### list-panel-features
-
-List available panel features and configuration options.
-
-**Usage:**
-
-```
-list-panel-features
+```bash
+php artisan mcp:start laravilt-panel
 ```
 
-### get-resource-info
+See [MCP servers](README.md) for the `laravel/mcp` setup.
 
-Get information about resources, pages, and navigation.
+## Tools
 
-**Arguments:**
+| Tool | Arguments | Description |
+|------|-----------|-------------|
+| `list-panel-features-tool` | none | Available panel features and their configuration options |
+| `get-resource-info-tool` | none | Resource structure, properties and methods, with examples |
+| `search-docs-tool` | `query` (required) | Search the panel documentation |
 
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `resource` | string | Yes | Resource name |
-
-**Usage:**
-
-```
-get-resource-info(resource="users")
-```
-
-### search-docs
-
-Search panel documentation.
-
-**Arguments:**
-
-| Name | Type | Required | Description |
-|------|------|----------|-------------|
-| `query` | string | Yes | Search query |
-
-**Usage:**
-
-```
-search-docs(query="multi-tenancy")
-```
-
-## Artisan Commands
-
-The server provides information about generator commands:
+## Related generators
 
 ```bash
-# Create a new panel
-php artisan laravilt:panel {id} --path={path}
-
-# Create a new page
-php artisan laravilt:page {panel} {name}
-
-# Create a new resource
-php artisan laravilt:resource {panel} --table={table}
-```
-
-## AI Agent Examples
-
-```
-You: "What features does the panel support?"
-Claude: [calls list-panel-features]
-
-You: "Tell me about the users resource"
-Claude: [calls get-resource-info with resource="users"]
-
-You: "How do I set up multi-tenancy?"
-Claude: [calls search-docs with query="multi-tenancy"]
+php artisan laravilt:panel
+php artisan laravilt:page
+php artisan laravilt:resource {panel?} --model= --table=
+php artisan laravilt:relation {panel?} {resource?} {relationship?}
+php artisan laravilt:cluster {panel} {name}
 ```
 
 ## Related
 
-- [Panel Introduction](../panel/introduction) - Panel overview
-- [MCP Introduction](introduction) - MCP overview
-
+- [Panel](../panel/README.md)

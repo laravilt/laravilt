@@ -1,46 +1,21 @@
 ---
 title: RepeatableEntry
-description: Display collections and arrays
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: infolists
-component: RepeatableEntry
-vue_component: InfolistRepeatableEntry
+description: Display arrays or relationships with nested entries.
+order: 8
 ---
 
 # RepeatableEntry
 
-Display arrays or collections with nested schemas.
-
-## Basic Usage
+Displays an array or a relationship. Each item uses a nested entry schema.
 
 ```php
-<?php
-
-use Laravilt\Infolists\Entries\RepeatableEntry;
-use Laravilt\Infolists\Entries\TextEntry;
-
-RepeatableEntry::make('addresses')
-    ->schema([
-        TextEntry::make('street'),
-        TextEntry::make('city'),
-        TextEntry::make('country'),
-    ]);
-```
-
-## Collapsible Items
-
-```php
-<?php
-
 use Laravilt\Infolists\Entries\RepeatableEntry;
 use Laravilt\Infolists\Entries\TextEntry;
 
 RepeatableEntry::make('order_items')
     ->collapsible()
     ->collapsed()
+    ->emptyMessage('No items yet')
     ->schema([
         TextEntry::make('product.name'),
         TextEntry::make('quantity'),
@@ -48,27 +23,10 @@ RepeatableEntry::make('order_items')
     ]);
 ```
 
-## Empty State
-
-```php
-<?php
-
-use Laravilt\Infolists\Entries\RepeatableEntry;
-use Laravilt\Infolists\Entries\TextEntry;
-
-RepeatableEntry::make('comments')
-    ->emptyMessage('No comments yet')
-    ->schema([
-        TextEntry::make('author'),
-        TextEntry::make('content'),
-    ]);
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `schema()` | Nested entries |
-| `collapsible()` | Enable collapse |
-| `collapsed()` | Start collapsed |
-| `emptyMessage()` | Empty state text |
+| `schema(array)` | Entries for each item |
+| `collapsible(bool)` / `collapsed(bool)` | Collapse items |
+| `emptyMessage(string)` | Text when there are no items |

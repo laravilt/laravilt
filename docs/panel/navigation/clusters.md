@@ -1,25 +1,28 @@
 ---
 title: Clusters
-description: Group related pages under a single navigation item
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: navigation
+description: Group related pages under a single navigation item with sub-navigation.
+order: 3
 ---
 
 # Clusters
 
-Clusters allow you to group related pages under a single navigation item with sub-navigation.
+A cluster groups related pages under a single navigation item. The pages then share a sub-navigation.
 
 ## Creating a Cluster
 
 ```bash
-php artisan laravilt:cluster Reports
+php artisan laravilt:cluster Admin Reports --icon=BarChart3 --sort=10
 ```
 
-## Basic Cluster
+| Argument / option | Description |
+|-------------------|-------------|
+| `panel` | Panel name |
+| `name` | Cluster class name |
+| `--icon=Folder` | Navigation icon |
+| `--sort=0` | Navigation sort order |
+| `--group=` | Navigation group |
+
+This creates `app/Laravilt/Admin/Clusters/Reports.php`:
 
 ```php
 <?php
@@ -42,7 +45,7 @@ class Reports extends Cluster
 }
 ```
 
-## Assigning Pages to Cluster
+## Assigning Pages to a Cluster
 
 ```php
 <?php
@@ -54,20 +57,13 @@ use Laravilt\Panel\Pages\Page;
 
 class SalesAnalytics extends Page
 {
+    protected static ?string $cluster = Reports::class;
+
     protected static ?string $navigationIcon = 'TrendingUp';
 
     protected static ?string $navigationLabel = 'Sales Analytics';
 
-    protected static ?string $title = 'Sales Analytics';
-
     protected static ?int $navigationSort = 1;
-
-    protected static ?string $cluster = Reports::class;
-
-    public static function getCluster(): ?string
-    {
-        return static::$cluster;
-    }
 }
 ```
 
@@ -75,8 +71,10 @@ class SalesAnalytics extends Page
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `$navigationIcon` | `string` | Lucide icon |
-| `$navigationLabel` | `string` | Navigation label |
-| `$navigationSort` | `int` | Sort order |
-| `$navigationGroup` | `string` | Parent navigation group |
+| `$navigationIcon` | `?string` | Lucide icon |
+| `$navigationLabel` | `?string` | Navigation label |
+| `$navigationSort` | `?int` | Sort order |
+| `$navigationGroup` | `?string` | Parent navigation group |
+| `$slug` | `?string` | URL segment |
 | `$shouldRegisterNavigation` | `bool` | Show in navigation |
+| `$clusterBreadcrumb` | `?string` | Breadcrumb label |

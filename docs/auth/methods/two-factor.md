@@ -1,246 +1,68 @@
 ---
 title: Two-Factor Authentication
-description: TOTP, SMS OTP, and Email OTP second factor methods
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: auth
-method: two-factor
+description: Authenticator app (TOTP) and email code second factors with recovery codes.
+order: 3
 ---
 
 # Two-Factor Authentication
 
-Add an extra layer of security with TOTP authenticator apps, SMS, or email verification codes.
+Two-factor authentication (2FA) adds a second step after login. Users turn it on from their settings, choosing an authenticator app (TOTP) or email codes.
 
-## Enable in Panel
+## Enable in the panel
 
 ```php
-<?php
-
-namespace App\Laravilt\Admin;
-
-use Laravilt\Panel\PanelProvider;
-use Laravilt\Panel\Panel;
 use Laravilt\Auth\Builders\TwoFactorProviderBuilder;
-use Laravilt\Auth\Drivers\TotpDriver;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->id('admin')
-            ->path('admin')
-            ->twoFactor(builder: function (TwoFactorProviderBuilder $builder) {
-                $builder->provider(TotpDriver::class);
-            });
-    }
-}
-```
-
-## Available Methods
-
-### TOTP (Authenticator App)
-
-Time-based One-Time Password with apps like Google Authenticator, Authy, or 1Password.
-
-```php
-use Laravilt\Auth\Drivers\TotpDriver;
-
-->twoFactor(builder: function (TwoFactorProviderBuilder $builder) {
-    $builder->provider(TotpDriver::class);
-})
-```
-
-### SMS OTP
-
-One-time password sent via SMS:
-
-```php
-use Laravilt\Auth\Drivers\SmsDriver;
-
-->twoFactor(builder: function (TwoFactorProviderBuilder $builder) {
-    $builder->provider(SmsDriver::class);
-})
-```
-
-### Email OTP
-
-One-time password sent via email:
-
-```php
 use Laravilt\Auth\Drivers\EmailDriver;
+use Laravilt\Auth\Drivers\TotpDriver;
 
-->twoFactor(builder: function (TwoFactorProviderBuilder $builder) {
-    $builder->provider(EmailDriver::class);
-})
-```
-
-### Multiple Methods
-
-```php
-use Laravilt\Auth\Drivers\{TotpDriver, SmsDriver, EmailDriver};
-
-->twoFactor(builder: function (TwoFactorProviderBuilder $builder) {
-    $builder
-        ->provider(TotpDriver::class)
-        ->provider(SmsDriver::class)
-        ->provider(EmailDriver::class);
-})
-
-## User Model Setup
-
-```php
-use Laravilt\Auth\Concerns\HasTwoFactorAuth;
-
-class User extends Authenticatable
+public function panel(Panel $panel): Panel
 {
-    use HasTwoFactorAuth;
-
-    protected $casts = [
-        'two_factor_secret' => 'encrypted',
-        'two_factor_recovery_codes' => 'encrypted:array',
-        'two_factor_confirmed_at' => 'datetime',
-    ];
+    return $panel
+        ->id('admin')
+        ->path('admin')
+        ->login()
+        ->twoFactor(builder: function (TwoFactorProviderBuilder $builder) {
+            $builder
+                ->provider(TotpDriver::class)
+                ->provider(EmailDriver::class);
+        });
 }
 ```
 
-## Migration
+Calling `->twoFactor()` with no builder registers both `TotpDriver` and `EmailDriver`. The signature is `twoFactor(?string $page = null, ?string $path = null, ?callable $builder = null)`, so pass the builder as a named argument.
+
+## Drivers
+
+| Driver | Name | How it works |
+|--------|------|--------------|
+| `Laravilt\Auth\Drivers\TotpDriver` | `totp` | Shows a QR code for Google Authenticator, 1Password, Authy and similar apps. Requires confirmation with a first code. |
+| `Laravilt\Auth\Drivers\EmailDriver` | `email` | Emails a one-time code at each login. |
+
+### Custom drivers
+
+Implement `Laravilt\Auth\Contracts\TwoFactorDriver` (`getName()`, `getLabel()`, `getIcon()`, `enable()`, `verify()`, `send()`, `requiresSending()`, `requiresConfirmation()`) and register it:
 
 ```php
-Schema::table('users', function (Blueprint $table) {
-    $table->text('two_factor_secret')->nullable();
-    $table->text('two_factor_recovery_codes')->nullable();
-    $table->timestamp('two_factor_confirmed_at')->nullable();
-    $table->string('two_factor_method')->nullable();  // totp, sms, email
+$builder->provider(SmsDriver::class, function (SmsDriver $driver) {
+    // optional configuration of the driver instance
 });
 ```
 
-## Configuration
+`provider()` accepts a class name (resolved from the container) or an instance.
 
-```php
-// config/laravilt-auth.php
+## User flow
 
-return [
-    'two_factor' => [
-        'enabled' => true,
-        'methods' => ['totp', 'sms', 'email'],
+1. The user opens **Settings > Two-Factor** (`/admin/settings/two-factor`), picks a method and confirms it.
+2. Recovery codes are generated when 2FA is confirmed. They can be regenerated from the same page.
+3. At the next login, the user is redirected to `/admin/two-factor/challenge`. A lost device can be bypassed at `/admin/two-factor/recovery` with a recovery code.
 
-        'totp' => [
-            'issuer' => env('APP_NAME'),
-            'digits' => 6,
-            'period' => 30,
-            'algorithm' => 'sha1',
-        ],
+Secrets and recovery codes are stored on the `users` table (`two_factor_secret`, `two_factor_recovery_codes`, `two_factor_confirmed_at`, `two_factor_method`, `two_factor_enabled`). The `LaraviltUser` trait includes Fortify's `TwoFactorAuthenticatable`, so Fortify helpers such as `$user->recoveryCodes()` are available. Use `$user->hasTwoFactorEnabled()` to check the status.
 
-        'sms' => [
-            'driver' => 'twilio',  // or 'vonage', 'aws-sns'
-            'code_length' => 6,
-            'expires_in' => 300,  // 5 minutes
-        ],
+## Events
 
-        'email' => [
-            'code_length' => 6,
-            'expires_in' => 600,  // 10 minutes
-        ],
+`TwoFactorEnabled`, `TwoFactorDisabled`, `TwoFactorChallengeSuccessful` and `TwoFactorChallengeFailed`. See [Events](../events.md).
 
-        'recovery_codes' => [
-            'count' => 8,
-            'length' => 10,
-        ],
-    ],
-];
-```
+## Related
 
-## Profile Integration
-
-Enable 2FA management in user profile:
-
-```php
-$panel->profile()
-    ->twoFactorManagement();
-```
-
-## Recovery Codes
-
-Recovery codes are generated when 2FA is enabled. Users can:
-- View recovery codes
-- Regenerate recovery codes
-- Use recovery code if device is lost
-
-```php
-// Generate new recovery codes
-$user->generateTwoFactorRecoveryCodes();
-
-// Validate recovery code
-$user->validateTwoFactorRecoveryCode($code);
-```
-
-## Enforcing 2FA
-
-Require 2FA for all users:
-
-```php
-->twoFactor(builder: function (TwoFactorProviderBuilder $builder) {
-    $builder
-        ->provider(TotpDriver::class)
-        ->required();  // Force all users to enable 2FA
-})
-```
-
-For specific roles:
-
-```php
-->twoFactor(builder: function (TwoFactorProviderBuilder $builder) {
-    $builder
-        ->provider(TotpDriver::class)
-        ->requiredFor(['admin', 'super_admin']);
-})
-
-## Customizing the Challenge
-
-```php
-// app/Laravilt/Admin/Pages/TwoFactorChallenge.php
-
-use Laravilt\Auth\Pages\TwoFactorChallenge as BaseChallenge;
-
-class TwoFactorChallenge extends BaseChallenge
-{
-    protected function getFormSchema(): array
-    {
-        return [
-            TextInput::make('code')
-                ->label('Authentication Code')
-                ->placeholder('Enter 6-digit code')
-                ->required()
-                ->maxLength(6)
-                ->autofocus(),
-
-            Toggle::make('use_recovery')
-                ->label('Use recovery code instead'),
-        ];
-    }
-}
-```
-
-## API Reference
-
-### Panel Methods
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `twoFactorAuthentication()` | `?array $methods` | Enable 2FA |
-| `required()` | — | Require 2FA for all users |
-| `requiredFor()` | `array $roles` | Require 2FA for roles |
-
-### User Methods
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `enableTwoFactor()` | `string $method` | Enable 2FA |
-| `disableTwoFactor()` | — | Disable 2FA |
-| `hasTwoFactorEnabled()` | — | Check if 2FA enabled |
-| `generateTwoFactorRecoveryCodes()` | — | Generate recovery codes |
-| `validateTwoFactorCode()` | `string $code` | Validate TOTP code |
-| `validateTwoFactorRecoveryCode()` | `string $code` | Validate recovery code |
+- [Passkeys](passkeys.md)
+- [User Model](../user-model.md)

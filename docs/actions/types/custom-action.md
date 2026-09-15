@@ -1,19 +1,10 @@
 ---
 title: Custom Action
-description: Create custom actions with modals, forms, and callbacks
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
-component: Action
+description: Build your own actions inline or as reusable classes.
+order: 10
 ---
 
 # Custom Action
-
-Create custom actions with modals, forms, and callbacks.
-
-## Basic Usage
 
 ```php
 use Laravilt\Actions\Action;
@@ -22,115 +13,101 @@ Action::make('approve')
     ->label('Approve')
     ->icon('CheckCircle')
     ->color('success')
+    ->requiresConfirmation()
     ->action(function ($record) {
         $record->update(['status' => 'approved']);
     });
 ```
 
-## With Confirmation
+## With a form
 
 ```php
-use Laravilt\Actions\Action;
-
-Action::make('archive')
-    ->label('Archive')
-    ->icon('Archive')
-    ->requiresConfirmation()
-    ->modalHeading('Archive Record')
-    ->modalDescription('Are you sure you want to archive this record?')
-    ->action(function ($record) {
-        $record->update(['archived_at' => now()]);
-    });
-```
-
-## With Modal Form
-
-```php
-use Laravilt\Actions\Action;
 use Laravilt\Forms\Components\Select;
 use Laravilt\Forms\Components\Textarea;
 
-Action::make('change_status')
-    ->label('Change Status')
+Action::make('changeStatus')
     ->icon('RefreshCw')
-    ->form([
+    ->schema([
         Select::make('status')
-            ->options([
-                'pending' => 'Pending',
-                'approved' => 'Approved',
-                'rejected' => 'Rejected',
-            ])
+            ->options(['pending' => 'Pending', 'approved' => 'Approved'])
             ->required(),
-        Textarea::make('notes')
-            ->label('Notes'),
+        Textarea::make('notes'),
     ])
-    ->action(function ($record, array $data) {
-        $record->update([
-            'status' => $data['status'],
-            'notes' => $data['notes'],
-        ]);
-    });
+    ->action(fn ($record, array $data) => $record->update($data));
 ```
 
-## View-Only Modal (Infolist)
+## URL actions
+
+An action with a URL navigates instead of running a closure:
 
 ```php
-use Laravilt\Actions\Action;
-use Laravilt\Infolists\Entries\TextEntry;
-
-Action::make('preview')
-    ->modalInfolistSchema([
-        TextEntry::make('title'),
-        TextEntry::make('content')->html(),
-        TextEntry::make('created_at')->dateTime(),
-    ])
-    ->isViewOnly();
-```
-
-## URL Action
-
-```php
-use Laravilt\Actions\Action;
-
-Action::make('view_report')
-    ->label('View Report')
+Action::make('report')
     ->icon('ExternalLink')
     ->url(fn ($record) => route('reports.show', $record))
     ->openUrlInNewTab();
 ```
 
-## Button Variants
+## Closure arguments
 
-```php
-use Laravilt\Actions\Action;
+Arguments are injected by parameter name:
 
-// Standard button (default)
-Action::make('submit')->button();
+| Parameter | Value |
+|-----------|-------|
+| `$record` | The current record |
+| `$data` | Submitted modal form values |
+| `$records` | Selected records, as a collection (bulk actions) |
+| `$ids` | Selected record keys (bulk actions) |
+| `Get $get`, `Set $set` | `Laravilt\Support\Utilities\Get` / `Set` for form data |
 
-// Icon-only button
-Action::make('delete')->icon('Trash2')->iconButton();
+## Reusable action classes
 
-// Text link
-Action::make('learn_more')->link();
+Generate a class with `make:action`:
 
-// Outlined button
-Action::make('cancel')->outlined();
+```bash
+php artisan make:action ApprovePost          # plain
+php artisan make:action ApprovePost --modal  # with confirmation modal
+php artisan make:action ApprovePost --form   # with a modal form
 ```
 
-## API Reference
+The class goes in `app/Actions` and extends `Laravilt\Actions\Action`. Configure it in `setUp()` and wire your logic with `action()`:
 
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `make()` | `string $name` | Create action |
-| `label()` | `string` | Set label |
-| `icon()` | `string` | Set icon |
-| `color()` | `string` | Set color |
-| `action()` | `Closure` | Backend callback |
-| `form()` | `array` | Modal form schema |
-| `requiresConfirmation()` | — | Show confirmation |
-| `modalHeading()` | `string` | Modal title |
-| `modalWidth()` | `string` | Modal width |
-| `slideOver()` | — | Use slide-over |
-| `url()` | `string\|Closure` | Navigate to URL |
-| `visible()` | `bool\|Closure` | Show condition |
-| `can()` | `string` | Spatie permission |
+```php
+namespace App\Actions;
+
+use Laravilt\Actions\Action;
+
+class ApprovePost extends Action
+{
+    protected function setUp(): void
+    {
+        $this->name ??= 'approve';
+
+        $this
+            ->label('Approve')
+            ->icon('CheckCircle')
+            ->color('success')
+            ->requiresConfirmation()
+            ->action(fn ($record) => $record->update(['status' => 'approved']));
+    }
+}
+```
+
+```php
+use App\Actions\ApprovePost;
+
+$table->recordActions([ApprovePost::make()]);
+```
+
+> The generated stub includes a `handle()` method, but Laravilt doesn't call it automatically. Call it from your `action()` closure, or put the logic in the closure directly as shown above.
+
+## API reference
+
+| Method | Description |
+|--------|-------------|
+| `make(?string $name)` | Create the action |
+| `action(Closure)` | Server-side handler |
+| `url()`, `openUrlInNewTab()` | Navigate instead |
+| `label()`, `icon()`, `color()` | See [Styling](../styling.md) |
+| `requiresConfirmation()`, `modalHeading()`, `slideOver()` | See [Confirmation](../confirmation.md) |
+| `schema()` / `form()` | See [Forms](../forms.md) |
+| `can()`, `authorize()`, `visible()` | See [Authorization](../authorization.md) |

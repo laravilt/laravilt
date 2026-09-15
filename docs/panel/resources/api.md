@@ -1,17 +1,12 @@
 ---
 title: Resource API
-description: Expose resources as REST API endpoints
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: resources
+description: Expose a resource as REST API endpoints with generated documentation.
+order: 6
 ---
 
 # Resource API
 
-Expose your resources as REST API endpoints with automatic documentation.
+Define an `api()` method on a resource to expose it as REST endpoints.
 
 ## Basic API Configuration
 
@@ -48,41 +43,55 @@ class CategoryResource extends Resource
 }
 ```
 
+## Endpoints
+
+For a resource with slug `categories` in the `admin` panel:
+
+```
+GET    /admin/api/categories        # List
+POST   /admin/api/categories        # Create
+GET    /admin/api/categories/{id}   # Show
+PUT    /admin/api/categories/{id}   # Update
+DELETE /admin/api/categories/{id}   # Delete
+```
+
+Turn individual operations on or off:
+
+```php
+return $api
+    ->list()
+    ->show()
+    ->create(false)
+    ->update(false)
+    ->delete(false);
+```
+
 ## API Columns
 
 ```php
 use Laravilt\Tables\ApiColumn;
 
-ApiColumn::make('id')->type('integer');
-ApiColumn::make('name')->type('string')->searchable();
-ApiColumn::make('price')->type('decimal');
-ApiColumn::make('is_active')->type('boolean')->filterable();
-ApiColumn::make('created_at')->type('datetime');
-ApiColumn::make('category.name')->type('string')->label('Category Name');
+ApiColumn::make('price')->type('decimal')->sortable();
+ApiColumn::make('category.name')->type('string')->description('Category name');
+ApiColumn::make('password')->writeOnly();
+ApiColumn::make('id')->notWritable();
 ```
 
-## Column Types
-
-| Type | Description |
-|------|-------------|
-| `integer` | Integer values |
-| `string` | String values |
-| `decimal` | Decimal/float values |
-| `boolean` | Boolean values |
-| `datetime` | DateTime values |
-
-## API Methods
+## ApiResource Methods
 
 | Method | Description |
 |--------|-------------|
-| `description()` | API endpoint description |
+| `description()` / `version()` | API documentation metadata |
 | `authenticated()` | Require authentication |
-| `columns()` | Define available columns |
-| `allowedFilters()` | Filterable fields |
-| `allowedSorts()` | Sortable fields |
-| `allowedIncludes()` | Includable relationships |
-| `actions()` | Custom API actions |
+| `columns()` | Exposed columns |
+| `allowedFilters()` / `allowedSorts()` / `allowedIncludes()` | Query capabilities |
+| `paginated()` / `perPage()` | Pagination |
+| `rules()` / `createRules()` / `updateRules()` | Validation rules |
+| `list()`, `show()`, `create()`, `update()`, `delete()`, `bulkDelete()` | Enable/disable operations, with optional middleware |
+| `actions()` | Custom [API actions](api-actions.md) |
+| `useAPITester()` | Show the interactive API tester |
 
 ## Related
 
-- [API Actions](api-actions) - Custom API actions
+- [API Actions](api-actions.md): custom endpoints
+- [Tables API](../../tables/README.md)

@@ -1,71 +1,52 @@
 ---
 title: ColorPicker
-description: Color selection field
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: forms
-component: ColorPicker
-vue_component: FormColorPicker
-vue_package: "native input[type=color]"
+description: Color selection with formats, alpha, swatches and multiple colors.
+order: 1
 ---
 
 # ColorPicker
 
-Color selection with format options.
+Color selection in a popover.
 
-## Basic Usage
+## Basic usage
 
 ```php
-<?php
-
 use Laravilt\Forms\Components\ColorPicker;
 
 ColorPicker::make('color')
     ->label('Brand Color');
 ```
 
-## Color Format
+## Format and alpha
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\ColorPicker;
-
-ColorPicker::make('primary_color')->format('hex');
-ColorPicker::make('background')->format('rgb');
-ColorPicker::make('overlay')->format('rgba');
+ColorPicker::make('primary_color')->format('hex'); // hex, rgb or hsl
+ColorPicker::make('overlay')->format('rgb')->alpha();
 ```
 
-## Preset Swatches
+## Swatches
 
 ```php
-<?php
-
-use Laravilt\Forms\Components\ColorPicker;
-
 ColorPicker::make('theme_color')
-    ->swatches([
-        '#3b82f6', '#ef4444', '#22c55e',
-        '#f59e0b', '#8b5cf6', '#06b6d4',
-    ]);
+    ->swatches(['#3b82f6', '#ef4444', '#22c55e', '#f59e0b']);
 ```
 
-## Vue Component
+## Multiple colors
 
-Uses native color input:
-
-```vue
-<template>
-  <input type="color" v-model="modelValue" />
-</template>
+```php
+ColorPicker::make('palette')
+    ->multiple()
+    ->minItems(2)
+    ->maxItems(5)
+    ->popupPosition('bottom-end');
 ```
 
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `format()` | Set color format |
-| `swatches()` | Preset swatches |
-| `default()` | Default color |
+| `format(string)` | `hex`, `rgb` or `hsl` |
+| `alpha(bool)` | Alpha channel control |
+| `swatches(array)` | Preset colors |
+| `multiple(bool)` / `minItems()` / `maxItems()` | Multiple colors |
+| `popupPosition(string)` | e.g. `bottom-start`, `top`, `right-end` |

@@ -1,17 +1,12 @@
 ---
 title: API Actions
-description: Add custom actions to resource API endpoints
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: resources
+description: Add custom endpoints to a resource's REST API.
+order: 7
 ---
 
 # API Actions
 
-Add custom actions to your resource API endpoints.
+Add custom endpoints to a resource API with `ApiAction`.
 
 ## Basic Action
 
@@ -39,6 +34,7 @@ class ProductResource extends Resource
                 ->successMessage('Product published successfully')
                 ->action(function ($record, $request) {
                     $record->update(['status' => 'published']);
+
                     return ['status' => 'published', 'product' => $record];
                 }),
         ]);
@@ -54,37 +50,30 @@ use Laravilt\Tables\ApiColumn;
 
 ApiAction::make('update-stock')
     ->label('Update Stock')
-    ->description('Update product stock quantity')
-    ->icon('Package')
-    ->color('primary')
     ->patch()
     ->requiresRecord()
     ->rules(['quantity' => 'required|integer|min:0'])
     ->fields([
-        ApiColumn::make('quantity')->type('integer')->label('New Stock Quantity'),
+        ApiColumn::make('quantity')->type('integer')->description('New stock quantity'),
     ])
-    ->successMessage('Stock updated successfully')
     ->action(function ($record, $request) {
         $record->update(['stock' => $request->input('quantity')]);
-        return ['stock' => $record->stock, 'product' => $record];
+
+        return ['stock' => $record->stock];
     });
 ```
 
 ## Bulk Action
 
 ```php
-use Laravilt\Tables\ApiAction;
-
 ApiAction::make('bulk-publish')
     ->label('Bulk Publish')
-    ->description('Publish multiple products at once')
-    ->icon('Eye')
-    ->color('success')
     ->post()
     ->bulk()
-    ->successMessage('Products published successfully')
+    ->requiresConfirmation(message: 'Publish all selected products?')
     ->action(function ($record, $request) {
         $record->update(['status' => 'published']);
+
         return ['status' => 'published'];
     });
 ```
@@ -92,37 +81,30 @@ ApiAction::make('bulk-publish')
 ## Collection Action (No Record)
 
 ```php
-use Laravilt\Tables\ApiAction;
+use App\Models\Product;
 
 ApiAction::make('statistics')
     ->label('Get Statistics')
-    ->description('Get product statistics')
-    ->icon('BarChart')
-    ->color('info')
     ->get()
     ->requiresRecord(false)
-    ->action(function ($record, $request) {
-        return [
-            'total_products' => Product::count(),
-            'published' => Product::where('status', 'published')->count(),
-        ];
-    });
+    ->action(fn ($record, $request) => [
+        'total_products' => Product::count(),
+        'published' => Product::where('status', 'published')->count(),
+    ]);
 ```
 
-## API Action Methods
+## ApiAction Methods
 
 | Method | Description |
 |--------|-------------|
-| `make()` | Create action |
-| `label()` | Action label |
-| `description()` | Action description |
-| `icon()` | Lucide icon |
-| `color()` | Color theme |
-| `get()` / `post()` / `patch()` | HTTP method |
-| `requiresRecord()` | Needs record context |
-| `bulk()` | Bulk action |
-| `rules()` | Validation rules |
-| `fields()` | Input fields |
-| `confirmable()` | Confirmation message |
-| `successMessage()` | Success notification |
-| `action()` | Action callback |
+| `make()`, `slug()`, `label()`, `description()` | Identity and docs |
+| `icon()`, `color()` | Display |
+| `get()`, `post()`, `put()`, `patch()`, `delete()`, `method()` | HTTP method |
+| `requiresRecord()` | Needs a record id in the URL |
+| `bulk()` | Operates on multiple records |
+| `rules()`, `fields()` | Validation and input fields |
+| `requiresConfirmation()` / `confirmable()` | Confirmation prompt |
+| `before()`, `after()` | Hooks around the action |
+| `successMessage()`, `errorMessage()` | Result messages |
+| `hidden()` | Hide the action |
+| `action()` | Callback receiving `($record, $request)` |

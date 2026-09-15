@@ -1,91 +1,42 @@
 ---
 title: Requirements
-description: System requirements for Laravilt
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: getting-started
+description: PHP, Laravel, Node.js and database versions Laravilt needs.
+order: 1
 ---
 
 # Requirements
 
-## Server Requirements
+| Requirement | Version |
+|-------------|---------|
+| PHP | 8.3 or 8.4 |
+| Laravel | 13 (Laravilt v1.1+), or 11/12 on Laravilt 1.0.x |
+| Composer | 2.x |
+| Node.js | 20+ with npm |
+| Database | MySQL 8+, PostgreSQL 13+ or SQLite 3.35+ |
 
-### PHP 8.2+
+> Laravel 13 and the React stack require Laravilt v1.1 or later. Laravilt 1.0.x supports Laravel 11 and 12 with the Vue stack only.
 
-Required extensions:
-- BCMath
-- Ctype
-- Fileinfo
-- JSON
-- Mbstring
-- OpenSSL
-- PDO
-- Tokenizer
-- XML
+## PHP extensions
 
-### Database
+The usual Laravel set: BCMath, Ctype, Fileinfo, JSON, Mbstring, OpenSSL, PDO (plus the driver for your database), Tokenizer and XML.
 
-Choose one:
-- **MySQL** 8.0+
-- **PostgreSQL** 13+
-- **SQLite** 3.35+
+## Frontend
 
-### Web Server
+Laravilt installs on top of one of Laravel's official Inertia starter kits:
 
-- Apache 2.4+ with mod_rewrite
-- Nginx 1.18+
-- Laravel Herd / Valet
+| Stack | Starter kit | UI library |
+|-------|-------------|------------|
+| Vue 3 | Vue | shadcn-vue (Reka UI) |
+| React 19 | React | shadcn/ui (Radix) |
 
-## Development Requirements
+Both stacks use TypeScript, Vite and Tailwind CSS v4. See [Frontend Stacks](frontend-stacks.md).
 
-### Node.js 18+
+## Production notes
 
-Required for building frontend assets:
+- HTTPS is required for passkeys (WebAuthn).
+- Run a queue worker if you use database notifications, exports/imports or AI features.
+- Redis for cache and sessions is recommended, but not required.
 
-```bash
-node --version  # v18.0.0+
-npm --version   # 8.0.0+
-```
+## Next
 
-### Composer 2.x
-
-```bash
-composer --version  # Composer version 2.x
-```
-
-## Browser Support
-
-Laravilt supports modern browsers:
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
-
-## Recommended Setup
-
-For development:
-
-```bash
-# Using Laravel Herd (macOS)
-herd install
-
-# Using Laravel Valet (macOS)
-valet install
-
-# Using Laravel Sail (Docker)
-./vendor/bin/sail up
-```
-
-For production:
-
-- PHP-FPM with OPcache
-- Redis for cache and sessions
-- Queue worker for background jobs
-- SSL certificate (required for passkeys)
-
-## Next Steps
-
-- [Installation](installation) - Install Laravilt
-- [Configuration](configuration) - Configure your setup
+Continue with [Installation](installation.md).

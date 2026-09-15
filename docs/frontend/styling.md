@@ -1,344 +1,116 @@
 ---
-title: Styling Guide
-description: Tailwind CSS styling conventions and theming for Laravilt.
+title: Styling & Theming
+description: Tailwind CSS v4 setup, theme variables, brand colors and dark mode in Laravilt apps.
+order: 3
 ---
 
-# Styling Guide
+# Styling & Theming
 
-Laravilt uses Tailwind CSS for styling with custom theme extensions and CSS variables for dynamic theming.
+Laravilt uses **Tailwind CSS v4** with CSS-first configuration. There is no `tailwind.config.js`: the theme, sources and variants all live in `resources/css/app.css`, which the installer publishes for both stacks.
 
-## Tailwind Configuration
+> React support requires Laravilt v1.1 or later.
 
-### Theme Colors
-
-Laravilt extends Tailwind with custom colors:
-
-```javascript
-// tailwind.config.js
-module.exports = {
-    theme: {
-        extend: {
-            colors: {
-                primary: {
-                    DEFAULT: 'hsl(var(--primary))',
-                    foreground: 'hsl(var(--primary-foreground))',
-                },
-                secondary: {
-                    DEFAULT: 'hsl(var(--secondary))',
-                    foreground: 'hsl(var(--secondary-foreground))',
-                },
-                destructive: {
-                    DEFAULT: 'hsl(var(--destructive))',
-                    foreground: 'hsl(var(--destructive-foreground))',
-                },
-                muted: {
-                    DEFAULT: 'hsl(var(--muted))',
-                    foreground: 'hsl(var(--muted-foreground))',
-                },
-                accent: {
-                    DEFAULT: 'hsl(var(--accent))',
-                    foreground: 'hsl(var(--accent-foreground))',
-                },
-                border: 'hsl(var(--border))',
-                input: 'hsl(var(--input))',
-                ring: 'hsl(var(--ring))',
-                background: 'hsl(var(--background))',
-                foreground: 'hsl(var(--foreground))',
-            },
-        },
-    },
-}
-```
-
-### CSS Variables
-
-Theme colors are defined as CSS variables for light/dark mode:
+## app.css Structure
 
 ```css
-/* resources/css/app.css */
-@layer base {
-    :root {
-        --background: 0 0% 100%;
-        --foreground: 240 10% 3.9%;
-        --card: 0 0% 100%;
-        --card-foreground: 240 10% 3.9%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 240 10% 3.9%;
-        --primary: 3.5 100% 56.3%;     /* Laravilt red #FF2D20 */
-        --primary-foreground: 40 33.3% 91.2%; /* #f0ebe1 */
-        --brand-accent: 266.4 77.3% 62%; /* Laravilt purple #9553E9 */
-        --secondary: 240 4.8% 95.9%;
-        --secondary-foreground: 240 5.9% 10%;
-        --muted: 240 4.8% 95.9%;
-        --muted-foreground: 240 3.8% 46.1%;
-        --accent: 240 4.8% 95.9%;
-        --accent-foreground: 240 5.9% 10%;
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 240 5.9% 90%;
-        --input: 240 5.9% 90%;
-        --ring: 3.5 100% 56.3%;
-        --radius: 0.5rem;
-    }
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
-    .dark {
-        --background: 240 10% 3.9%;
-        --foreground: 0 0% 98%;
-        --card: 240 10% 3.9%;
-        --card-foreground: 0 0% 98%;
-        --popover: 240 10% 3.9%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 3.5 100% 56.3%;
-        --primary-foreground: 40 33.3% 91.2%;
-        --brand-accent: 266.4 77.3% 62%;
-        --secondary: 240 3.7% 15.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 240 3.7% 15.9%;
-        --muted-foreground: 240 5% 64.9%;
-        --accent: 240 3.7% 15.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 240 3.7% 15.9%;
-        --input: 240 3.7% 15.9%;
-        --ring: 3.5 100% 56.3%;
-    }
+/* Scan Laravilt package sources for classes */
+@source '../../vendor/laravilt/*/resources/js/**/*.vue';   /* React: resources/react/**/*.tsx */
+@source '../../vendor/laravilt/*/resources/js/**/*.ts';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    /* ... card, popover, secondary, muted, accent, destructive, border, input, ring,
+       chart-1..5, sidebar-*, brand, brand-accent ... */
+    --radius-lg: var(--radius);
+}
+
+:root {
+    --brand: hsl(3.5 100% 56.3%);           /* #FF2D20 */
+    --brand-foreground: hsl(40 33.3% 91.2%); /* #f0ebe1 */
+    --brand-accent: hsl(266.4 77.3% 62%);   /* #9553E9 */
+    --primary: var(--brand);
+    --ring: var(--brand);
+    --radius: 0.5rem;
+    /* ... */
+}
+
+.dark {
+    /* dark values */
 }
 ```
 
-## Using the cn() Utility
+The `@source` lines matter. If package classes are missing from your build, check that these lines are present and match your stack.
 
-Always use `cn()` for combining classes:
+## Changing Colors
 
-```vue
-<script setup>
-import { cn } from '@/lib/utils'
+The variables hold complete color values (for example `hsl(...)`), and `@theme inline` maps them to utilities such as `bg-primary` and `text-muted-foreground`. To rebrand, change the variables in both `:root` and `.dark`:
 
-const props = defineProps<{
-    variant?: 'default' | 'destructive'
-    size?: 'sm' | 'md' | 'lg'
-}>()
-</script>
+```css
+:root {
+    --brand: oklch(0.55 0.2 260);
+    --brand-foreground: oklch(0.98 0 0);
+}
 
-<template>
-    <button
-        :class="cn(
-            'inline-flex items-center justify-center rounded-md font-medium transition-colors',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            {
-                'bg-primary text-primary-foreground hover:bg-primary/90': variant === 'default',
-                'bg-destructive text-destructive-foreground hover:bg-destructive/90': variant === 'destructive',
-            },
-            {
-                'h-8 px-3 text-sm': size === 'sm',
-                'h-10 px-4': size === 'md',
-                'h-12 px-6 text-lg': size === 'lg',
-            }
-        )"
-    >
-        <slot />
-    </button>
-</template>
+.dark {
+    --brand: oklch(0.65 0.2 260);
+}
 ```
 
-## Badge Colors
+Panel-level colors, fonts and theme presets can also be set from PHP on the panel. See [Branding](../panel/branding.md).
 
-Badge variants available:
+## Adding Theme Tokens
 
-```vue
-<template>
-    <Badge variant="default">Default</Badge>
-    <Badge variant="primary">Primary</Badge>
-    <Badge variant="secondary">Secondary</Badge>
-    <Badge variant="success">Success</Badge>
-    <Badge variant="danger">Danger</Badge>
-    <Badge variant="warning">Warning</Badge>
-    <Badge variant="info">Info</Badge>
-    <Badge variant="gray">Gray</Badge>
-    <Badge variant="outline">Outline</Badge>
-    <Badge variant="destructive">Destructive</Badge>
-</template>
+Add new tokens in CSS rather than in a config file:
+
+```css
+@theme inline {
+    --color-success: var(--success);
+}
+
+:root {
+    --success: hsl(152 60% 40%);
+}
 ```
+
+Then use `bg-success`, `text-success` and so on.
 
 ## Dark Mode
 
-### Automatic Detection
-
-Laravilt respects system preferences and allows manual override:
+Dark mode is class-based (`.dark` on `<html>`). The appearance composable/hook handles `light`, `dark` and `system`, stores the choice in `localStorage` and in an `appearance` cookie (so the server can render the right class), and follows system changes:
 
 ```typescript
-// Theme management
-type Theme = 'light' | 'dark' | 'system'
-
-const setTheme = (theme: Theme) => {
-    if (theme === 'system') {
-        const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        document.documentElement.classList.toggle('dark', systemDark)
-    } else {
-        document.documentElement.classList.toggle('dark', theme === 'dark')
-    }
-    localStorage.setItem('theme', theme)
-}
+// Vue
+import { useAppearance } from '@/composables/useAppearance'
+const { appearance, updateAppearance } = useAppearance()
+updateAppearance('dark')
 ```
 
-### Styling for Dark Mode
-
-Use Tailwind's `dark:` variant:
-
-```vue
-<template>
-    <div class="bg-white dark:bg-gray-900">
-        <h1 class="text-gray-900 dark:text-white">
-            Title
-        </h1>
-        <p class="text-gray-600 dark:text-gray-400">
-            Description
-        </p>
-    </div>
-</template>
+```tsx
+// React
+import { useAppearance } from '@/hooks/use-appearance';
+const { appearance, updateAppearance } = useAppearance();
 ```
 
-## Component Styling Patterns
+Use the `dark:` variant for custom styles, and prefer semantic tokens (`bg-background`, `text-muted-foreground`) because they switch automatically.
 
-### Card Pattern
+## Conventions
 
-```vue
-<template>
-    <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
-        <h3 class="text-lg font-semibold text-card-foreground">
-            Title
-        </h3>
-        <p class="mt-2 text-muted-foreground">
-            Content
-        </p>
-    </div>
-</template>
-```
+1. Use semantic tokens (`text-muted-foreground`) instead of raw palette colors.
+2. Combine conditional classes with `cn()` from `@/lib/utils`. See [Utilities](utilities.md).
+3. Style variants with `class-variance-authority`, as the UI primitives do (`buttonVariants`, `badgeVariants`).
+4. Animations come from `tw-animate-css` (`animate-in`, `fade-in`, `slide-in-from-top` ...).
+5. Test both themes.
 
-### Form Input Pattern
+## Related
 
-```vue
-<template>
-    <div class="space-y-2">
-        <label class="text-sm font-medium text-foreground">
-            Label
-        </label>
-        <input
-            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            placeholder="Enter value..."
-        />
-        <p class="text-sm text-muted-foreground">
-            Helper text
-        </p>
-    </div>
-</template>
-```
-
-### Button States
-
-```vue
-<template>
-    <button
-        :class="cn(
-            'inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium',
-            'transition-colors focus-visible:outline-none focus-visible:ring-2',
-            'disabled:pointer-events-none disabled:opacity-50',
-            'bg-primary text-primary-foreground hover:bg-primary/90',
-            'active:scale-[0.98]'
-        )"
-        :disabled="loading"
-    >
-        <Spinner v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
-        {{ loading ? 'Loading...' : 'Submit' }}
-    </button>
-</template>
-```
-
-## Animations
-
-### Tailwind Animations
-
-```css
-@layer utilities {
-    .animate-fade-in {
-        animation: fade-in 0.2s ease-out;
-    }
-
-    .animate-slide-in {
-        animation: slide-in 0.3s ease-out;
-    }
-
-    .animate-scale-in {
-        animation: scale-in 0.2s ease-out;
-    }
-}
-
-@keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes slide-in {
-    from { transform: translateY(-10px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
-
-@keyframes scale-in {
-    from { transform: scale(0.95); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-}
-```
-
-### Vue Transitions
-
-```vue
-<template>
-    <Transition name="fade">
-        <div v-if="show">Content</div>
-    </Transition>
-</template>
-
-<style scoped>
-.fade-enter-active,
-.fade-leave-active {
-    transition: opacity 0.2s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-    opacity: 0;
-}
-</style>
-```
-
-## Responsive Design
-
-### Breakpoints
-
-```css
-/* Tailwind default breakpoints */
-sm: 640px   /* Small devices */
-md: 768px   /* Tablets */
-lg: 1024px  /* Laptops */
-xl: 1280px  /* Desktops */
-2xl: 1536px /* Large screens */
-```
-
-### Mobile-First Approach
-
-```vue
-<template>
-    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <!-- Cards -->
-    </div>
-</template>
-```
-
-## Best Practices
-
-1. **Use semantic color names** - `text-muted-foreground` instead of `text-gray-500`
-2. **Always support dark mode** - Add `dark:` variants for custom styles
-3. **Use CSS variables** - For colors that need to change with theme
-4. **Leverage cn()** - For conditional and merged classes
-5. **Keep specificity low** - Use Tailwind utilities over custom CSS
-6. **Test both themes** - Verify your components in light and dark mode
+- [UI Components](ui/README.md)
+- [Layouts](layouts.md)
+- [Tailwind CSS v4 docs](https://tailwindcss.com/docs)

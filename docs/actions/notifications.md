@@ -1,59 +1,12 @@
 ---
-title: Action Notifications
-description: Success and failure feedback
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
+title: Notifications
+description: Show success or failure feedback after an action runs.
+order: 4
 ---
 
-# Action Notifications
+# Notifications
 
-Provide feedback after action execution.
-
-## Success Notification
-
-```php
-use Laravilt\Actions\Action;
-
-Action::make('approve')
-    ->action(fn ($record) => $record->approve())
-    ->successNotificationTitle('Approved successfully');
-```
-
-## Custom Success Notification
-
-```php
-use Laravilt\Actions\Action;
-use Laravilt\Notifications\Notification;
-
-Action::make('process')
-    ->action(fn ($record) => $record->process())
-    ->successNotification(
-        Notification::make()
-            ->title('Processing complete')
-            ->body('The record has been processed.')
-            ->success()
-    );
-```
-
-## Failure Notification
-
-```php
-use Laravilt\Actions\Action;
-
-Action::make('process')
-    ->action(function ($record) {
-        if (!$record->canBeProcessed()) {
-            throw new \Exception('Cannot process this record');
-        }
-        $record->process();
-    })
-    ->failureNotificationTitle('Processing failed');
-```
-
-## Manual Notification
+Send a toast from the action closure with `Laravilt\Notifications\Notification`. See [Notifications](../notifications/README.md) for all options.
 
 ```php
 use Laravilt\Actions\Action;
@@ -63,32 +16,47 @@ Action::make('publish')
     ->action(function ($record) {
         $record->publish();
 
-        Notification::make()
+        Notification::success()
             ->title('Post published')
-            ->success()
+            ->body("\"{$record->title}\" is now live.")
             ->send();
     });
 ```
 
-## Bulk Action Notification
+## Failure feedback
+
+```php
+Action::make('process')
+    ->action(function ($record) {
+        if (! $record->canBeProcessed()) {
+            Notification::danger()
+                ->title('Cannot process this record')
+                ->send();
+
+            return;
+        }
+
+        $record->process();
+
+        Notification::success()->title('Processed')->send();
+    });
+```
+
+If the closure throws, the request fails and the error is reported back to the page.
+
+## Bulk actions
 
 ```php
 use Laravilt\Actions\BulkAction;
-use Laravilt\Notifications\Notification;
 
 BulkAction::make('publish')
     ->action(function ($records) {
         $records->each->publish();
 
-        Notification::make()
+        Notification::success()
             ->title("{$records->count()} posts published")
-            ->success()
             ->send();
     });
 ```
 
-## Next Steps
-
-- [Confirmation](confirmation) - Confirmation modals
-- [Authorization](authorization) - Permissions
-- [Introduction](introduction) - Overview
+Built-in actions such as [DeleteAction](types/delete-action.md) and [CreateAction](types/create-action.md) send their own success notifications.

@@ -1,76 +1,64 @@
 ---
 title: ImageColumn
-description: Image display column
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-component: ImageColumn
-vue_component: TableImageCell
+description: Display single, circular, or stacked images in a table.
+order: 2
 ---
 
 # ImageColumn
 
-Display images with various layouts.
-
-## Basic Usage
-
 ```php
-<?php
-
 use Laravilt\Tables\Columns\ImageColumn;
 
 ImageColumn::make('avatar')
     ->circular()
-    ->size(40);
+    ->imageSize(40);
 ```
 
-## Shapes
+## Shapes and sizes
 
 ```php
-<?php
-
-use Laravilt\Tables\Columns\ImageColumn;
-
 ImageColumn::make('photo')->square();
 ImageColumn::make('avatar')->circular();
+
+ImageColumn::make('cover')
+    ->imageWidth(120)
+    ->imageHeight(80);
 ```
 
-## Stacked Images
+## Stacked images
+
+For attributes holding several image paths:
 
 ```php
-<?php
-
-use Laravilt\Tables\Columns\ImageColumn;
-
 ImageColumn::make('team_members')
+    ->circular()
     ->stacked()
     ->ring(2)
+    ->overlap(3)
     ->limit(3)
     ->limitedRemainingText();
 ```
 
-## Fallback
+## Storage and fallback
 
 ```php
-<?php
-
-use Laravilt\Tables\Columns\ImageColumn;
-
 ImageColumn::make('avatar')
-    ->defaultImageUrl('/default-avatar.png')
+    ->disk('s3')
+    ->visibility('private')
+    ->defaultImageUrl('/images/default-avatar.png')
     ->checkFileExistence();
 ```
 
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `circular()` | Round shape |
-| `square()` | Square shape |
-| `stacked()` | Stack multiple |
-| `limit()` | Max images |
-| `size()` | Width/height |
-| `ring()` | Border ring |
-| `defaultImageUrl()` | Fallback |
+| `circular()`, `square()` | Shape |
+| `imageSize()`, `imageWidth()`, `imageHeight()` | Image dimensions |
+| `stacked()`, `ring()`, `overlap()` | Stacked layout |
+| `limit()`, `limitedRemainingText()` | Show at most N images plus a "+N" label |
+| `wrap()` | Wrap images onto multiple lines |
+| `disk()`, `visibility()` | Storage disk and visibility |
+| `defaultImageUrl()` | Fallback image |
+| `checkFileExistence()` | Use the fallback when the file is missing |
+| `extraImgAttributes()` | Extra `<img>` attributes |

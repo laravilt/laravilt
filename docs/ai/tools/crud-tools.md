@@ -1,90 +1,70 @@
 ---
 title: CRUD Tools
-description: Create, Update, Delete tools
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: ai
-concept: crud-tools
+description: Create, update and delete records from AI tool calls.
+order: 2
 ---
 
 # CRUD Tools
 
-Tools for create, update, and delete operations.
-
 ## CreateTool
 
-```php
-<?php
+`model()` reads the model's `$fillable` fields and adds a string parameter for each one.
 
-use Laravilt\AI\Tools\CreateTool;
+```php
 use App\Models\Product;
+use Laravilt\AI\Tools\CreateTool;
 
 $tool = CreateTool::make('create_product')
     ->description('Create a new product')
     ->model(Product::class)
-    ->fillable(['name', 'description', 'price', 'sku']);
+    ->fillable(['name', 'description', 'price', 'sku']); // restrict the saved fields
 ```
-
-When `model()` is called, fillable fields from model are auto-detected.
 
 ## UpdateTool
 
-```php
-<?php
+Adds a required `id` parameter plus the fillable fields.
 
+```php
 use Laravilt\AI\Tools\UpdateTool;
-use App\Models\Product;
 
 $tool = UpdateTool::make('update_product')
     ->description('Update an existing product')
     ->model(Product::class)
-    ->fillable(['name', 'description', 'price', 'stock']);
+    ->fillable(['name', 'price', 'stock']);
 ```
-
-Auto-adds `id` parameter for record identification.
 
 ## DeleteTool
 
+Adds a required `id` parameter. Soft delete is on by default (`$model->delete()`). `forceDelete()` switches to `$model->forceDelete()`.
+
 ```php
-<?php
-
 use Laravilt\AI\Tools\DeleteTool;
-use App\Models\Product;
 
-// Soft delete (default)
 $tool = DeleteTool::make('delete_product')
     ->description('Delete a product')
-    ->model(Product::class)
-    ->softDelete();
+    ->model(Product::class);
 
-// Force delete
-$tool = DeleteTool::make('force_delete')
+$tool = DeleteTool::make('purge_product')
     ->model(Product::class)
     ->forceDelete();
 ```
 
-## Auto Generation
+## Generated tools
+
+`ResourceAgent::model()` generates all four tools for a model (see [Agents](../agents/README.md)):
 
 ```php
-<?php
-
 use Laravilt\AI\ResourceAgent;
-use App\Models\Product;
 
-$agent = ResourceAgent::make('product_agent')
-    ->model(Product::class)
-    ->autoGenerateTools();
-
-// Creates: query_products, create_Product, update_Product, delete_Product
+$agent = ResourceAgent::make('product_agent')->model(Product::class);
+// query_products, create_Product, update_Product, delete_Product
 ```
 
-## API Reference
+## Methods
 
-| Method | Description |
-|--------|-------------|
-| `model()` | Set Eloquent model |
-| `fillable()` | Allowed fields |
-| `softDelete()` | Use soft delete |
-| `forceDelete()` | Force delete |
+| Method | Tools | Description |
+|--------|-------|-------------|
+| `model(string)` | all | Eloquent model |
+| `fillable(array)` | Create, Update | Fields that may be written |
+| `softDelete(bool)` | Delete | Soft delete (default `true`) |
+| `forceDelete()` | Delete | Permanently delete |
