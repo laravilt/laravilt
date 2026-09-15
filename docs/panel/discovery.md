@@ -1,96 +1,90 @@
 ---
 title: Discovery
-description: Auto-discovery of resources, pages, and widgets
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+description: Register resources, pages, clusters and widgets automatically or by hand.
+order: 3
 ---
 
 # Discovery
 
-Laravilt automatically discovers your resources, pages, and widgets.
-
-## Auto-Discovery
-
-```php
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->discoverPages(
-                in: app_path('Laravilt/Admin/Pages'),
-                for: 'App\\Laravilt\\Admin\\Pages'
-            )
-            ->discoverResources(
-                in: app_path('Laravilt/Admin/Resources'),
-                for: 'App\\Laravilt\\Admin\\Resources'
-            )
-            ->discoverClusters(
-                in: app_path('Laravilt/Admin/Clusters'),
-                for: 'App\\Laravilt\\Admin\\Clusters'
-            )
-            ->discoverWidgets(
-                in: app_path('Laravilt/Admin/Widgets'),
-                for: 'App\\Laravilt\\Admin\\Widgets'
-            );
-    }
-}
-```
+A panel only shows the resources, pages, clusters and widgets registered on it. You can let Laravilt discover them or register them yourself.
 
 ## Automatic Discovery
 
 ```php
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
+public function panel(Panel $panel): Panel
 {
-    public function panel(Panel $panel): Panel
-    {
-        // Discovers all in default locations
-        return $panel->discoverAutomatically();
-    }
+    return $panel
+        ->id('admin')
+        ->discoverAutomatically();
 }
+```
+
+For a panel with id `admin`, this scans:
+
+- `app/Laravilt/Admin/Pages` (`App\Laravilt\Admin\Pages`)
+- `app/Laravilt/Admin/Resources` (`App\Laravilt\Admin\Resources`)
+- `app/Laravilt/Admin/Clusters` (`App\Laravilt\Admin\Clusters`)
+- `app/Laravilt/Admin/Widgets` (`App\Laravilt\Admin\Widgets`)
+
+It also scans `Modules/{Module}/Laravilt/Admin/...` in modular applications.
+
+## Discovering Custom Directories
+
+Each `discover*()` method takes a directory and its namespace:
+
+```php
+return $panel
+    ->discoverPages(
+        in: app_path('Laravilt/Admin/Pages'),
+        for: 'App\\Laravilt\\Admin\\Pages'
+    )
+    ->discoverResources(
+        in: app_path('Laravilt/Admin/Resources'),
+        for: 'App\\Laravilt\\Admin\\Resources'
+    )
+    ->discoverClusters(
+        in: app_path('Laravilt/Admin/Clusters'),
+        for: 'App\\Laravilt\\Admin\\Clusters'
+    )
+    ->discoverWidgets(
+        in: app_path('Laravilt/Admin/Widgets'),
+        for: 'App\\Laravilt\\Admin\\Widgets'
+    );
 ```
 
 ## Manual Registration
 
 ```php
-use Laravilt\Panel\Panel;
 use App\Laravilt\Admin\Pages\Dashboard;
-use App\Laravilt\Admin\Resources\UserResource;
+use App\Laravilt\Admin\Resources\User\UserResource;
 
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->pages([
-                Dashboard::class,
-            ])
-            ->resources([
-                UserResource::class,
-            ]);
-    }
-}
+return $panel
+    ->pages([
+        Dashboard::class,
+    ])
+    ->resources([
+        UserResource::class,
+    ]);
 ```
+
+`clusters([...])` and `widgets([...])` work the same way. Nested resources are not registered directly. They are picked up from their parent resource's `getNestedResources()`.
 
 ## Directory Structure
 
+This is what the generators create (`laravilt:resource`, `laravilt:page`, `laravilt:cluster`, `laravilt:widget`):
+
 ```
-app/Laravilt/{PanelId}/
-├── {PanelId}PanelProvider.php
+app/Providers/Laravilt/AdminPanelProvider.php
+app/Laravilt/Admin/
 ├── Pages/
 │   └── Dashboard.php
 ├── Resources/
-│   └── UserResource/
+│   └── User/
 │       ├── UserResource.php
 │       ├── Form/UserForm.php
 │       ├── Table/UserTable.php
+│       ├── InfoList/UserInfoList.php
+│       ├── RelationManagers/
 │       └── Pages/
 ├── Clusters/
 └── Widgets/
@@ -98,6 +92,6 @@ app/Laravilt/{PanelId}/
 
 ## Next Steps
 
-- [Resources](concepts/resources) - CRUD resources
-- [Pages](concepts/pages) - Custom pages
-- [Navigation](concepts/navigation) - Navigation config
+- [Resources](resources/README.md): CRUD resources
+- [Pages](pages/README.md): custom pages
+- [Navigation](navigation/README.md): navigation configuration

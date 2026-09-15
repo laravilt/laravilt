@@ -1,17 +1,12 @@
 ---
 title: Resource AI
-description: Configure AI capabilities for resources
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: resources
+description: Give a resource an AI agent for natural-language querying, CRUD and global search.
+order: 8
 ---
 
 # Resource AI
 
-Configure AI capabilities for your resources to enable AI-powered CRUD operations.
+Define an `ai()` method on a resource to let the panel's AI assistant query and manage its records. Configure AI providers on the panel with `->aiProviders()`. See the [AI section](../../ai/README.md).
 
 ## Basic Configuration
 
@@ -20,9 +15,9 @@ Configure AI capabilities for your resources to enable AI-powered CRUD operation
 
 namespace App\Laravilt\Admin\Resources\Product;
 
-use Laravilt\Panel\Resources\Resource;
 use Laravilt\AI\AIAgent;
 use Laravilt\AI\AIColumn;
+use Laravilt\Panel\Resources\Resource;
 
 class ProductResource extends Resource
 {
@@ -47,62 +42,46 @@ class ProductResource extends Resource
 ## CRUD Permissions
 
 ```php
-use Laravilt\AI\AIAgent;
-
-public static function ai(AIAgent $agent): AIAgent
-{
-    return $agent
-        ->canCreate(true)
-        ->canUpdate(true)
-        ->canDelete(false)
-        ->canQuery(true);
-}
+return $agent
+    ->canQuery()
+    ->canCreate()
+    ->canUpdate()
+    ->canDelete(false);
 ```
 
-## Searchable Columns
+## Searchable Columns & Global Search
 
 ```php
-use Laravilt\AI\AIAgent;
-
-public static function ai(AIAgent $agent): AIAgent
-{
-    return $agent
-        ->searchable(['name', 'description', 'sku']);
-}
+return $agent->searchable(['name', 'description', 'sku']);
 ```
 
-## Custom Provider
+When the panel has `->globalSearch()` enabled, every resource with an AI agent and searchable columns shows up in global search.
+
+## Custom Provider & Model
 
 ```php
-use Laravilt\AI\AIAgent;
 use Laravilt\AI\Enums\OpenAIModel;
 
-public static function ai(AIAgent $agent): AIAgent
-{
-    return $agent
-        ->provider('openai')
-        ->aiModel(OpenAIModel::GPT_4O);
-}
+return $agent
+    ->provider('openai')
+    ->aiModel(OpenAIModel::GPT_4O);
 ```
 
 ## AIAgent Methods
 
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `name()` | `string` | Agent name |
-| `description()` | `string` | Agent description |
-| `systemPrompt()` | `string` | System prompt |
-| `columns()` | `array` | AI columns |
-| `searchable()` | `array` | Searchable fields |
-| `canCreate()` | `bool` | Allow create |
-| `canUpdate()` | `bool` | Allow update |
-| `canDelete()` | `bool` | Allow delete |
-| `canQuery()` | `bool` | Allow query |
-| `provider()` | `string` | AI provider |
-| `aiModel()` | `string` | AI model |
-| `temperature()` | `float` | Response randomness |
-| `maxTokens()` | `int` | Max response tokens |
+| Method | Description |
+|--------|-------------|
+| `name()`, `description()` | Agent identity |
+| `systemPrompt()` | System prompt |
+| `columns()` / `addColumn()` | [AI columns](ai-columns.md) |
+| `searchable()` | Searchable fields (also used by global search) |
+| `canQuery()`, `canCreate()`, `canUpdate()`, `canDelete()` | Allowed operations |
+| `provider()` | AI provider name |
+| `aiModel()` / `model()` | Model (string or enum) |
+| `tools()` / `addTool()` | Extra tools |
+| `metadata()` | Extra metadata |
+| `handler()` | Custom handler closure |
 
 ## Related
 
-- [AI Columns](ai-columns) - Define AI columns
+- [AI Columns](ai-columns.md)

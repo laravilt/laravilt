@@ -1,79 +1,69 @@
 ---
-title: Tenancy Middleware
-description: Middleware and routing for tenancy
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+title: Middleware & Routing
+description: How tenants are identified per request and how tenant routes are named.
+order: 5
 ---
 
-# Tenancy Middleware
+# Middleware & Routing
 
-## Middleware Stack
+## Middleware
+
+All middleware lives in `Laravilt\Panel\Middleware`.
 
 ### InitializeTenancyBySubdomain
 
-For multi-database mode:
+Used in multi-database mode:
 
-1. Extract subdomain from host
-2. Check if reserved
-3. Find tenant by domain/slug
-4. Initialize tenant database
-5. Set tenant context
+1. Extracts the subdomain from the host
+2. Rejects reserved subdomains
+3. Finds the tenant by domain or slug
+4. Switches to the tenant database
+5. Sets the tenant context
 
 ### IdentifyTenant
 
-For single-database mode:
+Used in single-database mode:
 
-1. Read tenant from route parameter
-2. Set tenant context (no database switch)
+1. Reads the tenant from the route parameter
+2. Checks the user can access it
+3. Sets the tenant context (no database switch)
+
+### PreventAccessFromCentralDomains
+
+Blocks tenant-only routes when they're requested on a central domain.
 
 ## Route Naming
 
-| Context | Prefix | Example |
-|---------|--------|---------|
-| Subdomain routes | `{panel}.subdomain.` | `admin.subdomain.dashboard` |
-| Tenant settings | `{panel}.tenant.settings.` | `admin.tenant.settings.profile` |
-| Central routes | `{panel}.` | `admin.dashboard` |
+| Context | Name prefix | Example |
+|---------|-------------|---------|
+| Panel routes | `{panel}.` | `admin.dashboard` |
+| Subdomain (multi-database) routes | `{panel}.subdomain.` | `admin.subdomain.dashboard` |
 
-## Multi-Panel Support
+## Multiple Panels
+
+Each panel configures tenancy on its own:
 
 ```php
-use Laravilt\Panel\Panel;
-use Laravilt\Panel\Models\Tenant;
 use App\Models\Team;
+use Laravilt\Panel\Models\Tenant;
 
-// Admin: multi-database
-$adminPanel->multiDatabaseTenancy(Tenant::class, 'admin.myapp.com');
+// Admin panel: multi-database
+$panel->multiDatabaseTenancy(Tenant::class, 'myapp.com');
 
-// Portal: single-database
-$portalPanel->tenant(Team::class);
+// Portal panel: single-database
+$panel->tenant(Team::class);
 
-// Marketing: no tenancy
-$marketingPanel->path('');
+// Marketing panel: no tenancy call at all
 ```
 
 ## Checking State
 
 ```php
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        $panel->hasTenancy();
-        $panel->isMultiDatabaseTenancy();
-        $panel->isSingleDatabaseTenancy();
-        
-        return  $panel;
-    }
-}
+$panel->hasTenancy();
+$panel->isMultiDatabaseTenancy();
+$panel->isSingleDatabaseTenancy();
 ```
 
 ## Next Steps
 
-- [Models](models) - Tenant and Domain models
-- [Configuration](configuration) - Configuration options
-- [Best Practices](best-practices) - Tips and troubleshooting
+- [Best Practices](best-practices.md)

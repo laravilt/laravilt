@@ -1,84 +1,56 @@
 ---
-title: Layout
-description: Configure panel layout options
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+title: Layout & Localization
+description: Configure content width, page layouts, locale, timezone and RTL support.
+order: 5
 ---
 
-# Layout
-
-Configure the layout of your Laravilt panel.
+# Layout & Localization
 
 ## Max Content Width
 
 ```php
-use Laravilt\Panel\Panel;
-
-// Tailwind width classes
-$panel->maxContentWidth('7xl');  // Default
-
-// Options: sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl, 7xl, full
+// Tailwind max-width sizes: sm, md, lg, xl, 2xl ... 7xl, full
+$panel->maxContentWidth('7xl');   // Default
 $panel->maxContentWidth('full');  // Full width
 ```
 
-## Sidebar
+The default comes from `max_content_width` in the panel config.
+
+## Page Layouts
+
+Each page chooses a layout by overriding `getLayout()`. The available values are in `Laravilt\Panel\Enums\PageLayout`: `Panel` (the default), `Card`, `Simple`, `Full` and `Settings`.
 
 ```php
-use Laravilt\Panel\Panel;
+use Laravilt\Panel\Enums\PageLayout;
+use Laravilt\Panel\Pages\Page;
 
-// Custom width
-$panel->sidebarWidth('280px');
-
-// Enable collapse
-$panel->sidebarCollapsibleOnDesktop();
-
-// Start collapsed
-$panel->sidebarCollapsibleOnDesktop(collapsed: true);
-```
-
-## Localization
-
-```php
-use Laravilt\Panel\Panel;
-
-$panel
-    ->locales([
-        'en' => 'English',
-        'ar' => 'العربية',
-        'es' => 'Español',
-        'fr' => 'Français',
-    ])
-    ->defaultLocale('en')
-    ->localeDetection(true);  // Detect from browser
+class Preferences extends Page
+{
+    public function getLayout(): string
+    {
+        return PageLayout::Settings->value;
+    }
+}
 ```
 
 ## Locale & Timezone
 
-```php
-use Laravilt\Panel\Panel;
+The panel's localization middleware applies each request's locale and timezone:
 
-$panel->localeTimezone();  // Enable user locale/timezone settings
+1. the authenticated user's `locale` and `timezone` columns, if present
+2. otherwise `config('app.locale')` and `config('app.timezone')`
+
+To let users pick their own language and timezone from their profile, enable the locale/timezone page:
+
+```php
+$panel->localeTimezone();
 ```
 
 ## RTL Support
 
-RTL is auto-detected for Arabic, Hebrew, Persian:
-
-```php
-use Laravilt\Panel\Panel;
-
-$panel->locales([
-    'en' => 'English',
-    'ar' => 'Arabic',      // RTL
-    'he' => 'Hebrew',      // RTL
-]);
-```
+RTL layout is switched on automatically when the active locale is right-to-left: Arabic (`ar`), Hebrew (`he`), Persian (`fa`), Urdu (`ur`), Pashto (`ps`), Sindhi (`sd`), Yiddish (`yi`), Uyghur (`ug`) or Divehi (`dv`). Regional variants such as `ar_EG` count too. The direction is shared with the frontend as `localization.direction` and `localization.isRtl`.
 
 ## Next Steps
 
-- [Branding](branding) - Colors and fonts
-- [Custom Assets](custom-assets) - CSS and JavaScript
-- [Creating Panels](creating-panels) - Panel basics
+- [Branding & Theming](branding.md): colors and fonts
+- [Panel Authentication](panel-auth.md): auth features

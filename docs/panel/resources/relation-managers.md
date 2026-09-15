@@ -1,23 +1,26 @@
 ---
 title: Relation Managers
-description: Manage related records within a resource
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: resources
+description: Manage related records from inside a resource's view or edit page.
+order: 4
 ---
 
 # Relation Managers
 
-Relation Managers allow you to manage related records directly within a resource's view or edit page.
+Relation managers let you manage related records directly on a resource's view or edit page.
 
 ## Creating a Relation Manager
 
 ```bash
-php artisan laravilt:relation-manager CategoryResource products
+php artisan laravilt:relation
 ```
+
+The command asks for the panel, the resource and the relationship. You can also pass them as arguments:
+
+```bash
+php artisan laravilt:relation Admin Category products
+```
+
+This creates `app/Laravilt/Admin/Resources/Category/RelationManagers/ProductsRelationManager.php`.
 
 ## Basic Structure
 
@@ -26,11 +29,13 @@ php artisan laravilt:relation-manager CategoryResource products
 
 namespace App\Laravilt\Admin\Resources\Category\RelationManagers;
 
+use Laravilt\Actions\DeleteAction;
+use Laravilt\Actions\EditAction;
+use Laravilt\Forms\Components\TextInput;
 use Laravilt\Panel\Resources\RelationManagers\RelationManager;
 use Laravilt\Schemas\Schema;
-use Laravilt\Tables\Table;
 use Laravilt\Tables\Columns\TextColumn;
-use Laravilt\Forms\Components\TextInput;
+use Laravilt\Tables\Table;
 
 class ProductsRelationManager extends RelationManager
 {
@@ -61,40 +66,39 @@ class ProductsRelationManager extends RelationManager
                     ->searchable()
                     ->sortable(),
             ])
-            ->defaultSort('name')
-            ->searchable()
-            ->paginated([10, 25, 50]);
+            ->recordActions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ]);
     }
 }
 ```
 
-## Registering in Resource
+## Registering in the Resource
 
 ```php
-<?php
-
-namespace App\Laravilt\Admin\Resources\Category;
-
 use App\Laravilt\Admin\Resources\Category\RelationManagers\ProductsRelationManager;
-use Laravilt\Panel\Resources\Resource;
 
-class CategoryResource extends Resource
+public static function getRelations(): array
 {
-    public static function getRelations(): array
-    {
-        return [
-            ProductsRelationManager::class,
-        ];
-    }
+    return [
+        ProductsRelationManager::class,
+    ];
 }
 ```
 
-## Properties
+## Properties & Methods
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `$relationship` | `string` | Eloquent relationship name |
-| `$recordTitleAttribute` | `string` | Attribute for record title |
-| `$label` | `string` | Singular label |
-| `$pluralLabel` | `string` | Plural label |
-| `$icon` | `string` | Lucide icon |
+| Member | Description |
+|--------|-------------|
+| `$relationship` | Eloquent relationship name on the owner model |
+| `$recordTitleAttribute` | Attribute used as the record title |
+| `$label` / `$pluralLabel` | Singular and plural labels |
+| `$icon` | Lucide icon |
+| `isReadOnly()` | Return `true` to disable create/edit/delete |
+| `canCreate()`, `canEdit()`, `canDelete()` | Per-operation checks |
+| `getHeaderActions()` | Actions above the relation table |
+
+## Related
+
+- [Nested Resources](nested-resources.md): full child resources with their own pages

@@ -1,129 +1,114 @@
 ---
-title: Page Widgets
-description: Add widgets and header actions to pages
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: pages
+title: Page Widgets & Actions
+description: Add widgets, header actions, subheadings and breadcrumbs to pages.
+order: 4
 ---
 
-# Page Widgets
-
-Add widgets and header actions to your pages.
+# Page Widgets & Actions
 
 ## Page with Widgets
+
+Return widget classes or instances from `getWidgets()`. They render above the page content, and stat widgets are grouped into one stats row.
 
 ```php
 <?php
 
 namespace App\Laravilt\Admin\Pages;
 
-use Laravilt\Panel\Pages\Page;
-use App\Laravilt\Admin\Widgets\StatsOverviewWidget;
 use App\Laravilt\Admin\Widgets\RevenueChartWidget;
-use App\Laravilt\Admin\Widgets\LatestOrdersWidget;
+use App\Models\Order;
+use App\Models\User;
+use Laravilt\Panel\Pages\Page;
+use Laravilt\Widgets\Stat;
+use Laravilt\Widgets\StatsOverviewWidget;
 
-class Dashboard extends Page
+class Overview extends Page
 {
     protected static ?string $navigationIcon = 'LayoutDashboard';
-    protected static ?string $title = 'Dashboard';
 
-    protected function getWidgets(): array
+    public function getWidgets(): array
     {
         return [
-            StatsOverviewWidget::class,
+            StatsOverviewWidget::make()
+                ->stats([
+                    Stat::make('Users', User::count())->icon('Users'),
+                    Stat::make('Orders', Order::count())
+                        ->description('All time')
+                        ->color('success'),
+                ])
+                ->columns(2),
             RevenueChartWidget::class,
-            LatestOrdersWidget::class,
         ];
-    }
-
-    protected function getWidgetsColumns(): int
-    {
-        return 2;
     }
 }
 ```
 
+## Customizing the Dashboard
+
+The generated `app/Laravilt/{Panel}/Pages/Dashboard.php` extends `Laravilt\Panel\Pages\Dashboard`. By default it shows a stats row with a record count for each resource. Override `getWidgets()` to add your own widgets:
+
+```php
+namespace App\Laravilt\Admin\Pages;
+
+use App\Laravilt\Admin\Widgets\LatestOrdersWidget;
+
+class Dashboard extends \Laravilt\Panel\Pages\Dashboard
+{
+    protected static bool $shouldGenerateResourceStats = true;
+
+    protected static int $statsColumns = 4;
+
+    public function getWidgets(): array
+    {
+        return [
+            LatestOrdersWidget::class,
+        ];
+    }
+}
+```
+
+A resource can opt out of the automatic stats with `protected static bool $showOnDashboard = false;`.
+
 ## Header Actions
 
 ```php
-<?php
-
-namespace App\Laravilt\Admin\Pages;
-
-use Laravilt\Panel\Pages\Page;
 use Laravilt\Actions\Action;
 
-class Reports extends Page
+public function getHeaderActions(): array
 {
-    protected function getHeaderActions(): array
-    {
-        return [
-            Action::make('export')
-                ->label('Export Data')
-                ->icon('Download')
-                ->action(fn () => $this->export()),
-            Action::make('refresh')
-                ->label('Refresh')
-                ->icon('RefreshCw')
-                ->action(fn () => $this->refresh()),
-        ];
-    }
+    return [
+        Action::make('export')
+            ->label('Export Data')
+            ->icon('Download')
+            ->action(fn () => $this->export()),
+    ];
 }
 ```
 
 ## Subheading
 
 ```php
-<?php
-
-namespace App\Laravilt\Admin\Pages;
-
-use Laravilt\Panel\Pages\Page;
-
-class Dashboard extends Page
+public function getSubheading(): ?string
 {
-    protected static ?string $title = 'Dashboard';
-
-    protected function getSubheading(): ?string
-    {
-        return 'Welcome back, ' . auth()->user()->name;
-    }
+    return 'Welcome back, '.auth()->user()->name;
 }
 ```
 
 ## Breadcrumbs
 
+Breadcrumbs are built automatically from the panel dashboard, cluster or navigation group, and page title. Override `getBreadcrumbs()` to replace them:
+
 ```php
-<?php
-
-namespace App\Laravilt\Admin\Pages;
-
-use Laravilt\Panel\Pages\Page;
-
-class GeneralSettings extends Page
+public function getBreadcrumbs(): array
 {
-    public function getBreadcrumbs(): array
-    {
-        return [
-            route('laravilt.admin.dashboard') => 'Dashboard',
-            route('laravilt.admin.settings') => 'Settings',
-            'General' => null,
-        ];
-    }
+    return [
+        ['label' => 'Settings', 'url' => '/admin/settings'],
+        ['label' => 'General', 'url' => null],
+    ];
 }
 ```
 
-## API Reference
+## Related
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `$navigationIcon` | `string` | Lucide icon |
-| `$navigationGroup` | `string` | Navigation group |
-| `$navigationSort` | `int` | Sort order |
-| `$navigationLabel` | `string` | Custom label |
-| `$title` | `string` | Page title |
-| `$slug` | `string` | URL slug |
-| `$shouldRegisterNavigation` | `bool` | Show in nav |
+- [Widgets](../../widgets/README.md): stats, charts and custom widgets
+- [Actions](../../actions/README.md)

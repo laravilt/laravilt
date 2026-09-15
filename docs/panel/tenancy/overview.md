@@ -1,11 +1,7 @@
 ---
-title: Multi-Tenancy Overview
-description: Build SaaS applications with Laravilt
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+title: Tenancy Overview
+description: Choose between single-database and multi-database tenancy and enable it on a panel.
+order: 1
 ---
 
 # Multi-Tenancy Overview
@@ -16,10 +12,29 @@ Build SaaS applications with tenant isolation.
 
 | Mode | Description | Routing |
 |------|-------------|---------|
-| **Single Database** | Shared database with `tenant_id` scoping | Path: `/panel/{tenant}/...` |
-| **Multi-Database** | Isolated database per tenant | Subdomain: `tenant.domain.com` |
+| **Single database** | Shared database, records scoped to a tenant | Path: `/admin/{tenant}/...` |
+| **Multi-database** | Separate database per tenant | Subdomain: `{tenant}.myapp.com/admin/...` |
 
-## Installation
+## Single-Database Mode
+
+```php
+use App\Models\Team;
+use Laravilt\Panel\Panel;
+
+public function panel(Panel $panel): Panel
+{
+    return $panel
+        ->tenant(Team::class, 'team', 'slug')   // model, ownership relationship, slug attribute
+        ->tenantRegistration()
+        ->tenantProfile();
+}
+```
+
+Resources are scoped to the current tenant automatically. See [Teams Tenancy](teams.md) for the full setup.
+
+## Multi-Database Mode
+
+Publish the config and migrations for the central `tenants`, `domains` and tenant-user tables:
 
 ```bash
 php artisan vendor:publish --tag=laravilt-tenancy-config
@@ -27,57 +42,44 @@ php artisan vendor:publish --tag=laravilt-tenancy-migrations
 php artisan migrate
 ```
 
-## Single Database Mode
-
 ```php
-use Laravilt\Panel\Panel;
-use App\Models\Team;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->tenant(Team::class, 'team', 'slug')
-            ->tenantProfile()
-            ->tenantRegistration();
-    }
-}
-```
-
-Routing: `/admin/{team}/dashboard`
-
-## Multi-Database Mode
-
-```php
-use Laravilt\Panel\Panel;
 use Laravilt\Panel\Models\Tenant;
+use Laravilt\Panel\Panel;
 
-class AdminPanelProvider extends PanelProvider
+public function panel(Panel $panel): Panel
 {
-    public function panel(Panel $panel): Panel
-    {
-        return $panel->multiDatabaseTenancy(Tenant::class, 'myapp.com');
-    }
+    return $panel->multiDatabaseTenancy(Tenant::class, 'myapp.com');
 }
 ```
 
-Routing: `acme.myapp.com/admin/dashboard`
+Manage tenants from the command line:
+
+```bash
+php artisan tenant:create "Acme Corp" --slug=acme --email=admin@acme.com --seed
+php artisan tenants:migrate                 # All tenants
+php artisan tenants:migrate --tenant=acme --fresh --seed
+php artisan tenant:delete acme --keep-database
+```
+
+| Command | Options |
+|---------|---------|
+| `tenant:create {name}` | `--slug=`, `--email=`, `--domain=`, `--no-database`, `--no-migrate`, `--seed` |
+| `tenants:migrate` | `--tenant=`, `--fresh`, `--seed`, `--seeder=`, `--force` |
+| `tenant:delete {tenant}` | `--force`, `--keep-database` |
 
 ## When to Use Each Mode
 
-**Single Database:**
+**Single database:**
 - Small to medium apps
 - Minimal database overhead
 - Tenants may share some data
 
-**Multi-Database:**
-- Enterprise SaaS
+**Multi-database:**
 - Strict data isolation
-- Compliance (HIPAA, SOC2)
+- Compliance requirements
+- Per-tenant backups or scaling
 
 ## Next Steps
 
-- [Teams Tenancy](teams) - Using teams as tenants
-- [Configuration](configuration) - Detailed configuration
-- [Models](models) - Tenant and Domain models
+- [Teams Tenancy](teams.md): teams as tenants
+- [Configuration](configuration.md): detailed configuration

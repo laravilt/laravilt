@@ -1,19 +1,33 @@
 ---
 title: Resource Authorization
-description: Control access to resource actions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: resources
+description: Control who can list, view, create, update and delete a resource's records.
+order: 3
 ---
 
 # Resource Authorization
 
-Control access to resource actions with authorization methods.
+Every resource has static authorization methods. By default they check permissions (via `spatie/laravel-permission`, as set up by the Users package) named `{action}_{model}` in snake case. For example: `view_any_user`, `view_user`, `create_user`, `update_user`, `delete_user`.
 
-## Basic Authorization
+## Available Checks
+
+| Method | Default permission |
+|--------|--------------------|
+| `canViewAny()` | `view_any_{model}` |
+| `canView(?Model $record)` | `view_{model}` |
+| `canCreate()` | `create_{model}` |
+| `canUpdate(?Model $record)` | `update_{model}` |
+| `canDelete(?Model $record)` | `delete_{model}` |
+| `canRestore(?Model $record)` | `restore_{model}` |
+| `canForceDelete(?Model $record)` | `force_delete_{model}` |
+| `canReplicate(?Model $record)` | `replicate_{model}` |
+| `canReorder()` | `reorder_{model}` |
+| `canAccess()` | Access to the resource at all |
+
+The separator, case and super-admin bypass are set in the Users package config (`laravilt-users.permissions.*`, `laravilt-users.super_admin.*`).
+
+## Custom Authorization
+
+Override any of the methods:
 
 ```php
 <?php
@@ -21,76 +35,50 @@ Control access to resource actions with authorization methods.
 namespace App\Laravilt\Admin\Resources\User;
 
 use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Laravilt\Panel\Resources\Resource;
 
 class UserResource extends Resource
 {
-    protected static ?string $model = User::class;
+    protected static string $model = User::class;
 
     public static function canViewAny(): bool
     {
-        return auth()->user()->can('view_any_user');
+        return auth()->user()->isAdmin();
     }
 
-    public static function canCreate(): bool
-    {
-        return auth()->user()->can('create_user');
-    }
-
-    public static function canEdit($record): bool
+    public static function canUpdate(?Model $record = null): bool
     {
         return auth()->user()->can('update', $record);
     }
 
-    public static function canDelete($record): bool
+    public static function canDelete(?Model $record = null): bool
     {
-        return auth()->user()->can('delete', $record);
+        return $record?->isNot(auth()->user()) ?? false;
     }
 }
 ```
 
-## Hide from Navigation
+## Hiding from Navigation
+
+A resource appears in the sidebar when `$navigationVisible` is true and `canAccess()` passes:
 
 ```php
-<?php
-
-namespace App\Laravilt\Admin\Resources\Internal;
-
-use Laravilt\Panel\Resources\Resource;
-
 class InternalResource extends Resource
 {
-    protected static bool $shouldRegisterNavigation = false;
+    protected static bool $navigationVisible = false;
 }
 ```
 
-## Conditional Navigation
+For conditional visibility, override `isNavigationVisible()`:
 
 ```php
-<?php
-
-namespace App\Laravilt\Admin\Resources\Admin;
-
-use Laravilt\Panel\Resources\Resource;
-
-class AdminResource extends Resource
+public static function isNavigationVisible(): bool
 {
-    public static function shouldRegisterNavigation(): bool
-    {
-        return auth()->user()->can('view_admin_resources');
-    }
+    return auth()->user()?->can('view_admin_resources') ?? false;
 }
 ```
 
-## API Reference
+## Related
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `$model` | `string` | Eloquent model class |
-| `$navigationIcon` | `string` | Lucide icon |
-| `$navigationGroup` | `string` | Navigation group |
-| `$navigationSort` | `int` | Sort order |
-| `$navigationLabel` | `string` | Custom label |
-| `$recordTitleAttribute` | `string` | Title column |
-| `$slug` | `string` | URL slug |
-| `$hasSoftDeletes` | `bool` | Soft delete support |
+- [Navigation](../navigation/README.md)

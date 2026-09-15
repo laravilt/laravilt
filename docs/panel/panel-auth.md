@@ -1,155 +1,92 @@
 ---
 title: Panel Authentication
-description: Configure authentication for your panel
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+description: Enable login, registration, two-factor, social login, passkeys and other auth features per panel.
+order: 6
 ---
 
 # Panel Authentication
 
-Configure authentication features for your panel.
+Each panel turns on the auth features it needs. Every feature method accepts optional `page` and `path` arguments, so you can swap in a custom page class or URL. Each also has a `disable*()` counterpart. For details on each feature, see the [Auth](../auth/README.md) section.
 
 ## Basic Authentication
 
 ```php
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
+public function panel(Panel $panel): Panel
 {
-    public function panel(Panel $panel): Panel
-    {
-        return $panel
-            ->login()
-            ->registration()
-            ->passwordReset()
-            ->profile();
-    }
+    return $panel
+        ->login()
+        ->registration()
+        ->passwordReset()
+        ->emailVerification()
+        ->profile();
 }
+```
+
+## One-Time Passwords & Magic Links
+
+```php
+return $panel
+    ->otp()
+    ->magicLinks();
 ```
 
 ## Two-Factor Authentication
 
 ```php
-use Laravilt\Panel\Panel;
 use Laravilt\Auth\Builders\TwoFactorProviderBuilder;
-use Laravilt\Auth\Drivers\TotpDriver;
 use Laravilt\Auth\Drivers\EmailDriver;
+use Laravilt\Auth\Drivers\TotpDriver;
 
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel->twoFactor(builder: function (TwoFactorProviderBuilder $builder) {
-            $builder->provider(TotpDriver::class);
-            // Or email-based 2FA
-            // $builder->provider(EmailDriver::class);
-        });
-    }
-}
+return $panel->twoFactor(builder: function (TwoFactorProviderBuilder $builder) {
+    $builder->provider(TotpDriver::class);
+    $builder->provider(EmailDriver::class);
+});
 ```
 
 ## Social Login
 
 ```php
-use Laravilt\Panel\Panel;
 use Laravilt\Auth\Builders\SocialProviderBuilder;
-use Laravilt\Auth\Drivers\SocialProviders\GoogleProvider;
 use Laravilt\Auth\Drivers\SocialProviders\GitHubProvider;
+use Laravilt\Auth\Drivers\SocialProviders\GoogleProvider;
 
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel->socialLogin(function (SocialProviderBuilder $builder) {
-            $builder->provider(GoogleProvider::class, fn (GoogleProvider $p) => $p->enabled());
-            $builder->provider(GitHubProvider::class, fn (GitHubProvider $p) => $p->enabled());
-        });
-    }
-}
+return $panel
+    ->socialLogin(function (SocialProviderBuilder $builder) {
+        $builder->provider(GoogleProvider::class, fn (GoogleProvider $p) => $p->enabled());
+        $builder->provider(GitHubProvider::class, fn (GitHubProvider $p) => $p->enabled());
+    })
+    ->requirePasswordForSocialLogin();
 ```
+
+Available providers: `GoogleProvider`, `GitHubProvider`, `FacebookProvider`, `TwitterProvider`, `LinkedInProvider`, `DiscordProvider` and `JiraProvider`.
 
 ## Passkeys (WebAuthn)
 
 ```php
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel->passkeys();
-    }
-}
+return $panel->passkeys();
 ```
 
-## Magic Links
+## Account Management
 
 ```php
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel->magicLinks();
-    }
-}
-```
-
-## API Tokens
-
-```php
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel->apiTokens();
-    }
-}
-```
-
-## Session Management
-
-```php
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        return $panel->sessionManagement();
-    }
-}
-```
-
-## Connected Accounts
-
-```php
-use Laravilt\Panel\Panel;
-
-class AdminPanelProvider extends PanelProvider
-{
-    public function panel(Panel $panel): Panel
-    {
-        $panel->connectedAccounts();
-    }
-}
+return $panel
+    ->connectedAccounts()   // Manage linked social accounts
+    ->sessionManagement()   // View and revoke browser sessions
+    ->apiTokens()           // Personal API tokens
+    ->localeTimezone();     // Language and timezone preferences
 ```
 
 ## Complete Example
 
 ```php
-use Laravilt\Panel\Panel;
-use Laravilt\Panel\PanelProvider;
+namespace App\Providers\Laravilt;
+
 use Laravilt\Auth\Builders\SocialProviderBuilder;
 use Laravilt\Auth\Builders\TwoFactorProviderBuilder;
-use Laravilt\Auth\Drivers\TotpDriver;
 use Laravilt\Auth\Drivers\SocialProviders\GitHubProvider;
+use Laravilt\Auth\Drivers\TotpDriver;
+use Laravilt\Panel\Panel;
+use Laravilt\Panel\PanelProvider;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -158,9 +95,11 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->id('admin')
             ->path('admin')
+            ->discoverAutomatically()
             ->login()
             ->registration()
             ->passwordReset()
+            ->emailVerification()
             ->profile()
             ->passkeys()
             ->magicLinks()
@@ -179,6 +118,5 @@ class AdminPanelProvider extends PanelProvider
 
 ## Next Steps
 
-- [Creating Panels](creating-panels) - Panel basics
-- [Discovery](discovery) - Auto-discovery
-- [Tenancy](tenancy/overview) - Tenant authentication
+- [Auth](../auth/README.md): how each auth feature works
+- [Multi-Tenancy](tenancy/README.md): tenant-aware panels

@@ -1,111 +1,90 @@
 ---
 title: Nested Resources
-description: Create child resources under parent resources
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: resources
+description: Scope a child resource under a parent resource with hierarchical URLs.
+order: 5
 ---
 
 # Nested Resources
 
-Nested resources allow you to scope child resources under a parent resource, creating hierarchical URL structures.
+A nested resource is a full resource (list, create, edit, view) scoped to one parent record, for example `/admin/customers/{customer}/tags`.
 
 ## Creating a Nested Resource
 
 ```bash
-php artisan laravilt:resource Order/OrderItem --nested
+php artisan laravilt:nested Tag --parent=Customer
 ```
 
-## Parent Resource
+| Argument / option | Description |
+|-------------------|-------------|
+| `name` | Nested resource name (e.g. `Tag`) |
+| `--parent=` | Parent resource name (e.g. `Customer`) |
+| `--model=` | Model class (defaults to the name) |
+| `--panel=Admin` | Panel name |
+| `--simple` | Single `ManageRecords` page |
+| `--force` | Overwrite existing files |
 
-```php
-<?php
-
-namespace App\Laravilt\Admin\Resources\Order;
-
-use App\Models\Order;
-use Laravilt\Panel\Resources\Resource;
-
-class OrderResource extends Resource
-{
-    protected static string $model = Order::class;
-
-    protected static ?string $navigationIcon = 'ShoppingCart';
-
-    public static function getPages(): array
-    {
-        return [
-            'index' => Pages\ListOrders::route('/'),
-            'view' => Pages\ViewOrder::route('/{record}'),
-            'items' => Pages\ManageOrderItems::route('/{record}/items'),
-        ];
-    }
-}
-```
+The parent resource must already exist at `app/Laravilt/{Panel}/Resources/{Parent}/{Parent}Resource.php`. The command also adds the new class to the parent's `getNestedResources()`.
 
 ## Nested Resource
 
 ```php
 <?php
 
-namespace App\Laravilt\Admin\Resources\Order;
+namespace App\Laravilt\Admin\Resources\Customer\Tag;
 
-use App\Models\OrderItem;
-use Laravilt\Panel\Resources\Resource;
+use App\Laravilt\Admin\Resources\Customer\CustomerResource;
+use App\Models\Tag;
+use Laravilt\Panel\Resources\NestedResource;
 
-class OrderItemResource extends Resource
+class TagResource extends NestedResource
 {
-    protected static string $model = OrderItem::class;
+    protected static string $model = Tag::class;
 
-    protected static ?string $parentResource = OrderResource::class;
+    protected static ?string $parentResource = CustomerResource::class;
 
-    protected static ?string $parentRelationship = 'items';
-
-    protected static bool $shouldRegisterNavigation = false;
+    // Relationship on the child model that points to the parent
+    protected static string $parentRelationship = 'customer';
 }
 ```
+
+## Parent Resource
+
+```php
+class CustomerResource extends Resource
+{
+    public static function getNestedResources(): array
+    {
+        return [
+            Tag\TagResource::class,
+        ];
+    }
+}
+```
+
+Nested resources are registered through their parent. Don't add them to the panel yourself.
 
 ## URL Structure
 
-With nested resources, URLs follow this pattern:
-
 ```
-/admin/orders/{order}/items          # List items
-/admin/orders/{order}/items/create   # Create item
-/admin/orders/{order}/items/{item}   # View item
+/admin/customers/{customer}/tags            # List
+/admin/customers/{customer}/tags/create     # Create
+/admin/customers/{customer}/tags/{record}   # View
 ```
 
-## Accessing Parent Record
+## Accessing the Parent Record
 
 ```php
-<?php
-
-namespace App\Laravilt\Admin\Resources\Order\Pages;
-
-use Laravilt\Panel\Resources\Pages\ListRecords;
-
-class ManageOrderItems extends ListRecords
-{
-    public function getParentRecord()
-    {
-        return $this->getOwnerRecord();
-    }
-
-    protected function getTableQuery()
-    {
-        return parent::getTableQuery()
-            ->where('order_id', $this->getOwnerRecord()->id);
-    }
-}
+$customer = TagResource::getParentRecord();
+$customerId = TagResource::getParentRecordId();
 ```
+
+Queries are scoped to the parent automatically through `modifyQueryForParent()`.
 
 ## Properties
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `$parentResource` | `string` | Parent resource class |
-| `$parentRelationship` | `string` | Eloquent relationship name |
-| `$shouldRegisterNavigation` | `bool` | Usually `false` for nested |
+| `$parentResource` | `?string` | Parent resource class |
+| `$parentRelationship` | `string` | Relationship from child to parent |
+| `$childRelationship` | `?string` | Relationship from parent to children (optional) |
+| `$showInParentNavigation` | `bool` | Show a link in the parent's sub-navigation (default `true`) |

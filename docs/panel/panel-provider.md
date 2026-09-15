@@ -1,21 +1,17 @@
 ---
 title: Panel Provider
-description: Configure your panel with the Panel Provider
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+description: Configure a panel through its provider, the Panel facade and the published config.
+order: 2
 ---
 
 # Panel Provider
 
-Each panel has a provider that configures it.
+Each panel is configured by a provider class that extends `Laravilt\Panel\PanelProvider` and implements `panel()`.
 
 ## Basic Configuration
 
 ```php
-namespace App\Laravilt\Admin;
+namespace App\Providers\Laravilt;
 
 use Laravilt\Panel\Panel;
 use Laravilt\Panel\PanelProvider;
@@ -27,61 +23,86 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->id('admin')
             ->path('admin')
-            ->login()
-            ->registration()
-            ->colors(['primary' => '#3b82f6'])
             ->brandName('My Admin')
-            ->discoverResources(in: app_path('Laravilt/Admin/Resources'))
-            ->discoverPages(in: app_path('Laravilt/Admin/Pages'))
-            ->discoverWidgets(in: app_path('Laravilt/Admin/Widgets'));
+            ->colors(['primary' => '#3b82f6'])
+            ->discoverAutomatically()
+            ->login()
+            ->registration();
     }
 }
 ```
+
+## Common Methods
+
+| Group | Methods |
+|-------|---------|
+| Identity | `id()`, `path()`, `default()` |
+| Discovery | `discoverAutomatically()`, `discoverResources()`, `discoverPages()`, `discoverClusters()`, `discoverWidgets()`, `resources()`, `pages()`, `clusters()`, `widgets()` |
+| Branding | `brandName()`, `brandLogo()`, `brandLogoHeight()`, `favicon()`, `colors()`, `font()`, `darkMode()` |
+| Layout | `maxContentWidth()` |
+| Middleware | `middleware()`, `authMiddleware()`, `authGuard()` |
+| Navigation | `navigation()`, `userMenu()` |
+| Auth | `login()`, `registration()`, `passwordReset()`, `emailVerification()`, `otp()`, `profile()`, `twoFactor()`, `socialLogin()`, `passkeys()`, `magicLinks()`, `connectedAccounts()`, `sessionManagement()`, `apiTokens()`, `localeTimezone()` |
+| Notifications | `databaseNotifications()`, `databaseNotificationsPolling()`, `apiNotifications()` |
+| AI | `globalSearch()`, `aiProviders()` |
+| Plugins | `plugin()`, `plugins()` |
+| Tenancy | `tenant()`, `multiDatabaseTenancy()`, `tenantRegistration()`, `tenantProfile()`, `tenantMenu()` |
 
 ## Panel Facade
 
 ```php
 use Laravilt\Panel\Facades\Panel;
 
-// Get current panel
-$panel = Panel::getCurrent();
-
-// Get specific panel
-$adminPanel = Panel::get('admin');
-
-// Get all panels
-$allPanels = Panel::all();
-
-// Check if panel exists
-Panel::has('admin');
+$panel = Panel::getCurrent();     // Panel handling the current request
+$admin = Panel::get('admin');     // A panel by id
+$default = Panel::getDefault();   // The default panel
+$all = Panel::all();              // Collection of all panels
+Panel::has('admin');              // bool
 ```
 
 ## Configuration File
 
-Publish and customize `config/laravilt-panel.php`:
+Publish the package config:
+
+```bash
+php artisan vendor:publish --tag=laravilt-panel-config
+```
+
+This copies the file to `config/laravilt/panel.php`. It holds defaults that individual panels can override:
 
 ```php
 return [
     'path' => env('LARAVILT_PANEL_PATH', 'admin'),
     'middleware' => ['web', 'auth'],
-    'colors' => [
-        'primary' => '#6366f1',
-    ],
+    'colors' => ['primary' => '#6366f1'],
     'brand_name' => env('APP_NAME', 'Laravilt'),
+    'brand_logo' => null,
+    'favicon' => null,
     'max_content_width' => '7xl',
 ];
 ```
 
 ## Publishing Assets
 
+| Tag | Publishes |
+|-----|-----------|
+| `laravilt-panel-config` | Panel config |
+| `laravilt-panel-lang` | Translations to `lang/vendor/laravilt-panel` |
+| `laravilt-panel-views` | Panel frontend pages to `resources/js/pages/laravilt` |
+| `laravilt-panel-assets` | Panel components to `resources/js/components/laravilt` |
+| `laravilt-panel-ui` | UI primitives to `resources/js/components/ui` |
+| `laravilt-panel-components` | The main nav component (`NavMain.vue` or `nav-main.tsx`) |
+
 ```bash
-php artisan vendor:publish --tag=laravilt-panel-config
 php artisan vendor:publish --tag=laravilt-panel-views
-php artisan vendor:publish --tag=laravilt-panel-lang
 ```
+
+Frontend files are published for your stack: `.vue` files for Vue, `.tsx` files for React.
+
+> React support requires Laravilt v1.1 or later.
 
 ## Next Steps
 
-- [Creating Panels](creating-panels) - Create new panels
-- [Branding](branding) - Customize appearance
-- [Panel Auth](panel-auth) - Configure auth
+- [Discovery](discovery.md): register resources, pages and widgets
+- [Branding & Theming](branding.md): customize the look
+- [Panel Authentication](panel-auth.md): configure auth

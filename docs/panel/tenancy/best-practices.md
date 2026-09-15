@@ -1,11 +1,7 @@
 ---
 title: Tenancy Best Practices
-description: Tips and troubleshooting for tenancy
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+description: Tips and troubleshooting for tenant-aware panels.
+order: 6
 ---
 
 # Tenancy Best Practices
@@ -24,6 +20,8 @@ APP_DOMAIN=myapp.com
 
 ## Reserved Subdomains
 
+Add any subdomains tenants must not claim in `config/laravilt-tenancy.php`:
+
 ```php
 'subdomain' => [
     'reserved' => [
@@ -34,7 +32,20 @@ APP_DOMAIN=myapp.com
 ],
 ```
 
-## Tenant-Aware Queues
+## Provisioning in the Background
+
+For faster sign-ups, queue tenant database creation:
+
+```php
+'provisioning' => [
+    'queue' => true,
+    'queue_name' => 'tenants',
+],
+```
+
+## Tenant-Aware Queued Jobs
+
+Queued jobs don't carry tenant context. Pass the tenant id and restore it:
 
 ```php
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -50,8 +61,8 @@ class ProcessOrder implements ShouldQueue
 
     public function handle(): void
     {
-        $tenant = Tenant::find($this->tenantId);
-        Laravilt::setTenant($tenant);
+        Laravilt::setTenant(Tenant::find($this->tenantId));
+
         // Process in tenant context
     }
 }
@@ -61,27 +72,25 @@ class ProcessOrder implements ShouldQueue
 
 ### User Has No Teams
 
-1. Check User implements `HasTenants`, `HasDefaultTenant`
-2. Check User uses `HasTeams` trait
+1. Check the User implements `HasTenants` and `HasDefaultTenant`
+2. Check the User uses the `HasTeams` trait
 3. Check `current_team_id` is fillable
-4. Verify `team_user` pivot table exists
+4. Verify the `team_user` pivot table exists
 
 ### Tenant Not Found
 
-1. Check domain configuration
-2. Verify DNS for subdomains
-3. Clear cache: `php artisan cache:clear`
-4. Check `domains` table entries
+1. Check `APP_DOMAIN` and the panel's tenant domain
+2. Verify DNS (wildcard record) for subdomains
+3. Clear caches: `php artisan optimize:clear`
+4. Check the `domains` table entries
 
 ### Database Connection Issues
 
-1. Verify tenant database credentials
-2. Check database exists
-3. Verify user permissions
-4. Check connection template
+1. Verify the tenant connection template (`TENANT_DB_CONNECTION`)
+2. Check the tenant database exists (`php artisan tenants:migrate --tenant=<slug>`)
+3. Verify the database user can create databases
 
 ## Next Steps
 
-- [Overview](overview) - Tenancy overview
-- [Configuration](configuration) - Configuration options
-- [Models](models) - Tenant and Domain models
+- [Overview](overview.md)
+- [Troubleshooting](../../getting-started/troubleshooting.md)

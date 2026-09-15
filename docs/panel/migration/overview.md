@@ -1,22 +1,18 @@
 ---
-title: Migrating from Filament
-description: Convert Filament PHP apps to Laravilt
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+title: Migration Overview
+description: Run laravilt:filament to convert Filament resources, pages and widgets.
+order: 1
 ---
 
-# Migrating from Filament
+# Migration Overview
 
-Automated migration tool to convert Filament PHP v3/v4 to Laravilt.
+The migration tool converts Filament PHP v3/v4 code into Laravilt code.
 
 ## Prerequisites
 
-- Working Filament PHP v3 or v4 application
-- Laravilt packages installed
-- Backup of current codebase
+- A working Filament v3 or v4 application
+- Laravilt installed (`php artisan laravilt:install`)
+- A backup or clean git state
 
 ## Quick Start
 
@@ -25,39 +21,29 @@ php artisan laravilt:filament
 ```
 
 This will:
+
 1. Scan your `app/Filament` directory
-2. Display available resources, pages, widgets
-3. Let you select components to migrate
-4. Generate Laravilt-compatible files
+2. List the resources, pages and widgets it found
+3. Let you pick which ones to migrate
+4. Write Laravilt classes to `app/Laravilt/Admin`
 
 ## Command Options
 
-```bash
-# Custom source directory
-php artisan laravilt:filament --source=app/Filament/Admin
-
-# Custom target directory
-php artisan laravilt:filament --target=app/Laravilt/Backend
-
-# Set panel name
-php artisan laravilt:filament --panel=Admin
-
-# Preview changes without modifying files
-php artisan laravilt:filament --dry-run
-
-# Overwrite existing files
-php artisan laravilt:filament --force
-
-# Migrate all (skip interactive)
-php artisan laravilt:filament --all
-```
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--source=` | `app/Filament` | Directory with Filament classes |
+| `--target=` | `app/Laravilt` | Target directory |
+| `--panel=` | `Admin` | Panel name |
+| `--dry-run` | | Show what would change without writing files |
+| `--force` | | Overwrite existing files |
+| `--all` | | Migrate everything without prompting |
 
 ## Full Example
 
 ```bash
 php artisan laravilt:filament \
-    --source=app/Filament/Admin/Resources \
-    --target=app/Laravilt/Admin \
+    --source=app/Filament \
+    --target=app/Laravilt \
     --panel=Admin \
     --force \
     --all
@@ -65,5 +51,5 @@ php artisan laravilt:filament \
 
 ## Next Steps
 
-- [Namespace Mappings](namespace-mappings) - Class mappings
-- [Post-Migration](post-migration) - Checklist and adjustments
+- [Namespace Mappings](namespace-mappings.md)
+- [Post-Migration Checklist](post-migration.md)

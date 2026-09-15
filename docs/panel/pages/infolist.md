@@ -1,17 +1,12 @@
 ---
-title: Page Infolist
-description: Display read-only data on pages using infolists
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
-concept: pages
+title: Page Infolists
+description: Display read-only data on a custom page with infolist entries.
+order: 3
 ---
 
-# Page Infolist
+# Page Infolists
 
-Display read-only data on pages using infolists.
+Return infolist entries from `getSchema()` to show read-only data. Set each entry's value with `state()`.
 
 ## Basic Infolist Page
 
@@ -20,20 +15,21 @@ Display read-only data on pages using infolists.
 
 namespace App\Laravilt\Admin\Pages;
 
-use Laravilt\Panel\Pages\Page;
-use Laravilt\Schemas\Schema;
 use Laravilt\Infolists\Entries\TextEntry;
+use Laravilt\Panel\Pages\Page;
 use Laravilt\Schemas\Components\Section;
 
 class SystemInfo extends Page
 {
     protected static ?string $navigationIcon = 'Info';
+
     protected static ?string $title = 'System Information';
 
-    public function infolist(Schema $infolist): Schema
+    protected function getSchema(): array
     {
-        return $infolist->schema([
+        return [
             Section::make('Application')
+                ->columns(2)
                 ->schema([
                     TextEntry::make('app_name')
                         ->label('Application Name')
@@ -48,96 +44,56 @@ class SystemInfo extends Page
                         ->label('Laravel Version')
                         ->state(app()->version()),
                 ]),
-        ]);
+        ];
     }
 }
 ```
 
-## With Columns Layout
+## Status Page with Icons and Images
 
 ```php
 <?php
 
 namespace App\Laravilt\Admin\Pages;
 
-use Laravilt\Panel\Pages\Page;
-use Laravilt\Schemas\Schema;
-use Laravilt\Schemas\Components\Section;
-use Laravilt\Infolists\Entries\TextEntry;
+use Illuminate\Support\Facades\DB;
 use Laravilt\Infolists\Entries\IconEntry;
-
-class ServerStatus extends Page
-{
-    protected static ?string $navigationIcon = 'Server';
-
-    public function infolist(Schema $infolist): Schema
-    {
-        return $infolist->schema([
-            Section::make('Server Status')
-                ->columns(2)
-                ->schema([
-                    TextEntry::make('uptime')
-                        ->label('Uptime')
-                        ->state($this->getUptime()),
-                    TextEntry::make('memory')
-                        ->label('Memory Usage')
-                        ->state($this->getMemoryUsage()),
-                    IconEntry::make('database')
-                        ->label('Database')
-                        ->boolean()
-                        ->state($this->isDatabaseHealthy()),
-                    IconEntry::make('cache')
-                        ->label('Cache')
-                        ->boolean()
-                        ->state($this->isCacheHealthy()),
-                ]),
-        ]);
-    }
-}
-```
-
-## User Profile Page
-
-```php
-<?php
-
-namespace App\Laravilt\Admin\Pages;
-
-use Laravilt\Panel\Pages\Page;
-use Laravilt\Schemas\Schema;
-use Laravilt\Schemas\Components\Section;
-use Laravilt\Infolists\Entries\TextEntry;
 use Laravilt\Infolists\Entries\ImageEntry;
+use Laravilt\Infolists\Entries\TextEntry;
+use Laravilt\Panel\Pages\Page;
+use Laravilt\Schemas\Components\Section;
 
-class Profile extends Page
+class MyAccount extends Page
 {
     protected static ?string $navigationIcon = 'User';
-    protected static ?string $title = 'My Profile';
 
-    public function infolist(Schema $infolist): Schema
+    protected function getSchema(): array
     {
         $user = auth()->user();
 
-        return $infolist->schema([
-            Section::make('Profile Information')
+        return [
+            Section::make('Profile')
                 ->columns(2)
                 ->schema([
                     ImageEntry::make('avatar')
-                        ->label('Avatar')
                         ->circular()
                         ->state($user->avatar_url),
-                    TextEntry::make('name')
-                        ->label('Name')
-                        ->state($user->name),
-                    TextEntry::make('email')
-                        ->label('Email')
-                        ->state($user->email),
+                    TextEntry::make('name')->state($user->name),
+                    TextEntry::make('email')->state($user->email),
                     TextEntry::make('created_at')
                         ->label('Member Since')
                         ->dateTime()
                         ->state($user->created_at),
+                    IconEntry::make('database')
+                        ->label('Database reachable')
+                        ->boolean()
+                        ->state(rescue(fn () => (bool) DB::select('select 1'), false)),
                 ]),
-        ]);
+        ];
     }
 }
 ```
+
+## Related
+
+- [Infolists](../../infolists/README.md): all entry types

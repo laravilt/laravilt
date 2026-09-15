@@ -1,11 +1,7 @@
 ---
-title: Post-Migration
-description: Checklist after migrating from Filament
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: panel
+title: Post-Migration Checklist
+description: Review, register and test your code after migrating from Filament.
+order: 3
 ---
 
 # Post-Migration Checklist
@@ -16,10 +12,12 @@ category: panel
 ls -la app/Laravilt/Admin/Resources/
 ```
 
-## 2. Update Panel Provider
+## 2. Check the Panel Provider
+
+If your panel provider uses `discoverAutomatically()` (the default from `laravilt:install` and `laravilt:panel`), migrated classes in `app/Laravilt/Admin` are picked up automatically. Otherwise, register them:
 
 ```php
-namespace App\Laravilt\Admin;
+namespace App\Providers\Laravilt;
 
 use Laravilt\Panel\Panel;
 use Laravilt\Panel\PanelProvider;
@@ -47,7 +45,7 @@ npm run build
 
 ## 4. Test CRUD Operations
 
-Test all create, read, update, delete operations.
+Test create, read, update and delete for every migrated resource. Check that resources declare `protected static string $model` and `protected static int $navigationSort` with those exact types.
 
 ## 5. Remove Filament (Optional)
 
@@ -59,11 +57,13 @@ composer remove filament/filament
 
 ### Custom Livewire Components
 
-Rewrite as Vue components for Laravilt.
+Laravilt uses Inertia instead of Livewire. Rewrite custom Livewire views as Vue components (`.vue`) or React components (`.tsx`), depending on your stack.
+
+> React support requires Laravilt v1.1 or later.
 
 ### Complex Relationships
 
-Review and configure nested relationships manually.
+Review relation managers and consider [nested resources](../resources/nested-resources.md) for deep hierarchies.
 
 ### Custom Actions
 
@@ -71,7 +71,7 @@ Review actions with complex logic.
 
 ### Plugins
 
-Filament plugins are not auto-converted. Check for Laravilt equivalents.
+Filament plugins are not converted. Check the [plugins](../../plugins/README.md) section for Laravilt equivalents.
 
 ## Troubleshooting
 
@@ -81,20 +81,20 @@ Filament plugins are not auto-converted. Check for Laravilt equivalents.
 ls app/Filament/Resources/
 ```
 
-Use `--source` option if in different location.
+Pass `--source` if your Filament classes live elsewhere.
 
 ### Namespace Conflicts
 
-Use `--force` to overwrite or merge manually.
+Use `--force` to overwrite existing files, or merge by hand. Run with `--dry-run` first to preview.
 
 ### Missing Icon Mappings
 
 ```php
-// Update manually
+// Update manually with a Lucide icon name
 protected static ?string $navigationIcon = 'Star';
 ```
 
 ## Next Steps
 
-- [Overview](overview) - Migration basics
-- [Namespace Mappings](namespace-mappings) - Class mappings
+- [Migration Overview](overview.md)
+- [Namespace Mappings](namespace-mappings.md)
