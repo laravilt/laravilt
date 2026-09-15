@@ -130,8 +130,8 @@ class InstallLaraviltCommand extends Command
         $this->components->info("Publishing files ({$this->stackLabel()})...");
         $this->newLine();
 
-        // Remember the stack for generators and publish tags
-        $this->persistFrontendStack();
+        // Remember the stack for generators and publish tags during this run
+        config(['laravilt-support.frontend' => $this->stack]);
 
         if ($this->stack === self::REACT) {
             $this->publishSharedFiles();
@@ -139,6 +139,9 @@ class InstallLaraviltCommand extends Command
         } else {
             $this->publishVueFrontend();
         }
+
+        // Persist the stack only once its frontend is in place, so a failed publish leaves .env untouched
+        $this->persistFrontendStack();
 
         // Publish the Laravilt favicon and app icons
         $this->publishBrandAssets();
@@ -264,8 +267,6 @@ class InstallLaraviltCommand extends Command
      */
     protected function persistFrontendStack(): void
     {
-        config(['laravilt-support.frontend' => $this->stack]);
-
         foreach (['.env', '.env.example'] as $file) {
             $path = base_path($file);
 

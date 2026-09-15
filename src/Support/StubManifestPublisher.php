@@ -39,6 +39,13 @@ class StubManifestPublisher
         $deleted = [];
         $published = [];
 
+        // Check every source up front so a missing stub fails before the application is touched
+        foreach (array_keys($manifest['publish'] ?? []) as $stub) {
+            if (! $this->files->exists($stubRoot.'/'.ltrim($stub, '/\\'))) {
+                throw new InvalidArgumentException("Stub [{$stub}] listed in the manifest does not exist.");
+            }
+        }
+
         foreach ($manifest['delete'] ?? [] as $relative) {
             $path = $basePath.'/'.ltrim($relative, '/\\');
 

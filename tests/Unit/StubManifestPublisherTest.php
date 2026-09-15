@@ -54,3 +54,20 @@ it('fails when a listed stub is missing', function () {
 
     (new StubManifestPublisher)->publish($this->stubs.'/manifest.php', $this->appPath);
 })->throws(InvalidArgumentException::class);
+
+it('leaves the application untouched when a listed stub is missing', function () {
+    $this->files->put($this->stubs.'/manifest.php', '<?php return '.var_export([
+        'publish' => [
+            'app.tsx.stub' => 'resources/js/app.tsx',
+            'nope.stub' => 'resources/js/nope.ts',
+        ],
+        'delete' => ['resources/js/pages/dashboard.tsx', 'resources/js/pages/settings'],
+    ], true).';');
+
+    expect(fn () => (new StubManifestPublisher)->publish($this->stubs.'/manifest.php', $this->appPath))
+        ->toThrow(InvalidArgumentException::class);
+
+    expect($this->files->exists($this->appPath.'/resources/js/pages/dashboard.tsx'))->toBeTrue()
+        ->and($this->files->isDirectory($this->appPath.'/resources/js/pages/settings'))->toBeTrue()
+        ->and($this->files->exists($this->appPath.'/resources/js/app.tsx'))->toBeFalse();
+});
