@@ -42,6 +42,7 @@ Closures get their arguments by parameter name: `$record` (the current record), 
 php artisan make:action PublishPost           # app/Actions/PublishPost.php
 php artisan make:action PublishPost --modal   # with a confirmation modal
 php artisan make:action PublishPost --form    # with a modal form
+php artisan make:action PublishPost --auth    # with an authorization check
 ```
 
 See [Custom Action](types/custom-action.md#reusable-action-classes) for how to use generated classes.

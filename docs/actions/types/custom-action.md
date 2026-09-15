@@ -67,7 +67,52 @@ Generate a class with `make:action`:
 php artisan make:action ApprovePost          # plain
 php artisan make:action ApprovePost --modal  # with confirmation modal
 php artisan make:action ApprovePost --form   # with a modal form
+php artisan make:action ApprovePost --auth   # with an authorization check
 ```
+
+`--auth` combines with `--modal` or `--form`. If you pass both `--modal` and `--form`, `--form` wins. `--force` overwrites an existing file.
+
+> The generated `handle()` wiring and the `--auth` option require Laravilt v1.1 or later.
+
+The generated class calls `handle()` from `action()`, so you only need to fill in `handle()`:
+
+```php
+namespace App\Actions;
+
+use Laravilt\Actions\Action;
+
+class ApprovePost extends Action
+{
+    protected function setUp(): void
+    {
+        $this->label('Approve Post');
+
+        // Run handle() when the action is executed
+        $this->action(fn ($record = null, array $data = []) => $this->handle($record, $data));
+
+        // Added by --auth: only allow authorized users to see and run this action
+        $this->authorize(fn ($record = null) => $this->authorizeAction($record));
+    }
+
+    // Added by --auth
+    protected function authorizeAction(mixed $record = null): bool
+    {
+        // e.g. return auth()->user()?->can('update', $record) ?? false;
+        return auth()->check();
+    }
+
+    public function handle(mixed $record = null, array $data = []): mixed
+    {
+        // Implement your action logic here
+
+        return null;
+    }
+}
+```
+
+`$data` holds the submitted form data (with `--form`). By default `authorizeAction()` only checks that the user is logged in, so replace it with your own check, such as a policy. When it returns `false`, the action is hidden and its endpoint responds with a 403. See [Authorization](../authorization.md).
+
+You can also write the class by hand:
 
 The class goes in `app/Actions` and extends `Laravilt\Actions\Action`. Configure it in `setUp()` and wire your logic with `action()`:
 

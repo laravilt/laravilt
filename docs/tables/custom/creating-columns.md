@@ -6,7 +6,7 @@ order: 1
 
 # Creating Columns
 
-The frontend has renderers for text, icon, image, color, and toggle columns. The simplest way to build your own column is to extend one of these classes and configure it in `setUp()`. `setUp()` runs every time `make()` is called.
+The frontend has renderers for text, icon, image, color, toggle, select, text input, and checkbox columns. The simplest way to build your own column is to extend one of these classes and configure it in `setUp()`. `setUp()` runs every time `make()` is called.
 
 ```php
 namespace App\Tables\Columns;

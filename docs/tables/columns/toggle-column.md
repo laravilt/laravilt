@@ -13,7 +13,7 @@ ToggleColumn::make('is_active')
     ->label('Active');
 ```
 
-When the user flips the switch, the panel saves the new value to the record with `$record->update([$column => $value])`. You don't need to save it yourself.
+When the user flips the switch, the panel saves the new value to the record. You don't need to save it yourself. From Laravilt v1.1, the switch saves through the shared column update endpoint. That endpoint checks `canUpdate()`, validates the value as `required|boolean` plus your `rules()`, and writes only this column's attribute. See [Editable columns](README.md#editable-columns).
 
 ## Hooks
 
