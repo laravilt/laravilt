@@ -15,7 +15,8 @@ Tables render on the frontend stack you chose when you ran `php artisan laravilt
 | Grid view | `CardGrid.vue`, `GridToolbar.vue` | `CardGrid.tsx`, `GridToolbar.tsx` |
 | Toolbar | `TableToolbar.vue` | `TableToolbar.tsx` |
 | API tester | `ApiTester.vue` | `ApiTester.tsx` |
-| Cell renderers | `columns/{Text,Icon,Image,Color,Toggle}Column.vue` | `columns/{Text,Icon,Image,Color,Toggle}Column.tsx` |
+| Cell renderers | `columns/{Text,Icon,Image,Color,Toggle,Select,TextInput,Checkbox}Column.vue` | `columns/{Text,Icon,Image,Color,Toggle,Select,TextInput,Checkbox}Column.tsx` |
+| Inline-edit state for editable cells | `composables/useColumnUpdate.ts` | `composables/useColumnUpdate.ts` |
 | Grid cell renderers | `grid-columns/*GridColumn.vue` | `grid-columns/*GridColumn.tsx` |
 
 > React support requires Laravilt v1.1 or later.
@@ -33,7 +34,12 @@ You don't write frontend code to build a table. The PHP `Table` is serialized to
 | `ImageColumn` | `ImageColumn` |
 | `ColorColumn` | `ColorColumn` |
 | `ToggleColumn` | `ToggleColumn` |
+| `SelectColumn` | `SelectColumn` |
+| `TextInputColumn` | `TextInputColumn` |
+| `CheckboxColumn` | `CheckboxColumn` |
 | Anything else | falls back to `TextColumn` |
+
+`ToggleColumn`, `SelectColumn`, `TextInputColumn`, and `CheckboxColumn` save through the table's `columnUpdateRoute` prop (see [Editable columns](../columns/README.md#editable-columns)). The `useColumnUpdate` composable holds the shared optimistic-save logic.
 
 Filters render with Laravilt form components, and row actions render with the `ActionButton` component from `laravilt/actions`.
 
