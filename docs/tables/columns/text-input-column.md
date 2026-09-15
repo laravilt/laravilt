@@ -17,7 +17,7 @@ The cell shows a text input. The value is saved when the user presses Enter or l
 
 > Inline editing requires Laravilt v1.1 or later.
 
-The value is validated as `nullable|string`, or `nullable|numeric` when `type('number')` is set. Your `rules()` are added after those. Clearing the input stores `null`.
+The value is validated as `nullable|string`, or `nullable|numeric` when `type('number')` is set. Your `rules()` are added after those. Clearing the input stores `null`, unless your rules reject an empty value (for example, `required`).
 
 ## Input types
 
@@ -53,7 +53,7 @@ TextInputColumn::make('sku')
 | Method | Description |
 |--------|-------------|
 | `type()` | HTML input type |
-| `inputPrefix()`, `inputSuffix()` | Text inside the input |
+| `inputPrefix()`, `inputSuffix()` | Text shown next to the input |
 | `inputPrefixIcon()`, `inputSuffixIcon()` | Icons inside the input (not shown by the bundled tables yet) |
 | `inputPrefixIconColor()`, `inputSuffixIconColor()` | Icon colors |
 | `placeholder()` | Placeholder text |

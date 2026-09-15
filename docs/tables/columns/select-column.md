@@ -37,13 +37,13 @@ SelectColumn::make('category_id')
 
 `selectablePlaceholder(false)` removes the empty entry and makes a value required.
 
-> The bundled tables always render a styled dropdown and ignore `native()`. They don't apply `disableOptionWhen()` either, and neither does the update endpoint. To block a value, add a rule, such as `->rules([Rule::notIn(['archived'])])`.
+> The bundled tables always render a styled dropdown and ignore `native()`. They don't apply `disableOptionWhen()` either, and neither does the update endpoint. To block a value, add a rule, such as `->rules([\Illuminate\Validation\Rule::notIn(['archived'])])`.
 
 ## Hooks and disabling
 
 ```php
 SelectColumn::make('status')
-    ->options([...])
+    ->options(['draft' => 'Draft', 'published' => 'Published'])
     ->disabled(fn () => ! auth()->user()->isAdmin())
     ->afterStateUpdated(function ($record, string $column, $value) {
         // ...

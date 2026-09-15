@@ -73,7 +73,7 @@ Use dot notation to search a column on a relation. `author.name` becomes `orWher
 | `sorts(array)`, `addSort(Sort)` | Register sort options |
 | `applyFilters(array)` | Filter values keyed by filter name |
 | `sortBy(?string $column, ?string $direction = 'asc')` | Active sort (invalid directions become `asc`) |
-| `searchable(array|string)` | Columns the search term is matched against. See [Search](#search) |
+| `searchable(array\|string)` | Columns the search term is matched against. See [Search](#search) |
 | `search(?string)` | Search term, matched against the `searchable()` columns |
 | `perPage(int)`, `paginated(bool)` | Pagination settings passed to the frontend |
 | `apply(Builder)` | Apply filters and sorting to a query |
