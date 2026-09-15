@@ -1,19 +1,10 @@
 ---
 title: DeleteBulkAction
-description: Bulk delete multiple selected records
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
-component: DeleteBulkAction
+description: Delete all selected records after confirmation.
+order: 3
 ---
 
 # DeleteBulkAction
-
-Bulk soft-delete multiple selected records with confirmation.
-
-## Basic Usage
 
 ```php
 use Laravilt\Actions\DeleteBulkAction;
@@ -21,62 +12,31 @@ use Laravilt\Actions\DeleteBulkAction;
 DeleteBulkAction::make();
 ```
 
-## Default Configuration
+Defaults: icon `Trash2`, color `destructive`, confirmation required, clears the selection afterwards, and shows the deleted count in a notification. Records are soft-deleted when the model uses `SoftDeletes`.
 
-- **Icon**: Trash2
-- **Color**: destructive
-- **Requires Confirmation**: Yes
-- Auto-deselects records after completion
-- Shows count in success notification
-
-## Specify Model
+The table passes its model to the action automatically. Set it yourself when the table has no model:
 
 ```php
-use Laravilt\Actions\DeleteBulkAction;
 use App\Models\Post;
 
-DeleteBulkAction::make()
-    ->model(Post::class);
+DeleteBulkAction::make()->model(Post::class);
 ```
 
-## Custom Confirmation
+## Customizing
 
 ```php
-use Laravilt\Actions\DeleteBulkAction;
-
 DeleteBulkAction::make()
-    ->modalHeading('Delete Selected')
+    ->label('Remove selected')
+    ->modalHeading('Delete selected')
     ->modalDescription('Are you sure you want to delete the selected records?')
-    ->modalSubmitActionLabel('Delete All');
+    ->modalSubmitActionLabel('Delete all');
 ```
 
-## Custom Label
+## API reference
 
-```php
-use Laravilt\Actions\DeleteBulkAction;
-
-DeleteBulkAction::make()
-    ->label('Remove Selected')
-    ->icon('XCircle');
-```
-
-## Without Deselection
-
-```php
-use Laravilt\Actions\DeleteBulkAction;
-
-DeleteBulkAction::make()
-    ->deselectRecordsAfterCompletion(false);
-```
-
-## API Reference
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `make()` | `?string $name` | Create action |
-| `model()` | `string` | Set model class |
-| `resource()` | `string` | Set resource class |
-| `deselectRecordsAfterCompletion()` | `bool` | Auto-deselect |
-| `modalHeading()` | `string` | Modal title |
-| `modalDescription()` | `string` | Modal message |
-| `modalSubmitActionLabel()` | `string` | Confirm button text |
+| Method | Description |
+|--------|-------------|
+| `model(string)` | Model class |
+| `resource(string)` | Resource class (for permission checks) |
+| `deselectRecordsAfterCompletion(bool)` | Clear the selection (default `true`) |
+| `modalHeading()`, `modalDescription()`, `modalSubmitActionLabel()` | Confirmation text |

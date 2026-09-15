@@ -1,19 +1,10 @@
 ---
 title: EditAction
-description: Navigate to edit page for a record
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
-component: EditAction
+description: Link to a record's edit page.
+order: 2
 ---
 
 # EditAction
-
-Navigate to the edit page for a record. Auto-hides for soft-deleted records.
-
-## Basic Usage
 
 ```php
 use Laravilt\Actions\EditAction;
@@ -21,73 +12,23 @@ use Laravilt\Actions\EditAction;
 EditAction::make();
 ```
 
-## Default Configuration
+Defaults: label "Edit", icon `Pencil`, color `warning`, `GET` navigation. Inside a resource, the URL resolves to the edit page. The action is hidden for trashed records and for users without update permission.
 
-- **Icon**: Pencil
-- **Color**: warning
-- **Method**: GET
-- Auto-hidden for trashed records
-- Auto-resolves URL from resource context
-
-## Custom Label
+## Customizing
 
 ```php
-use Laravilt\Actions\EditAction;
-
 EditAction::make()
-    ->label('Modify');
-```
-
-## Custom Icon
-
-```php
-use Laravilt\Actions\EditAction;
-
-EditAction::make()
-    ->icon('Edit2');
-```
-
-## Custom URL
-
-```php
-use Laravilt\Actions\EditAction;
-
-EditAction::make()
-    ->url(fn ($record) => route('posts.edit', $record));
-```
-
-## Conditional Visibility
-
-```php
-use Laravilt\Actions\EditAction;
-
-EditAction::make()
-    ->visible(fn ($record) => !$record->is_locked);
+    ->label('Modify')
+    ->icon('SquarePen')
+    ->url(fn ($record) => route('posts.edit', $record))
+    ->hidden(fn ($record) => $record->is_locked);
 ```
 
 ## Authorization
 
 ```php
-use Laravilt\Actions\EditAction;
-
-EditAction::make()
-    ->authorize(fn ($record) => auth()->user()->can('update', $record));
-
-// Using Spatie permissions
-EditAction::make()
-    ->can('edit posts');
+EditAction::make()->can('update_post');
+EditAction::make()->ability('update');
 ```
 
-## API Reference
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `make()` | `?string $name` | Create action |
-| `label()` | `string` | Set label |
-| `icon()` | `string` | Set icon |
-| `color()` | `string` | Set color |
-| `url()` | `string\|Closure` | Custom URL |
-| `visible()` | `bool\|Closure` | Show condition |
-| `hidden()` | `bool\|Closure` | Hide condition |
-| `authorize()` | `Closure` | Auth callback |
-| `can()` | `string` | Spatie permission |
+See [Authorization](../authorization.md).

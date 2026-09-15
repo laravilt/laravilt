@@ -1,69 +1,35 @@
 ---
 title: Column Visibility
-description: Toggle column visibility
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-concept: features
-vue_component: TableColumnToggle
-vue_package: "radix-vue (Checkbox)"
+description: Let users show and hide columns from the column menu.
+order: 3
 ---
 
 # Column Visibility
 
-Allow users to toggle column visibility.
-
-## Toggleable Columns
+Columns are toggleable by default, so users can hide them from the column menu.
 
 ```php
-<?php
-
 use Laravilt\Tables\Columns\TextColumn;
 
-TextColumn::make('created_at')
-    ->toggleable();
-
+// Hidden until the user turns it on
 TextColumn::make('updated_at')
     ->toggleable(isToggledHiddenByDefault: true);
-```
 
-## Non-Toggleable Columns
-
-```php
-<?php
-
-use Laravilt\Tables\Columns\TextColumn;
-
+// Always visible, not listed in the menu
 TextColumn::make('name')
     ->toggleable(false);
 ```
 
-## All Toggleable by Default
+To remove a column entirely (for example, based on permissions), use `visible()` or `hidden()`:
 
 ```php
-<?php
-
-use Laravilt\Tables\Table;
-
-$table->toggleableColumns();
+TextColumn::make('cost_price')
+    ->visible(fn () => auth()->user()->isAdmin());
 ```
 
-## Vue Component
-
-Uses Radix Vue Checkbox:
-
-```vue
-<script setup>
-import { CheckboxRoot, CheckboxIndicator } from 'radix-vue'
-</script>
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `toggleable()` | Make toggleable |
-| `isToggledHiddenByDefault` | Hidden by default |
-| `toggleableColumns()` | All toggleable |
+| `toggleable($condition = true, $isToggledHiddenByDefault = false)` | Allow hiding; optionally start hidden |
+| `visible()`, `hidden()` | Remove the column entirely |

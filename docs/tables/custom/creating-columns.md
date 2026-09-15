@@ -1,103 +1,71 @@
 ---
 title: Creating Columns
-description: Create custom table columns
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-concept: custom
+description: Package reusable column configurations as your own column classes.
+order: 1
 ---
 
 # Creating Columns
 
-Create custom table columns.
-
-## Step 1: PHP Column Class
-
-Create `app/Tables/Columns/ProgressColumn.php`:
+The frontend has renderers for text, icon, image, color, and toggle columns. The simplest way to build your own column is to extend one of these classes and configure it in `setUp()`. `setUp()` runs every time `make()` is called.
 
 ```php
-<?php
-
 namespace App\Tables\Columns;
 
-use Closure;
-use Laravilt\Tables\Columns\Column;
+use Laravilt\Tables\Columns\TextColumn;
 
-class ProgressColumn extends Column
+class StatusColumn extends TextColumn
 {
-    protected string $view = 'tables.columns.progress';
-
-    protected int|Closure $max = 100;
-    protected string|Closure $color = 'primary';
-
-    public function max(int|Closure $max): static
+    protected function setUp(): void
     {
-        $this->max = $max;
-        return $this;
-    }
-
-    public function color(string|Closure $color): static
-    {
-        $this->color = $color;
-        return $this;
-    }
-
-    public function toLaraviltProps(): array
-    {
-        return array_merge(parent::toLaraviltProps(), [
-            'max' => $this->evaluate($this->max),
-            'color' => $this->evaluate($this->color),
-        ]);
+        $this
+            ->badge()
+            ->sortable()
+            ->color(fn (?string $state) => match ($state) {
+                'active' => 'success',
+                'pending' => 'warning',
+                'banned' => 'destructive',
+                default => 'secondary',
+            })
+            ->formatStateUsing(fn (?string $state) => str($state)->headline());
     }
 }
 ```
-
-## Step 2: Vue Component
-
-Create `resources/js/components/tables/ProgressColumn.vue`:
-
-```vue
-<template>
-  <div class="w-full">
-    <Progress :value="percentage" :class="colorClass" />
-    <span class="text-xs">{{ value }}/{{ max }}</span>
-  </div>
-</template>
-
-<script setup lang="ts">
-import { Progress } from '@/components/ui/progress'
-import { computed } from 'vue'
-
-const props = defineProps<{
-  value: number
-  max?: number
-  color?: string
-}>()
-
-const percentage = computed(() => (props.value / (props.max || 100)) * 100)
-</script>
-```
-
-## Step 3: Register
-
-```typescript
-import ProgressColumn from '@/components/tables/ProgressColumn.vue'
-
-export const tableColumns = {
-  'progress-column': ProgressColumn,
-}
-```
-
-## Step 4: Usage
 
 ```php
-<?php
+use App\Tables\Columns\StatusColumn;
 
-use App\Tables\Columns\ProgressColumn;
-
-ProgressColumn::make('completion')
-    ->max(100)
-    ->color('success');
+$table->columns([
+    StatusColumn::make('status'),
+]);
 ```
+
+## Adding options
+
+Add fluent methods like any other column:
+
+```php
+namespace App\Tables\Columns;
+
+use Laravilt\Tables\Columns\TextColumn;
+
+class ProgressColumn extends TextColumn
+{
+    protected int $max = 100;
+
+    public function max(int $max): static
+    {
+        $this->max = $max;
+
+        return $this;
+    }
+
+    protected function setUp(): void
+    {
+        $this->suffix('%')->formatStateUsing(
+            fn ($state) => round(((float) $state / $this->max) * 100)
+        );
+    }
+}
+```
+
+> Each column serializes a `component` name that the table uses to choose a renderer. Unknown names fall back to the text renderer, and there is no public API yet for registering new cell renderers. Extend one of the built-in column classes as shown above.

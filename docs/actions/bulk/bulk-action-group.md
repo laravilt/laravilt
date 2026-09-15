@@ -1,84 +1,52 @@
 ---
 title: BulkActionGroup
-description: Group multiple bulk actions in a dropdown
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
-component: BulkActionGroup
+description: Group bulk actions into a single dropdown.
+order: 2
 ---
 
 # BulkActionGroup
 
-Group multiple bulk actions into a dropdown menu for organized table actions.
-
-## Basic Usage
-
 ```php
+use Laravilt\Actions\BulkAction;
 use Laravilt\Actions\BulkActionGroup;
 use Laravilt\Actions\DeleteBulkAction;
-use Laravilt\Actions\BulkAction;
 
 BulkActionGroup::make([
-    BulkAction::make('approve')
-        ->label('Approve')
-        ->action(fn ($records) => /* ... */),
-    BulkAction::make('reject')
-        ->label('Reject')
-        ->action(fn ($records) => /* ... */),
+    BulkAction::make('publish')
+        ->icon('Globe')
+        ->action(fn ($records) => $records->each->publish()),
+    BulkAction::make('unpublish')
+        ->icon('EyeOff')
+        ->action(fn ($records) => $records->each->unpublish()),
     DeleteBulkAction::make(),
-]);
-```
-
-## Custom Label
-
-```php
-use Laravilt\Actions\BulkActionGroup;
-
-BulkActionGroup::make([...])
-    ->label('Bulk Actions')
+])
+    ->label('Bulk actions')
     ->icon('MoreHorizontal')
     ->color('gray');
 ```
 
-## In Table Resource
+## In a resource table
 
 ```php
 use Laravilt\Actions\BulkActionGroup;
 use Laravilt\Actions\DeleteBulkAction;
-use Laravilt\Actions\BulkAction;
 use Laravilt\Tables\Table;
-use Laravilt\Resources\Resource;
 
-class PostResource extends Resource
+public static function table(Table $table): Table
 {
-    public static function table(Table $table): Table
-    {
-        return $table
-            ->columns([...])
-            ->bulkActions([
-                BulkActionGroup::make([
-                    BulkAction::make('publish')
-                        ->label('Publish')
-                        ->icon('Globe')
-                        ->action(fn ($records) => /* ... */),
-                    BulkAction::make('unpublish')
-                        ->label('Unpublish')
-                        ->icon('EyeOff')
-                        ->action(fn ($records) => /* ... */),
-                ]),
+    return $table
+        ->columns([...])
+        ->toolbarActions([
+            BulkActionGroup::make([
                 DeleteBulkAction::make(),
-            ]);
-    }
+            ]),
+        ]);
 }
 ```
 
-## API Reference
+## API reference
 
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `make()` | `array $actions` | Create group with actions |
-| `label()` | `string` | Group label |
-| `icon()` | `string` | Group icon |
-| `color()` | `string` | Group color |
+| Method | Description |
+|--------|-------------|
+| `make(array $actions)` | Create the group |
+| `label()`, `icon()`, `color()` | Dropdown trigger appearance |

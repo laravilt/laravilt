@@ -1,121 +1,71 @@
 ---
 title: ImportAction
-description: Import records from Excel or CSV files
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
-component: ImportAction
+description: Import records from XLSX or CSV files with Laravel Excel.
+order: 9
 ---
 
 # ImportAction
 
-Import records from Excel or CSV files using Laravel Excel.
-
-## Basic Usage
+`ImportAction` opens a modal with a file upload and runs a [Laravel Excel](https://docs.laravel-excel.com) import class.
 
 ```php
-use Laravilt\Actions\ImportAction;
-
-ImportAction::make();
-```
-
-## Default Configuration
-
-- **Icon**: Upload
-- **Color**: gray
-- **Requires Confirmation**: Yes (shows file upload modal)
-- Integrates with Laravel Excel (Maatwebsite)
-
-## Custom Importer Class
-
-```php
-use Laravilt\Actions\ImportAction;
 use App\Imports\ProductImporter;
+use Laravilt\Actions\ImportAction;
 
 ImportAction::make()
     ->importer(ProductImporter::class);
 ```
 
-## Import XLSX
+Defaults: name `import`, label "Import", icon `upload`, color `gray`. Accepted file types are `.xls`, `.xlsx`, and `.csv`.
 
-```php
-use Laravilt\Actions\ImportAction;
+## Generate an importer
 
-ImportAction::make()
-    ->xlsx();
+```bash
+php artisan laravilt:importer ProductImporter --model=Product
 ```
 
-## Import CSV
+This creates `app/Imports/ProductImporter.php`, a Laravel Excel import class (`ToModel`, `WithHeadingRow`, `WithValidation`, `SkipsEmptyRows`). Map each row in `model()` and validate it in `rules()`.
+
+## File type
 
 ```php
-use Laravilt\Actions\ImportAction;
+ImportAction::make()->importer(ProductImporter::class)->csv();
 
 ImportAction::make()
-    ->csv();
+    ->importer(ProductImporter::class)
+    ->acceptedFileTypes(['text/csv']);
 ```
 
-## Accepted File Types
+## Hooks
+
+Both callbacks receive the uploaded file:
 
 ```php
-use Laravilt\Actions\ImportAction;
-
-ImportAction::make()
-    ->acceptedFileTypes([
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'text/csv',
-    ]);
-```
-
-## Before Import Callback
-
-```php
-use Laravilt\Actions\ImportAction;
-use Illuminate\Support\Facades\Log;
-
-ImportAction::make()
-    ->beforeImport(function ($file) {
-        Log::info('Starting import: ' . $file->getClientOriginalName());
-    });
-```
-
-## After Import Callback
-
-```php
-use Laravilt\Actions\ImportAction;
 use Laravilt\Notifications\Notification;
 
 ImportAction::make()
-    ->afterImport(function ($import) {
-        Notification::make()
-            ->title('Import completed')
-            ->success()
-            ->send();
+    ->importer(ProductImporter::class)
+    ->beforeImport(fn ($file) => logger()->info('Import started'))
+    ->afterImport(function ($file) {
+        Notification::success()->title('Import completed')->send();
     });
 ```
 
-## Queue Large Imports
+## Queued imports
 
 ```php
-use Laravilt\Actions\ImportAction;
-
 ImportAction::make()
+    ->importer(ProductImporter::class)
     ->queue()
-    ->chunkSize(1000)
-    ->disk('imports');
+    ->disk('s3');
 ```
 
-## API Reference
+## API reference
 
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `make()` | `?string $name` | Create action |
-| `importer()` | `string` | Importer class |
-| `xlsx()` | — | Import XLSX files |
-| `csv()` | — | Import CSV files |
-| `acceptedFileTypes()` | `array` | Accepted MIME types |
-| `beforeImport()` | `Closure` | Before import hook |
-| `afterImport()` | `Closure` | After import hook |
-| `queue()` | — | Queue import |
-| `chunkSize()` | `int` | Chunk size |
+| Method | Description |
+|--------|-------------|
+| `importer(string)` | Laravel Excel import class |
+| `xlsx()`, `csv()`, `readerType(string)` | Input format |
+| `acceptedFileTypes(array)` | Allowed MIME types |
+| `beforeImport(Closure)`, `afterImport(Closure)` | Hooks |
+| `queue()`, `disk()`, `chunkSize(int)` | Queued imports |

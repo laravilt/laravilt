@@ -1,38 +1,22 @@
 ---
 title: IconColumn
-description: Icon display column
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-component: IconColumn
-vue_component: TableIconCell
-vue_package: "lucide-vue-next"
+description: Display Lucide icons, optionally mapped from boolean or status values.
+order: 3
 ---
 
 # IconColumn
 
-Display Lucide icons with colors.
-
-## Basic Usage
+Icons use [Lucide](https://lucide.dev/icons) names in PascalCase (for example `CheckCircle`).
 
 ```php
-<?php
-
 use Laravilt\Tables\Columns\IconColumn;
 
-IconColumn::make('icon')
-    ->icon(fn ($record) => $record->icon_name);
+IconColumn::make('icon'); // the state is used as the icon name
 ```
 
-## Boolean Mode
+## Boolean mode
 
 ```php
-<?php
-
-use Laravilt\Tables\Columns\IconColumn;
-
 IconColumn::make('is_verified')
     ->boolean()
     ->trueIcon('CheckCircle')
@@ -41,32 +25,31 @@ IconColumn::make('is_verified')
     ->falseColor('danger');
 ```
 
-## Dynamic Icons
+Without custom icons, boolean mode uses `CheckCircle` and `XCircle`. `BooleanColumn` is a shortcut for an `IconColumn` in boolean mode.
+
+## Dynamic icons
+
+Closures can receive `$state` and `$record`:
 
 ```php
-<?php
-
-use Laravilt\Tables\Columns\IconColumn;
-
-IconColumn::make('status_icon')
-    ->icon(fn ($record) => match($record->status) {
+IconColumn::make('status')
+    ->icon(fn (string $state) => match ($state) {
         'active' => 'CheckCircle',
         'pending' => 'Clock',
         default => 'AlertCircle',
     })
-    ->color(fn ($record) => match($record->status) {
-        'active' => 'success',
-        default => 'secondary',
-    });
+    ->color(fn (string $state) => $state === 'active' ? 'success' : 'secondary')
+    ->iconSize('lg');
 ```
 
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `icon()` | Icon name |
-| `color()` | Icon color |
+| `icon()` | Icon name or closure |
+| `color()` | Icon color or closure |
+| `iconSize()` / `size()` | Icon size |
 | `boolean()` | Boolean mode |
-| `trueIcon()` | True icon |
-| `falseIcon()` | False icon |
-| `size()` | Icon size |
+| `trueIcon()`, `falseIcon()` | Boolean icons |
+| `trueColor()`, `falseColor()` | Boolean colors |
+| `wrap()` | Wrap multiple icons |

@@ -1,87 +1,59 @@
 ---
 title: Grouping
-description: Row grouping by column
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-concept: features
-vue_component: TableGroup
+description: Group table rows by a column value.
+order: 4
 ---
 
 # Grouping
 
-Group table rows by column values.
-
-## Basic Usage
+Define the available groups with `Laravilt\Tables\Grouping\Group`. Users pick one from the table toolbar.
 
 ```php
-<?php
-
-use Laravilt\Tables\Table;
+use Laravilt\Tables\Grouping\Group;
 
 $table
-    ->groupBy('category')
-    ->groupLabel(fn ($value) => "Category: {$value}");
+    ->groups([
+        Group::make('status')->label('Status'),
+        Group::make('category.name')->label('Category'),
+    ])
+    ->defaultGroup('status');
 ```
 
-## Relationship Grouping
+## Group titles and descriptions
 
 ```php
-<?php
-
-use Laravilt\Tables\Table;
-
-$table
-    ->groupBy('category.name')
+Group::make('department_id')
+    ->label('Department')
+    ->getTitleFromRecordUsing(fn ($record, $value) => $record->department->name)
+    ->getDescriptionFromRecordUsing(fn ($record, $value) => $record->department->location)
     ->collapsible();
 ```
 
-## Group Stats
+Or read them from attributes:
 
 ```php
-<?php
-
-use Laravilt\Tables\Table;
-
-$table
-    ->groupBy('status')
-    ->groupStats(function ($records) {
-        return "Total: {$records->count()}";
-    });
+Group::make('author_id')
+    ->titleAttribute('author_name')
+    ->descriptionAttribute('author_email');
 ```
 
-## Collapsible Groups
+## Pagination while grouped
+
+Infinite scroll is disabled while a group is active. You can set a separate page size:
 
 ```php
-<?php
-
-use Laravilt\Tables\Table;
-
-$table
-    ->groupBy('department')
-    ->collapsible()
-    ->collapsedByDefault();
+$table->groupedPerPage(100); // null = default, -1 = no pagination while grouped
 ```
 
-## Multiple Grouping
-
-```php
-<?php
-
-use Laravilt\Tables\Table;
-
-$table
-    ->groupBy(['category', 'status']);
-```
-
-## API Reference
+## API reference
 
 | Method | Description |
 |--------|-------------|
-| `groupBy()` | Group column(s) |
-| `groupLabel()` | Custom label |
-| `groupStats()` | Group statistics |
-| `collapsible()` | Allow collapse |
-| `collapsedByDefault()` | Start collapsed |
+| `Table::groups()` | Available groups |
+| `Table::defaultGroup()` | Group applied on first load |
+| `Table::groupedPerPage()` | Page size while grouped |
+| `Group::label()` | Group label |
+| `Group::collapsible()` | Allow collapsing (default `true`) |
+| `Group::getTitleFromRecordUsing()`, `titleAttribute()` | Group title |
+| `Group::getDescriptionFromRecordUsing()`, `descriptionAttribute()` | Group description |
+| `Group::orderQueryUsing()` | Order the query by the group column (default `true`) |

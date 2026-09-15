@@ -1,19 +1,10 @@
 ---
 title: DeleteAction
-description: Soft delete a record with confirmation
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
-component: DeleteAction
+description: Delete a record after confirmation.
+order: 4
 ---
 
 # DeleteAction
-
-Soft delete a record with confirmation dialog. Auto-hidden for trashed records.
-
-## Basic Usage
 
 ```php
 use Laravilt\Actions\DeleteAction;
@@ -21,87 +12,34 @@ use Laravilt\Actions\DeleteAction;
 DeleteAction::make();
 ```
 
-## Default Configuration
+Defaults: label "Delete", icon `Trash2`, color `destructive`, confirmation required. Inside a resource it deletes the record (a soft delete if the model uses `SoftDeletes`), shows a notification, and redirects to the list page. It's hidden for trashed records and for users without delete permission.
 
-- **Icon**: Trash2
-- **Color**: destructive
-- **Requires Confirmation**: Yes
-- Performs soft delete
-- Auto-hidden for trashed records
-
-## Custom Confirmation
+## Customizing
 
 ```php
-use Laravilt\Actions\DeleteAction;
-
 DeleteAction::make()
-    ->modalHeading('Delete Post')
-    ->modalDescription('Are you sure you want to delete this post?')
-    ->modalSubmitActionLabel('Yes, delete it');
-```
-
-## Custom Icon
-
-```php
-use Laravilt\Actions\DeleteAction;
-
-DeleteAction::make()
+    ->modalHeading('Delete post')
+    ->modalDescription('This post will be moved to the trash.')
+    ->modalSubmitActionLabel('Yes, delete it')
     ->icon('XCircle');
 ```
 
-## Without Confirmation
+## Custom delete logic
+
+A custom `action()` replaces the default behavior:
 
 ```php
-use Laravilt\Actions\DeleteAction;
-
-DeleteAction::make()
-    ->requiresConfirmation(false);
-```
-
-## After Delete Redirect
-
-```php
-use Laravilt\Actions\DeleteAction;
-
-DeleteAction::make()
-    ->successRedirectUrl('/posts');
-```
-
-## Custom Delete Logic
-
-```php
-use Laravilt\Actions\DeleteAction;
-
 DeleteAction::make()
     ->action(function ($record) {
-        $record->archived_at = now();
-        $record->save();
+        $record->update(['archived_at' => now()]);
     });
 ```
 
 ## Authorization
 
 ```php
-use Laravilt\Actions\DeleteAction;
-
-DeleteAction::make()
-    ->authorize(fn ($record) => auth()->user()->can('delete', $record));
-
-// Using Spatie permissions
-DeleteAction::make()
-    ->can('delete posts');
+DeleteAction::make()->can('delete_post');
+DeleteAction::make()->authorize(fn ($record) => auth()->user()->can('delete', $record));
 ```
 
-## API Reference
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `make()` | `?string $name` | Create action |
-| `label()` | `string` | Set label |
-| `icon()` | `string` | Set icon |
-| `requiresConfirmation()` | `bool` | Show confirmation |
-| `modalHeading()` | `string` | Modal title |
-| `modalDescription()` | `string` | Modal message |
-| `action()` | `Closure` | Custom delete logic |
-| `successRedirectUrl()` | `string` | Redirect after delete |
-| `authorize()` | `Closure` | Auth callback |
+See also [RestoreAction](restore-action.md), [ForceDeleteAction](force-delete-action.md), and [DeleteBulkAction](../bulk/delete-bulk-action.md).

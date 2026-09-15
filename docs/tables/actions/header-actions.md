@@ -1,80 +1,38 @@
 ---
 title: Header Actions
-description: Table header actions
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: tables
-concept: actions
-vue_component: TableHeaderActions
+description: Add actions above a table, such as create, import, and export.
+order: 3
 ---
 
 # Header Actions
 
-Actions in the table header.
-
-## Create Action
+Header actions render above the table and don't act on a specific record.
 
 ```php
-<?php
-
+use App\Exports\ProductExporter;
+use App\Imports\ProductImporter;
 use Laravilt\Actions\CreateAction;
+use Laravilt\Actions\ExportAction;
+use Laravilt\Actions\ImportAction;
 
-->headerActions([
-    CreateAction::make()
-        ->url(route('products.create')),
-])
+$table->headerActions([
+    CreateAction::make(),
+    ExportAction::make()->exporter(ProductExporter::class),
+    ImportAction::make()->importer(ProductImporter::class),
+]);
 ```
 
-## Export Action
+`CreateAction` configures itself from the page: it links to the resource's create page, or opens a modal form on "manage records" (simple) resources.
+
+## Custom header action
 
 ```php
-<?php
-
 use Laravilt\Actions\Action;
 
-->headerActions([
-    Action::make('export')
-        ->label('Export All')
-        ->icon('Download')
-        ->action(function () {
-            return response()->download(
-                $this->exportTable(),
-                'products.csv'
-            );
-        }),
-])
+Action::make('docs')
+    ->label('Help')
+    ->icon('BookOpen')
+    ->url('https://laravilt.com/docs', shouldOpenInNewTab: true);
 ```
 
-## Import Action
-
-```php
-<?php
-
-use Laravilt\Actions\Action;
-use Laravilt\Forms\Components\FileUpload;
-
-->headerActions([
-    Action::make('import')
-        ->label('Import')
-        ->icon('Upload')
-        ->form([
-            FileUpload::make('file')
-                ->acceptedFileTypes(['.csv', '.xlsx'])
-                ->required(),
-        ])
-        ->action(function (array $data) {
-            $this->importFile($data['file']);
-        }),
-])
-```
-
-## API Reference
-
-| Method | Description |
-|--------|-------------|
-| `url()` | Redirect URL |
-| `action()` | Action callback |
-| `form()` | Action form |
-| `icon()` | Button icon |
+See [CreateAction](../../actions/types/create-action.md), [ExportAction](../../actions/types/export-action.md), and [ImportAction](../../actions/types/import-action.md).

@@ -1,19 +1,10 @@
 ---
 title: CreateAction
-description: Create new records via modal or navigation
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
-component: CreateAction
+description: Create records through the create page or a modal form.
+order: 3
 ---
 
 # CreateAction
-
-Create new records via a modal form or by navigating to a create page.
-
-## Basic Usage
 
 ```php
 use Laravilt\Actions\CreateAction;
@@ -21,90 +12,50 @@ use Laravilt\Actions\CreateAction;
 CreateAction::make();
 ```
 
-## Default Configuration
+Defaults: icon `Plus`, color `primary`. Hidden when the user can't create records.
 
-- **Icon**: Plus
-- **Color**: primary
-- Auto-detects context (modal vs navigation)
+Inside a resource, it configures itself from the page:
 
-## Modal Creation
+- **Full resources**: links to the resource's create page.
+- **Simple ("manage records") resources**: opens a modal with the resource form, creates the record, and shows a success notification.
+
+## Modal form outside a resource
 
 ```php
-use Laravilt\Actions\CreateAction;
-use Laravilt\Forms\Components\TextInput;
-use Laravilt\Forms\Components\Textarea;
-use Laravilt\Forms\Components\Select;
 use App\Models\Post;
+use Laravilt\Forms\Components\Select;
+use Laravilt\Forms\Components\TextInput;
 
 CreateAction::make()
     ->model(Post::class)
-    ->form([
+    ->formSchema([
         TextInput::make('title')->required(),
-        Textarea::make('content'),
-        Select::make('status')
-            ->options([
-                'draft' => 'Draft',
-                'published' => 'Published',
-            ]),
-    ]);
+        Select::make('status')->options([
+            'draft' => 'Draft',
+            'published' => 'Published',
+        ]),
+    ])
+    ->using(); // default handler: fill and save a new Post
 ```
 
-## Custom Creation Logic
+`formSchema()` switches the action to a modal, sets the submit/cancel labels, and uses a `lg` width.
+
+## Custom creation logic
 
 ```php
-use Laravilt\Actions\CreateAction;
-use App\Models\Post;
-
 CreateAction::make()
     ->model(Post::class)
-    ->form([...])
-    ->using(function (array $data) {
-        $post = Post::create($data);
-        $post->author()->associate(auth()->user());
-        $post->save();
-        return $post;
+    ->formSchema([...])
+    ->using(function ($record, array $data) {
+        return auth()->user()->posts()->create($data);
     });
 ```
 
-## Custom Modal Settings
+## API reference
 
-```php
-use Laravilt\Actions\CreateAction;
-
-CreateAction::make()
-    ->modalHeading('Create New Post')
-    ->modalWidth('2xl')
-    ->modalSubmitActionLabel('Create Post');
-```
-
-## Slide Over Modal
-
-```php
-use Laravilt\Actions\CreateAction;
-
-CreateAction::make()
-    ->form([...])
-    ->slideOver();
-```
-
-## Success Redirect
-
-```php
-use Laravilt\Actions\CreateAction;
-
-CreateAction::make()
-    ->successRedirectUrl(fn ($record) => route('posts.edit', $record));
-```
-
-## API Reference
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `make()` | `?string $name` | Create action |
-| `model()` | `string` | Set model class |
-| `form()` | `array` | Form schema |
-| `using()` | `Closure` | Custom creation logic |
-| `modalHeading()` | `string` | Modal title |
-| `modalWidth()` | `string` | Modal width |
-| `slideOver()` | — | Use slide-over |
-| `successRedirectUrl()` | `string\|Closure` | Redirect after create |
+| Method | Description |
+|--------|-------------|
+| `model(string)` | Model class to create |
+| `formSchema(array)` | Modal form fields |
+| `using(?Closure)` | Creation handler; no argument uses the default |
+| `modalHeading()`, `modalWidth()`, `slideOver()` | Modal options |

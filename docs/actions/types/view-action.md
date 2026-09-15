@@ -1,19 +1,10 @@
 ---
 title: ViewAction
-description: Navigate to view page for a record
-version: 1.0.0
-laravel: "12.x"
-php: "8.2+"
-updated: 2025-01-15
-category: actions
-component: ViewAction
+description: Link to a record's view page.
+order: 1
 ---
 
 # ViewAction
-
-Navigate to the view/show page for a record.
-
-## Basic Usage
 
 ```php
 use Laravilt\Actions\ViewAction;
@@ -21,82 +12,24 @@ use Laravilt\Actions\ViewAction;
 ViewAction::make();
 ```
 
-## Default Configuration
+Defaults: label "View", icon `Eye`, color `secondary`, `GET` navigation. Inside a resource, the URL resolves to the resource's view page.
 
-- **Icon**: Eye
-- **Color**: secondary
-- **Method**: GET
-- Auto-resolves URL from resource context
-
-## Custom Label
+## Customizing
 
 ```php
-use Laravilt\Actions\ViewAction;
-
 ViewAction::make()
-    ->label('View Details');
-```
-
-## Custom Icon
-
-```php
-use Laravilt\Actions\ViewAction;
-
-ViewAction::make()
-    ->icon('FileText');
-```
-
-## Open in New Tab
-
-```php
-use Laravilt\Actions\ViewAction;
-
-ViewAction::make()
-    ->openUrlInNewTab();
-```
-
-## Custom URL
-
-```php
-use Laravilt\Actions\ViewAction;
-
-ViewAction::make()
-    ->url(fn ($record) => route('posts.show', $record));
-```
-
-## Conditional Visibility
-
-```php
-use Laravilt\Actions\ViewAction;
-
-ViewAction::make()
+    ->label('Details')
+    ->icon('FileText')
+    ->url(fn ($record) => route('posts.show', $record))
+    ->openUrlInNewTab()
     ->visible(fn ($record) => $record->is_published);
 ```
 
 ## Authorization
 
 ```php
-use Laravilt\Actions\ViewAction;
-
-ViewAction::make()
-    ->authorize(fn ($record) => auth()->user()->can('view', $record));
-
-// Or using Spatie permissions
-ViewAction::make()
-    ->can('view posts');
+ViewAction::make()->can('view_post');
+ViewAction::make()->authorize(fn ($record) => auth()->user()->can('view', $record));
 ```
 
-## API Reference
-
-| Method | Parameters | Description |
-|--------|-----------|-------------|
-| `make()` | `?string $name` | Create action |
-| `label()` | `string` | Set label |
-| `icon()` | `string` | Set icon |
-| `color()` | `string` | Set color |
-| `url()` | `string\|Closure` | Custom URL |
-| `openUrlInNewTab()` | — | Open in new tab |
-| `visible()` | `bool\|Closure` | Show condition |
-| `hidden()` | `bool\|Closure` | Hide condition |
-| `authorize()` | `Closure` | Auth callback |
-| `can()` | `string` | Spatie permission |
+See [Authorization](../authorization.md).
