@@ -1,7 +1,7 @@
 {
     "name": "laravilt/laravilt",
     "description": "Laravilt - Modern Laravel Admin Panel with Vue 3, Inertia.js, and AI capabilities",
-    "version": "1.0.3",
+    "version": "1.1.0",
     "type": "library",
     "license": "MIT",
     "keywords": [
@@ -20,19 +20,19 @@
     ],
     "require": {
         "php": "^8.3|^8.4",
-        "laravilt/support": "^1.0",
-        "laravilt/panel": "^1.0",
-        "laravilt/auth": "^1.0",
-        "laravilt/forms": "^1.0",
-        "laravilt/tables": "^1.0",
-        "laravilt/actions": "^1.0",
-        "laravilt/schemas": "^1.0",
-        "laravilt/infolists": "^1.0",
-        "laravilt/notifications": "^1.0",
-        "laravilt/widgets": "^1.0",
-        "laravilt/query-builder": "^1.0",
-        "laravilt/ai": "^1.0",
-        "laravilt/plugins": "^1.0"
+        "laravilt/support": "^1.1",
+        "laravilt/panel": "^1.1",
+        "laravilt/auth": "^1.1",
+        "laravilt/forms": "^1.1",
+        "laravilt/tables": "^1.1",
+        "laravilt/actions": "^1.1",
+        "laravilt/schemas": "^1.1",
+        "laravilt/infolists": "^1.1",
+        "laravilt/notifications": "^1.1",
+        "laravilt/widgets": "^1.1",
+        "laravilt/query-builder": "^1.1",
+        "laravilt/ai": "^1.1",
+        "laravilt/plugins": "^1.1"
     },
     "require-dev": {
         "larastan/larastan": "^2.9||^3.0",
