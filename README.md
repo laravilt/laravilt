@@ -2,19 +2,26 @@
 
 # Laravilt
 
-A modern Laravel Admin Panel built with Vue 3, Inertia.js, and AI capabilities. Inspired by Filament but powered by the frontend.
+A modern admin panel framework for Laravel 13, rendered through Inertia.js with **Vue 3 or React 19**, with built-in AI capabilities. Inspired by Filament but powered by the frontend.
+
+> **v1.1 is out:** React 19 support alongside Vue 3, and Laravel 13 compatibility. See [Frontend Stacks](docs/getting-started/frontend-stacks.md) and [Upgrading](docs/getting-started/upgrade.md).
 
 [![Latest Stable Version](https://poser.pugx.org/laravilt/laravilt/version.svg)](https://packagist.org/packages/laravilt/laravilt)
 [![License](https://poser.pugx.org/laravilt/laravilt/license.svg)](https://packagist.org/packages/laravilt/laravilt)
 [![Downloads](https://poser.pugx.org/laravilt/laravilt/d/total.svg)](https://packagist.org/packages/laravilt/laravilt)
+[![PHP](https://img.shields.io/badge/PHP-8.3%20%7C%208.4-777BB4?logo=php&logoColor=white)](docs/getting-started/requirements.md)
+[![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
+[![Vue](https://img.shields.io/badge/Vue-3-4FC08D?logo=vuedotjs&logoColor=white)](docs/getting-started/frontend-stacks.md)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](docs/getting-started/frontend-stacks.md)
 [![Dependabot Updates](https://github.com/laravilt/laravilt/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/laravilt/laravilt/actions/workflows/dependabot/dependabot-updates)
 [![PHP Code Styling](https://github.com/laravilt/laravilt/actions/workflows/fix-php-code-styling.yml/badge.svg)](https://github.com/laravilt/laravilt/actions/workflows/fix-php-code-styling.yml)
 [![Tests](https://github.com/laravilt/laravilt/actions/workflows/tests.yml/badge.svg)](https://github.com/laravilt/laravilt/actions/workflows/tests.yml)
 
 ## Features
 
-- **Modern Stack**: Laravel 12, Vue 3, Inertia.js v2, Tailwind CSS v4
-- **Beautiful UI**: Built on shadcn/vue and Reka UI components
+- **Modern Stack**: Laravel 13, Inertia.js, TypeScript, Tailwind CSS v4
+- **Vue 3 or React 19**: Pick your frontend per app; the same PHP panels, resources, forms and tables render in either stack
+- **Beautiful UI**: Built on shadcn-vue (Reka UI) for Vue and shadcn/ui (Radix) for React
 - **AI Integration**: Multi-provider AI support (OpenAI, Anthropic, Gemini)
 - **Global Search**: AI-powered search across all resources
 - **Rich Form Builder**: 30+ field types with validation
@@ -226,65 +233,27 @@ A modern Laravel Admin Panel built with Vue 3, Inertia.js, and AI capabilities. 
 
 ## Documentation
 
-Complete technical documentation for all Laravilt packages:
+Full documentation lives in [`docs/`](docs/README.md):
 
-### Getting Started
-- [Overview](docs/getting-started/README.md) - Introduction and package overview
-- [Installation](docs/getting-started/installation.md) - Complete installation guide
-- [Architecture](docs/getting-started/architecture.md) - System architecture and design
-- [Quick Start](docs/getting-started/quick-start.md) - Build your first resource
-
-### Core Packages
-- [Panel](docs/panel/introduction.md) - Admin panel framework
-  - [Creating Panels](docs/panel/creating-panels.md)
-  - [Resources](docs/panel/resources.md)
-  - [Pages](docs/panel/pages.md)
-  - [Navigation](docs/panel/navigation.md)
-  - [Themes](docs/panel/themes.md)
-
-- [Auth](docs/auth/introduction.md) - Authentication system
-  - [Auth Methods](docs/auth/methods.md)
-  - [Two-Factor Authentication](docs/auth/two-factor.md)
-  - [Social Login](docs/auth/social.md)
-  - [Passkeys](docs/auth/passkeys.md)
-  - [Profile Management](docs/auth/profile.md)
-
-- [Forms](docs/forms/introduction.md) - Form builder
-  - [Field Types](docs/forms/field-types.md) - 30+ field types
-  - [Validation](docs/forms/validation.md)
-  - [Layouts](docs/forms/layouts.md)
-  - [Reactive Fields](docs/forms/reactive-fields.md)
-  - [Custom Fields](docs/forms/custom-fields.md)
-
-- [Tables](docs/tables/introduction.md) - Table builder
-  - [Columns](docs/tables/columns.md) - 9 column types
-  - [Filters](docs/tables/filters.md)
-  - [Actions](docs/tables/actions.md)
-  - [Table API](docs/tables/api.md) - REST API generation
-
-- [Actions](docs/actions/introduction.md) - Action system for CRUD operations
-
-### Supporting Packages
-- [Schemas](docs/schemas/introduction.md) - Layout components
-- [Infolists](docs/infolists/introduction.md) - Read-only data display
-- [Notifications](docs/notifications/introduction.md) - Toast and database notifications
-- [Widgets](docs/widgets/introduction.md) - Dashboard widgets and charts
-- [Query Builder](docs/query-builder/introduction.md) - Advanced query building
-- [Support](docs/support/introduction.md) - Core utilities and base components
-
-### Advanced Features
-- [AI Package](docs/ai/introduction.md) - AI integration
-  - Multi-provider support (OpenAI, Anthropic, Gemini, DeepSeek, Perplexity)
-  - Real-time streaming
-  - Tool calling and function execution
-  - Global search with AI
-  - Chat interface with session management
-
-- [Plugins](docs/plugins/introduction.md) - Plugin system
-  - Creating plugins
-  - Plugin components
-  - Auto-discovery
-  - MCP integration for AI-assisted development
+| Section | What's inside |
+|---------|---------------|
+| [Getting Started](docs/getting-started/README.md) | [Requirements](docs/getting-started/requirements.md), [installation](docs/getting-started/installation.md), [quick start](docs/getting-started/quick-start.md), [first resource](docs/getting-started/first-resource.md), [frontend stacks](docs/getting-started/frontend-stacks.md), [upgrading](docs/getting-started/upgrade.md) |
+| [Panel & Resources](docs/panel/README.md) | Panels, resources, pages, navigation, tenancy, Filament migration |
+| [Forms](docs/forms/README.md) | Inputs, selects, pickers, uploads, repeaters, validation, reactivity |
+| [Tables](docs/tables/README.md) | Columns, filters, actions, search, sorting, grouping, display modes |
+| [Actions](docs/actions/README.md) | Create, edit, delete, export, import and custom actions |
+| [Schemas](docs/schemas/README.md) | Layout: sections, grids, tabs, wizards |
+| [Infolists](docs/infolists/README.md) | Read-only entries for view pages |
+| [Notifications](docs/notifications/README.md) | Toast and database notifications |
+| [Widgets](docs/widgets/README.md) | Stats and chart widgets for dashboards |
+| [Auth](docs/auth/README.md) | Login, 2FA, passkeys, social login, profile |
+| [AI](docs/ai/README.md) | Providers, chat, tools, agents, AI search |
+| [Query Builder](docs/query-builder/README.md) | Filtering and sorting Eloquent queries |
+| [Plugins](docs/plugins/README.md) | Build and share Laravilt plugins |
+| [Frontend (Vue & React)](docs/frontend/README.md) | Layouts, components, styling |
+| [MCP](docs/mcp/README.md) | Use Laravilt from Claude and other AI assistants |
+| [Support](docs/support/README.md) | Base component, concerns, utilities |
+| [FAQ](docs/faq/README.md) | Common questions |
 
 ## Included Packages
 
@@ -292,49 +261,63 @@ This meta-package includes all Laravilt components:
 
 | Package | Description | Documentation |
 |---------|-------------|---------------|
-| `laravilt/support` | Core utilities and helpers | [Docs](docs/support/introduction.md) |
-| `laravilt/panel` | Admin panel core framework | [Docs](docs/panel/introduction.md) |
-| `laravilt/auth` | Authentication system | [Docs](docs/auth/introduction.md) |
-| `laravilt/forms` | Form builder with 30+ fields | [Docs](docs/forms/introduction.md) |
-| `laravilt/tables` | Table builder with actions | [Docs](docs/tables/introduction.md) |
-| `laravilt/actions` | Action system for CRUD | [Docs](docs/actions/introduction.md) |
-| `laravilt/schemas` | Schema definitions | [Docs](docs/schemas/introduction.md) |
-| `laravilt/infolists` | Information display lists | [Docs](docs/infolists/introduction.md) |
-| `laravilt/notifications` | Notification system | [Docs](docs/notifications/introduction.md) |
-| `laravilt/widgets` | Dashboard widgets | [Docs](docs/widgets/introduction.md) |
-| `laravilt/query-builder` | Query building utilities | [Docs](docs/query-builder/introduction.md) |
-| `laravilt/ai` | AI assistant integration | [Docs](docs/ai/introduction.md) |
-| `laravilt/plugins` | Plugin system & generators | [Docs](docs/plugins/introduction.md) |
+| `laravilt/support` | Core utilities and helpers | [Docs](docs/support/README.md) |
+| `laravilt/panel` | Admin panel core framework | [Docs](docs/panel/README.md) |
+| `laravilt/auth` | Authentication system | [Docs](docs/auth/README.md) |
+| `laravilt/forms` | Form builder with 30+ fields | [Docs](docs/forms/README.md) |
+| `laravilt/tables` | Table builder with actions | [Docs](docs/tables/README.md) |
+| `laravilt/actions` | Action system for CRUD | [Docs](docs/actions/README.md) |
+| `laravilt/schemas` | Schema definitions | [Docs](docs/schemas/README.md) |
+| `laravilt/infolists` | Information display lists | [Docs](docs/infolists/README.md) |
+| `laravilt/notifications` | Notification system | [Docs](docs/notifications/README.md) |
+| `laravilt/widgets` | Dashboard widgets | [Docs](docs/widgets/README.md) |
+| `laravilt/query-builder` | Query building utilities | [Docs](docs/query-builder/README.md) |
+| `laravilt/ai` | AI assistant integration | [Docs](docs/ai/README.md) |
+| `laravilt/plugins` | Plugin system & generators | [Docs](docs/plugins/README.md) |
 
 ## Requirements
 
-- PHP 8.3+
-- Laravel 12+
-- Node.js 18+
-- npm or pnpm
+- PHP 8.3 or 8.4
+- Laravel 13 (Laravilt 1.0.x supports Laravel 11/12 with Vue only)
+- Node.js 20+ with npm
+- A Laravel Inertia starter kit: **Vue** (Vue 3) or **React** (React 19)
+
+See [Requirements](docs/getting-started/requirements.md) for databases and extensions.
 
 ## Installation
 
+Laravilt installs on a fresh Laravel app created with the Vue or React starter kit. The installer detects the stack from your `package.json`, or you can pass it with `--stack`.
+
+### Vue 3
+
 ```bash
+laravel new my-app   # choose the Vue starter kit
+cd my-app
 composer require laravilt/laravilt
+php artisan laravilt:install --stack=vue
 ```
 
-Run the installer:
+### React 19
 
 ```bash
-php artisan laravilt:install
+laravel new my-app   # choose the React starter kit
+cd my-app
+composer require laravilt/laravilt
+php artisan laravilt:install --stack=react
 ```
 
-This will:
-- Publish all configurations
-- Run migrations
-- Setup frontend assets
-- Clear caches
+The installer:
+- Publishes the configs and the frontend for your stack, and writes `LARAVILT_FRONTEND=vue|react` to `.env`
+- Runs migrations
+- Creates the admin panel provider
+- Runs `npm install` and `npm run build`
+
+Use `--skip-npm` to build the assets yourself. The installer overwrites starter-kit files, so run it on a fresh app or commit first. See [Installation](docs/getting-started/installation.md) for every option.
 
 ### Create Admin User
 
 ```bash
-php artisan laravilt:make-user
+php artisan laravilt:user
 ```
 
 ## Quick Start
@@ -402,8 +385,8 @@ class AdminPanelProvider extends PanelProvider
 - `laravilt:make {type}` - Generate Laravel components in plugin
 
 ### System
-- `laravilt:install` - Install/update Laravilt
-- `laravilt:make-user` - Create admin user
+- `laravilt:install` - Install/update Laravilt (`--stack=vue|react`)
+- `laravilt:user` - Create admin user
 
 ## Configuration
 
@@ -502,4 +485,4 @@ The MIT License (MIT). See [License File](LICENSE.md) for more information.
 
 - Built by [Fady Mondy](https://github.com/3x1io)
 - Inspired by [Filament PHP](https://filamentphp.com)
-- UI components from [shadcn/vue](https://www.shadcn-vue.com)
+- UI components from [shadcn-vue](https://www.shadcn-vue.com) and [shadcn/ui](https://ui.shadcn.com)
