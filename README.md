@@ -477,6 +477,10 @@ composer test
 composer format
 ```
 
+## Contributing
+
+Contributions are welcome. Read the [contributing guide](.github/CONTRIBUTING.md) before opening a pull request, and report security issues as described in the [security policy](.github/SECURITY.md).
+
 ## License
 
 The MIT License (MIT). See [License File](LICENSE.md) for more information.
