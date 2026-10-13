@@ -6,6 +6,9 @@ A modern admin panel framework for Laravel 13, rendered through Inertia.js with 
 
 > **v1.1 is out:** React 19 support alongside Vue 3, and Laravel 13 compatibility. See [Frontend Stacks](docs/getting-started/frontend-stacks.md) and [Upgrading](docs/getting-started/upgrade.md).
 
+
+⭐ **If Laravilt helps you, star the repo** so more Laravel developers find it. Docs: [laravilt.com/en/docs](https://laravilt.com/en/docs)
+
 [![Latest Stable Version](https://poser.pugx.org/laravilt/laravilt/version.svg)](https://packagist.org/packages/laravilt/laravilt)
 [![License](https://poser.pugx.org/laravilt/laravilt/license.svg)](https://packagist.org/packages/laravilt/laravilt)
 [![Downloads](https://poser.pugx.org/laravilt/laravilt/d/total.svg)](https://packagist.org/packages/laravilt/laravilt)
@@ -490,3 +493,11 @@ The MIT License (MIT). See [License File](LICENSE.md) for more information.
 - Built by [Fady Mondy](https://github.com/3x1io)
 - Inspired by [Filament PHP](https://filamentphp.com)
 - UI components from [shadcn-vue](https://www.shadcn-vue.com) and [shadcn/ui](https://ui.shadcn.com)
+
+## More open source from the same author
+
+- [TomatoPHP](https://tomatophp.com): 60+ open-source FilamentPHP plugins for Laravel
+- [ToGO](https://to-go.dev): the Laravel-style workflow for Go + React apps, with a plugin marketplace
+- [Zekra](https://zekra.dev): long-term memory for AI agents over MCP
+
+Built by [Fady Mondy](https://fadymondy.com).
