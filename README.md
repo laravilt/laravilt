@@ -484,6 +484,18 @@ composer format
 
 Contributions are welcome. Read the [contributing guide](.github/CONTRIBUTING.md) before opening a pull request, and report security issues as described in the [security policy](.github/SECURITY.md).
 
+## Sponsor
+
+Laravilt is free and open source, built and maintained by [Fady Mondy](https://github.com/fadymondy).
+If it saves you time or powers your business, please consider supporting its development:
+
+<p>
+  <a href="https://github.com/sponsors/fadymondy"><img src="https://img.shields.io/badge/GitHub%20Sponsors-fadymondy-ea4aaa?logo=githubsponsors&logoColor=white" alt="GitHub Sponsors" /></a>
+  <a href="https://buymeacoffee.com/fadymondy"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-fadymondy-ffdd00?logo=buymeacoffee&logoColor=black" alt="Buy Me a Coffee" /></a>
+</p>
+
+Every sponsorship goes into maintenance, docs, translations and new features.
+
 ## License
 
 The MIT License (MIT). See [License File](LICENSE.md) for more information.
