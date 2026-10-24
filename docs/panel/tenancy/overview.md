@@ -83,3 +83,4 @@ php artisan tenant:delete acme --keep-database
 
 - [Teams Tenancy](teams.md): teams as tenants
 - [Configuration](configuration.md): detailed configuration
+- [Tenancy for Laravel admin panels](https://laravilt.com/en/blog/tenancy-for-laravel-laravilt): how a request finds its tenant, how tenant databases are provisioned, and keeping tenant context in queued jobs
