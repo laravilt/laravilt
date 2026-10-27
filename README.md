@@ -492,6 +492,8 @@ Moharrik and Hosbah. The best way to support Laravilt is to **sponsor ToGO**, wh
 
 **[Sponsor ToGO →](https://to-go.dev/sponsor)**
 
+Or back Laravilt directly on Open Collective: **[opencollective.com/laravilt →](https://opencollective.com/laravilt)**
+
 <p>
   <a href="https://to-go.dev/sponsor"><img src="https://img.shields.io/badge/Sponsor-ToGO-00ADD8?logo=go&logoColor=white" alt="Sponsor ToGO" /></a>
   <a href="https://github.com/sponsors/fadymondy"><img src="https://img.shields.io/badge/GitHub%20Sponsors-fadymondy-ea4aaa?logo=githubsponsors&logoColor=white" alt="GitHub Sponsors" /></a>
